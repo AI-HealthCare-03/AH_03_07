@@ -30,6 +30,12 @@ class Config(BaseSettings):
     DB_CONNECT_TIMEOUT: int = 5
     DB_CONNECTION_POOL_MAXSIZE: int = 10
 
+    REDIS_URL: str = "redis://localhost:6379/0"
+    OPENAI_API_KEY: str = ""
+    QDRANT_HOST: str = "localhost"
+    QDRANT_PORT: int = 6333
+    MEDIA_DIR: str = "media"
+
     COOKIE_DOMAIN: str = "localhost"
 
     JWT_ALGORITHM: str = "HS256"
