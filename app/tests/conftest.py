@@ -37,7 +37,7 @@ def initialize(request: FixtureRequest) -> Generator[None, None]:
     try:
         with patch("tortoise.contrib.test.getDBConfig", Mock(return_value=get_test_db_config())):
             initializer(modules=TORTOISE_APP_MODELS)
-    except Exception:
+    except (ConnectionRefusedError, OSError):
         db_available = False
     yield
     if db_available:
