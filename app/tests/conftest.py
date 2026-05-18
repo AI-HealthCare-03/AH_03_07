@@ -33,10 +33,15 @@ def get_test_db_config() -> dict[str, Any]:
 def initialize(request: FixtureRequest) -> Generator[None, None]:
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    with patch("tortoise.contrib.test.getDBConfig", Mock(return_value=get_test_db_config())):
-        initializer(modules=TORTOISE_APP_MODELS)
+    db_available = True
+    try:
+        with patch("tortoise.contrib.test.getDBConfig", Mock(return_value=get_test_db_config())):
+            initializer(modules=TORTOISE_APP_MODELS)
+    except Exception:
+        db_available = False
     yield
-    finalizer()
+    if db_available:
+        finalizer()
     loop.close()
 
 
