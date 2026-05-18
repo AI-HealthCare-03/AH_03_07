@@ -49,7 +49,7 @@ def _write_pdf(tmp_path):
 @patch("ai_worker.tasks.embedding.Tortoise.close_connections", new_callable=AsyncMock)
 @patch("ai_worker.tasks.embedding.AsyncOpenAI")
 @patch("ai_worker.tasks.embedding.AsyncQdrantClient")
-@patch("app.models.knowledge.KnowledgeDocument")
+@patch("ai_worker.tasks.embedding.KnowledgeDocument")
 @pytest.mark.asyncio
 async def test_embed_task_sets_status_done(
     mock_doc_cls: MagicMock,
@@ -89,7 +89,7 @@ async def test_embed_task_sets_status_done(
 @patch("ai_worker.tasks.embedding.Tortoise.close_connections", new_callable=AsyncMock)
 @patch("ai_worker.tasks.embedding.AsyncOpenAI")
 @patch("ai_worker.tasks.embedding.AsyncQdrantClient")
-@patch("app.models.knowledge.KnowledgeDocument")
+@patch("ai_worker.tasks.embedding.KnowledgeDocument")
 @pytest.mark.asyncio
 async def test_embed_task_idempotent_deletes_before_upsert(
     mock_doc_cls: MagicMock,
@@ -122,7 +122,7 @@ async def test_embed_task_idempotent_deletes_before_upsert(
 @patch("ai_worker.tasks.embedding.Tortoise.close_connections", new_callable=AsyncMock)
 @patch("ai_worker.tasks.embedding.AsyncOpenAI")
 @patch("ai_worker.tasks.embedding.AsyncQdrantClient")
-@patch("app.models.knowledge.KnowledgeDocument")
+@patch("ai_worker.tasks.embedding.KnowledgeDocument")
 @pytest.mark.asyncio
 async def test_embed_task_sets_failed_on_openai_error(
     mock_doc_cls: MagicMock,

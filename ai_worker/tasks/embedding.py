@@ -14,6 +14,7 @@ from ai_worker.core.logger import setup_logger
 from ai_worker.core.qdrant_init import COLLECTION_NAME
 from ai_worker.utils.chunker import chunk_text
 from ai_worker.utils.pdf_parser import ParsedBlock, detect_section_title, extract_blocks
+from app.models.knowledge import DocumentStatus, KnowledgeDocument
 
 logger = setup_logger("ai_worker.embedding")
 
@@ -58,8 +59,6 @@ def embed_document_task(self, doc_id: int) -> None:  # noqa: ANN001
 
 
 async def _embed_document_async(doc_id: int) -> None:
-    from app.models.knowledge import DocumentStatus, KnowledgeDocument
-
     await Tortoise.init(config=_TORTOISE_ORM)
     doc = None
     try:
@@ -121,7 +120,6 @@ async def _embed_document_async(doc_id: int) -> None:
 
     except Exception as exc:
         if doc is not None:
-            from app.models.knowledge import DocumentStatus
             doc.status = DocumentStatus.FAILED
             doc.error_message = str(exc)[:2000]
             await doc.save(update_fields=["status", "error_message", "updated_at"])
