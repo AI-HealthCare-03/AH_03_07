@@ -1,15 +1,13 @@
+import uuid
 from enum import StrEnum
-
 from tortoise import fields, models
-
 
 class Gender(StrEnum):
     MALE = "MALE"
     FEMALE = "FEMALE"
 
-
 class User(models.Model):
-    id = fields.BigIntField(primary_key=True)
+    id = fields.UUIDField(primary_key=True, default=uuid.uuid4)
     email = fields.CharField(max_length=40)
     hashed_password = fields.CharField(max_length=128)
     name = fields.CharField(max_length=20)

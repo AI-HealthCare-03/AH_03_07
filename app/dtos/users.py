@@ -1,41 +1,51 @@
 from datetime import date, datetime
-from typing import Annotated
+from uuid import UUID
+from pydantic import BaseModel
 
-from pydantic import BaseModel, EmailStr, Field
-
-from app.dtos.base import BaseSerializerModel
 from app.models.users import Gender
-from app.core.validators import optional_after_validator
-from app.core.validators import validate_birthday, validate_phone_number
+
+
+class UserCreateRequest(BaseModel):
+    email: str
+    password: str
+    name: str
+    gender: Gender
+    birthday: date
+    phone_number: str
 
 
 class UserUpdateRequest(BaseModel):
-    name: Annotated[str | None, Field(None, min_length=2, max_length=20)]
-    email: Annotated[
-        EmailStr | None,
-        Field(None, max_length=40),
-    ]
-    phone_number: Annotated[
-        str | None,
-        Field(None, description="Available Format: +8201011112222, 01011112222, 010-1111-2222"),
-        optional_after_validator(validate_phone_number),
-    ]
-    birthday: Annotated[
-        date | None,
-        Field(None, description="Date Format: YYYY-MM-DD"),
-        optional_after_validator(validate_birthday),
-    ]
-    gender: Annotated[
-        Gender | None,
-        Field(None, description="'MALE' or 'FEMALE'"),
-    ]
+    name: str | None = None
+    phone_number: str | None = None
 
 
-class UserInfoResponse(BaseSerializerModel):
-    id: int
-    name: str
+class UserInfoResponse(BaseModel):
+    id: UUID
     email: str
-    phone_number: str
-    birthday: date
+    name: str
     gender: Gender
+    birthday: date
+    phone_number: str
+    is_active: bool
+    last_login: datetime | None
     created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class UserResponse(BaseModel):
+    id: UUID
+    email: str
+    name: str
+    gender: Gender
+    birthday: date
+    phone_number: str
+    is_active: bool
+    last_login: datetime | None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True

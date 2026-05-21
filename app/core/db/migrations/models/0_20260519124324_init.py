@@ -1,0 +1,257 @@
+from tortoise import BaseDBAsyncClient
+
+RUN_IN_TRANSACTION = True
+
+
+async def upgrade(db: BaseDBAsyncClient) -> str:
+    return """
+        CREATE TABLE IF NOT EXISTS `aerich` (
+    `id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    `version` VARCHAR(255) NOT NULL,
+    `app` VARCHAR(100) NOT NULL,
+    `content` JSON NOT NULL
+) CHARACTER SET utf8mb4;
+CREATE TABLE IF NOT EXISTS `users` (
+    `id` CHAR(36) NOT NULL PRIMARY KEY,
+    `email` VARCHAR(40) NOT NULL,
+    `hashed_password` VARCHAR(128) NOT NULL,
+    `name` VARCHAR(20) NOT NULL,
+    `gender` VARCHAR(6) NOT NULL COMMENT 'MALE: MALE\nFEMALE: FEMALE',
+    `birthday` DATE NOT NULL,
+    `phone_number` VARCHAR(11) NOT NULL,
+    `is_active` BOOL NOT NULL DEFAULT 1,
+    `is_admin` BOOL NOT NULL DEFAULT 0,
+    `last_login` DATETIME(6),
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)
+) CHARACTER SET utf8mb4;
+CREATE TABLE IF NOT EXISTS `user_consents` (
+    `id` CHAR(36) NOT NULL PRIMARY KEY,
+    `consent_type` VARCHAR(50) NOT NULL COMMENT 'TERMS_OF_SERVICE: TERMS_OF_SERVICE\nPRIVACY_POLICY: PRIVACY_POLICY\nMEDICAL_DATA: MEDICAL_DATA\nMARKETING: MARKETING',
+    `agreed` BOOL NOT NULL,
+    `version` VARCHAR(20) NOT NULL,
+    `agreed_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `withdrawn_at` DATETIME(6),
+    `user_id` CHAR(36) NOT NULL,
+    CONSTRAINT `fk_user_con_users_4a5cdd72` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) CHARACTER SET utf8mb4;
+CREATE TABLE IF NOT EXISTS `diary_symptom_logs` (
+    `id` CHAR(36) NOT NULL PRIMARY KEY,
+    `log_date` DATE NOT NULL,
+    `overall_condition` VARCHAR(20) NOT NULL COMMENT 'VERY_BAD: VERY_BAD\nBAD: BAD\nNORMAL: NORMAL\nGOOD: GOOD\nVERY_GOOD: VERY_GOOD',
+    `body_parts` JSON,
+    `feeling` JSON,
+    `memo` LONGTEXT,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    `user_id` CHAR(36) NOT NULL,
+    CONSTRAINT `fk_diary_sy_users_2491f500` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) CHARACTER SET utf8mb4;
+CREATE TABLE IF NOT EXISTS `diary_medication_logs` (
+    `id` CHAR(36) NOT NULL PRIMARY KEY,
+    `log_date` DATE NOT NULL,
+    `drug_name` VARCHAR(200) NOT NULL,
+    `time_slot` VARCHAR(20) COMMENT 'MORNING: MORNING\nLUNCH: LUNCH\nDINNER: DINNER\nBEDTIME: BEDTIME',
+    `taken` BOOL NOT NULL DEFAULT 1,
+    `taken_time` DATETIME(6),
+    `notes` LONGTEXT,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    `user_id` CHAR(36) NOT NULL,
+    CONSTRAINT `fk_diary_me_users_bc0b4b94` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) CHARACTER SET utf8mb4;
+CREATE TABLE IF NOT EXISTS `emergency_cards` (
+    `id` CHAR(36) NOT NULL PRIMARY KEY,
+    `blood_type` VARCHAR(10),
+    `allergies` LONGTEXT,
+    `chronic_conditions` LONGTEXT,
+    `emergency_contacts` JSON,
+    `siren_mode` VARCHAR(20) NOT NULL COMMENT 'NORMAL: NORMAL\nSILENT: SILENT\nOFF: OFF' DEFAULT 'NORMAL',
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    `user_id` CHAR(36) NOT NULL UNIQUE,
+    CONSTRAINT `fk_emergenc_users_72a898e0` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) CHARACTER SET utf8mb4;
+CREATE TABLE IF NOT EXISTS `health_metrics` (
+    `id` CHAR(36) NOT NULL PRIMARY KEY,
+    `metric_type` VARCHAR(30) NOT NULL COMMENT 'BLOOD_PRESSURE: BLOOD_PRESSURE\nBLOOD_SUGAR: BLOOD_SUGAR\nWEIGHT: WEIGHT\nHEART_RATE: HEART_RATE',
+    `user_recorded_value` DECIMAL(10,2) NOT NULL,
+    `measured_at` DATETIME(6) NOT NULL,
+    `notes` LONGTEXT,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `user_id` CHAR(36) NOT NULL,
+    CONSTRAINT `fk_health_m_users_769d851c` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) CHARACTER SET utf8mb4;
+CREATE TABLE IF NOT EXISTS `notification_settings` (
+    `id` CHAR(36) NOT NULL PRIMARY KEY,
+    `medication_enabled` BOOL NOT NULL DEFAULT 1,
+    `diary_enabled` BOOL NOT NULL DEFAULT 1,
+    `health_metric_enabled` BOOL NOT NULL DEFAULT 1,
+    `emergency_enabled` BOOL NOT NULL DEFAULT 1,
+    `quiet_hours_start` TIME(6),
+    `quiet_hours_end` TIME(6),
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    `user_id` CHAR(36) NOT NULL UNIQUE,
+    CONSTRAINT `fk_notifica_users_ea1f99f3` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) CHARACTER SET utf8mb4;
+CREATE TABLE IF NOT EXISTS `notifications` (
+    `id` CHAR(36) NOT NULL PRIMARY KEY,
+    `notification_type` VARCHAR(30) NOT NULL COMMENT 'MEDICATION: MEDICATION\nDIARY: DIARY\nHEALTH_METRIC: HEALTH_METRIC\nEMERGENCY: EMERGENCY',
+    `title` VARCHAR(200) NOT NULL,
+    `content` LONGTEXT NOT NULL,
+    `is_read` BOOL NOT NULL DEFAULT 0,
+    `scheduled_at` DATETIME(6) NOT NULL,
+    `sent_at` DATETIME(6),
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `user_id` CHAR(36) NOT NULL,
+    CONSTRAINT `fk_notifica_users_ca29871f` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) CHARACTER SET utf8mb4;
+CREATE TABLE IF NOT EXISTS `medical_documents` (
+    `id` CHAR(36) NOT NULL PRIMARY KEY,
+    `document_type` VARCHAR(50) NOT NULL COMMENT 'PRESCRIPTION: PRESCRIPTION\nLAB_RESULT: LAB_RESULT\nMEDICAL_RECORD: MEDICAL_RECORD',
+    `file_s3_url` LONGTEXT NOT NULL,
+    `original_filename` VARCHAR(255) NOT NULL,
+    `mime_type` VARCHAR(100),
+    `upload_status` VARCHAR(30) NOT NULL COMMENT 'PENDING: PENDING\nPROCESSING: PROCESSING\nCOMPLETED: COMPLETED\nFAILED: FAILED' DEFAULT 'PENDING',
+    `uploaded_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `deleted_at` DATETIME(6),
+    `user_id` CHAR(36) NOT NULL,
+    CONSTRAINT `fk_medical__users_9d9be28d` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) CHARACTER SET utf8mb4;
+CREATE TABLE IF NOT EXISTS `prescriptions` (
+    `id` CHAR(36) NOT NULL PRIMARY KEY,
+    `image_s3_url` LONGTEXT NOT NULL,
+    `ocr_status` VARCHAR(20) NOT NULL COMMENT 'PENDING: PENDING\nPROCESSING: PROCESSING\nCOMPLETED: COMPLETED\nFAILED: FAILED' DEFAULT 'PENDING',
+    `user_confirmed` BOOL NOT NULL DEFAULT 0,
+    `prescription_date` DATE,
+    `hospital_name` VARCHAR(100),
+    `diagnosis_text` LONGTEXT,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    `document_id` CHAR(36),
+    `user_id` CHAR(36) NOT NULL,
+    CONSTRAINT `fk_prescrip_medical__7df49791` FOREIGN KEY (`document_id`) REFERENCES `medical_documents` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_prescrip_users_75d98828` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) CHARACTER SET utf8mb4;
+CREATE TABLE IF NOT EXISTS `medications` (
+    `id` CHAR(36) NOT NULL PRIMARY KEY,
+    `drug_name_user_input` VARCHAR(200) NOT NULL,
+    `dosage` VARCHAR(50),
+    `frequency` VARCHAR(50),
+    `duration_days` INT,
+    `start_date` DATE,
+    `end_date` DATE,
+    `is_autoimmune_drug` BOOL NOT NULL DEFAULT 0,
+    `drug_category` VARCHAR(50),
+    `notes` LONGTEXT,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    `prescription_id` CHAR(36),
+    `user_id` CHAR(36) NOT NULL,
+    CONSTRAINT `fk_medicati_prescrip_1f35ac11` FOREIGN KEY (`prescription_id`) REFERENCES `prescriptions` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_medicati_users_5f6773a0` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) CHARACTER SET utf8mb4;
+CREATE TABLE IF NOT EXISTS `prompts` (
+    `id` CHAR(36) NOT NULL PRIMARY KEY,
+    `prompt_type` VARCHAR(50) NOT NULL COMMENT 'HEALTH_GUIDE: HEALTH_GUIDE\nOCR_EXTRACT: OCR_EXTRACT\nOCR_STRUCTURE: OCR_STRUCTURE\nMEDICATION_INFO: MEDICATION_INFO',
+    `name` VARCHAR(200) NOT NULL,
+    `version` VARCHAR(20) NOT NULL DEFAULT 'v1.0',
+    `template_text` LONGTEXT NOT NULL,
+    `variables` JSON,
+    `is_active` BOOL NOT NULL DEFAULT 1,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    UNIQUE KEY `uid_prompts_prompt__d4c8d3` (`prompt_type`, `version`)
+) CHARACTER SET utf8mb4;
+CREATE TABLE IF NOT EXISTS `health_guides` (
+    `id` CHAR(36) NOT NULL PRIMARY KEY,
+    `guide_type` VARCHAR(50) NOT NULL COMMENT 'EXERCISE: EXERCISE\nDIET: DIET\nLIFESTYLE: LIFESTYLE\nMEDICATION: MEDICATION\nGENERAL: GENERAL',
+    `status` VARCHAR(30) NOT NULL COMMENT 'PENDING: PENDING\nPROCESSING: PROCESSING\nCOMPLETED: COMPLETED\nFAILED: FAILED' DEFAULT 'PENDING',
+    `user_question` LONGTEXT NOT NULL,
+    `guide_content` LONGTEXT,
+    `prompt_used_id` CHAR(36),
+    `metadata` JSON,
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    `user_id` CHAR(36) NOT NULL,
+    CONSTRAINT `fk_health_g_users_bfbe82c5` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) CHARACTER SET utf8mb4;"""
+
+
+async def downgrade(db: BaseDBAsyncClient) -> str:
+    return """
+        """
+
+
+MODELS_STATE = (
+    "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"
+    "8BZkVe5HeNRFzdYe//V/CmN5Tw=="
+)

@@ -7,6 +7,26 @@ from app.core import config
 TORTOISE_APP_MODELS = [
     "aerich.models",
     "app.models.users",
+    "app.models.user_consents",
+    "app.models.diary_symptom_logs",
+    "app.models.diary_medication_logs",
+    "app.models.emergency_cards",
+    "app.models.health_metrics",
+    "app.models.notification_settings",
+    "app.models.notifications",
+    "app.models.medical_documents",
+    "app.models.prescriptions",
+    "app.models.medications",
+    "app.models.prompts",
+    "app.models.health_guides",
+    "app.models.feedback_logs",
+    "app.models.accessibility_settings",
+    "app.models.pharmacies",
+    "app.models.medical_appointments",
+    "app.models.favorite_places",
+    "app.models.guardians",
+    "app.models.share_links",
+    "app.models.share_logs",
 ]
 
 TORTOISE_ORM = {
