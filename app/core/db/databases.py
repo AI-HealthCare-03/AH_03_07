@@ -27,6 +27,8 @@ TORTOISE_APP_MODELS = [
     "app.models.guardians",
     "app.models.share_links",
     "app.models.share_logs",
+    "app.models.content_conversions",
+    "app.models.pill_recognitions",
 ]
 
 TORTOISE_ORM = {

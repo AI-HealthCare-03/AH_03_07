@@ -17,6 +17,11 @@ class DiaryMedicationLog(models.Model):
     taken = fields.BooleanField(default=True)
     taken_time = fields.DatetimeField(null=True)
     notes = fields.TextField(null=True)
+    # NOTI-008: 위치 태깅 (옵셔널, 100m 정확도)
+    latitude = fields.DecimalField(max_digits=10, decimal_places=4, null=True)
+    longitude = fields.DecimalField(max_digits=10, decimal_places=4, null=True)
+    location_recorded_at = fields.DatetimeField(null=True)
+
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
 

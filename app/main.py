@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 from app.apis.v1 import v1_routers
 from app.core.db.databases import initialize_tortoise
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(
     default_response_class=ORJSONResponse,
@@ -19,5 +20,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.mount("/static", StaticFiles(directory="/home/appuser/app/static"), name="static")
 initialize_tortoise(app)
 app.include_router(v1_routers)

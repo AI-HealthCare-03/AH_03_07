@@ -1,7 +1,10 @@
+from datetime import date, datetime
+from decimal import Decimal
 from uuid import UUID
-from datetime import date
-from app.models.diary_medication_logs import DiaryMedicationLog, TimeSlot
+
+from app.models.diary_medication_logs import DiaryMedicationLog
 from app.models.diary_symptom_logs import DiarySymptomLog, OverallCondition
+
 
 class DiaryLogRepository:
     """일기 (증상 + 복약) DB 쿼리 담당"""
@@ -53,15 +56,23 @@ class DiaryLogRepository:
     async def create_medication_log(
         user_id: UUID,
         log_date: date,
-        time_slot: TimeSlot,
-        medication_name: str,
+        drug_name: str,
         taken: bool,
+        taken_time: datetime | None = None,
+        notes: str | None = None,
+        latitude: Decimal | None = None,
+        longitude: Decimal | None = None,
+        location_recorded_at: datetime | None = None,
     ) -> DiaryMedicationLog:
-        """복약 기록 생성"""
+        """복약 기록 생성 (NOTI-008 위치 태깅 옵션)"""
         return await DiaryMedicationLog.create(
             user_id=user_id,
             log_date=log_date,
-            time_slot=time_slot,
-            medication_name=medication_name,
+            drug_name=drug_name,
             taken=taken,
+            taken_time=taken_time,
+            notes=notes,
+            latitude=latitude,
+            longitude=longitude,
+            location_recorded_at=location_recorded_at,
         )

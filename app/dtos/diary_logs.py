@@ -1,5 +1,7 @@
 from datetime import date, datetime
 from uuid import UUID
+from decimal import Decimal
+from asyncmy.converters import Decimal
 from pydantic import BaseModel
 
 from app.models.diary_symptom_logs import OverallCondition
@@ -38,6 +40,9 @@ class MedicationLogCreateRequest(BaseModel):
     taken: bool = True
     taken_time: datetime | None = None
     notes: str | None = None
+    # NOTI-008: 위치 태깅 (옵셔널)
+    latitude: Decimal | None = None
+    longitude: Decimal | None = None
 
 
 class MedicationLogResponse(BaseModel):
@@ -47,6 +52,9 @@ class MedicationLogResponse(BaseModel):
     taken: bool
     taken_time: datetime | None
     notes: str | None
+    latitude: Decimal | None = None
+    longitude: Decimal | None = None
+    location_recorded_at: datetime | None = None
     created_at: datetime
     updated_at: datetime
 
