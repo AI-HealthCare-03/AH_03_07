@@ -160,7 +160,7 @@ flutter run
 
 ### 4. 브랜치
 ```
-백엔드: feature/이승혁-frontend
+백엔드: feature/이승혁-backend
 Flutter: feature/이승혁-flutter
 ```
 
