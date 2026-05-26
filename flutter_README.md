@@ -17,8 +17,8 @@
 |------|------|
 | 회원가입 | 이메일 인증 기반 회원가입 |
 | 로그인 | JWT 토큰 기반 로그인 |
-| 구글 로그인 | Google OAuth 2.0 소셜 로그인 ✅ |
-| 네이버 로그인 | 네이버 OAuth 소셜 로그인 (웹 임시 구현) ✅ |
+| 구글 로그인 | Google OAuth 2.0 소셜 로그인 ✅ NEW |
+| 네이버 로그인 | 네이버 OAuth 소셜 로그인 (웹 임시 구현) ✅ NEW |
 | 로그아웃 | 토큰 삭제 및 로그인 화면 이동 |
 
 ### 🏠 메인
@@ -179,21 +179,15 @@ feature/이승혁-flutter
 ## 🔐 소셜 로그인 설정
 
 ### 구글 로그인
-- Google Cloud Console에서 OAuth 2.0 클라이언트 ID 발급 필요
-- 클라이언트 ID는 `envs/.local.env`에 저장 (`.gitignore` 적용)
-```
-GOOGLE_WEB_CLIENT_ID=...
-GOOGLE_ANDROID_CLIENT_ID=...
-GOOGLE_IOS_CLIENT_ID=...
-```
+- Google Cloud Console에서 OAuth 2.0 클라이언트 ID 발급
+- 웹 / Android / iOS 클라이언트 ID 각각 발급 필요
+- People API 활성화 필요
+- 클라이언트 ID는 백엔드 `envs/.local.env`에 저장
 
 ### 네이버 로그인
-- Naver Developers에서 앱 등록 및 Client ID/Secret 발급 필요
-- 현재 웹 환경에서는 임시 구현 (모바일 앱 빌드 시 정식 구현 예정)
-```
-NAVER_CLIENT_ID=...
-NAVER_CLIENT_SECRET=...
-```
+- Naver Developers에서 앱 등록 및 Client ID/Secret 발급
+- 현재 개발 상태 (배포 시 심사 필요)
+- 웹 환경에서는 임시 구현 (모바일 앱 빌드 시 정식 구현 예정)
 
 ---
 
