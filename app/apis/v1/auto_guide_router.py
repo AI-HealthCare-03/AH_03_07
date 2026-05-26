@@ -1,4 +1,5 @@
 """REQ-AUTO-005 맞춤 안내문 수동 생성 엔드포인트."""
+
 from fastapi import APIRouter, Depends
 
 from app.auto_guide.schema import OrchestratorResult
