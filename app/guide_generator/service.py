@@ -3,7 +3,6 @@
 생성 트리거·입력 수집(REQ-AUTO-005)은 Phase 3 담당 — 이 모듈은 generate 엔진만.
 """
 import json
-from datetime import datetime, timezone
 
 from openai import AsyncOpenAI
 

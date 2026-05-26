@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from app.highrisk_gate.schema import GateStatus, HighRiskGateInput, HighRiskGateResult, MatchedItem
@@ -64,7 +64,7 @@ def evaluate_highrisk_gate(gate_input: HighRiskGateInput) -> HighRiskGateResult:
             trigger_emergency_modal=False,
             message=_MSG_PASS,
             disclaimer=_DISCLAIMER,
-            evaluated_at=datetime.now(tz=timezone.utc),
+            evaluated_at=datetime.now(tz=UTC),
         )
 
     trigger_emergency_modal = any(item.red_flag for item in matched_items)
@@ -76,5 +76,5 @@ def evaluate_highrisk_gate(gate_input: HighRiskGateInput) -> HighRiskGateResult:
         trigger_emergency_modal=trigger_emergency_modal,
         message=message,
         disclaimer=_DISCLAIMER,
-        evaluated_at=datetime.now(tz=timezone.utc),
+        evaluated_at=datetime.now(tz=UTC),
     )

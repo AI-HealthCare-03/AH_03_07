@@ -15,7 +15,7 @@
   - weekly_refresh() — 주간 스케줄러 (스케줄러 인프라는 Phase 4 담당)
 """
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.auto_guide.interfaces import DataSourceCollector
 from app.auto_guide.schema import (
@@ -69,7 +69,7 @@ async def orchestrate(
     if collector is None:
         collector = _DEFAULT_COLLECTOR
 
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
 
     # Step 1: 데이터 수집
     autoimmune_mode = await collector.get_autoimmune_mode(user_id)
