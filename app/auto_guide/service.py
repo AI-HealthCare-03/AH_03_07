@@ -14,6 +14,7 @@
   - on_input_changed() — 입력 변경 시 호출 (디바운스는 호출자 책임)
   - weekly_refresh() — 주간 스케줄러 (스케줄러 인프라는 Phase 4 담당)
 """
+
 import json
 from datetime import UTC, datetime
 
@@ -95,11 +96,15 @@ async def orchestrate(
         risk_symptom_codes=risk_symptom_codes,
     )
     if trigger.status == TriggerStatus.NOT_MET:
-        logger.info(json.dumps({
-            "event": "guide_trigger_not_met",
-            "user_id": user_id,
-            "missing_conditions": trigger.missing_conditions,
-        }))
+        logger.info(
+            json.dumps(
+                {
+                    "event": "guide_trigger_not_met",
+                    "user_id": user_id,
+                    "missing_conditions": trigger.missing_conditions,
+                }
+            )
+        )
         return OrchestratorResult(
             user_id=user_id,
             orchestrator_status=OrchestratorStatus.TRIGGER_NOT_MET,
@@ -141,13 +146,17 @@ async def orchestrate(
     trigger_emergency_modal = gate_result.trigger_emergency_modal
 
     # Step 7: 감사 로그
-    logger.info(json.dumps({
-        "event": "guide_orchestrated",
-        "user_id": user_id,
-        "guide_status": guide.status.value,
-        "high_risk_flag": high_risk_flag,
-        "trigger_emergency_modal": trigger_emergency_modal,
-    }))
+    logger.info(
+        json.dumps(
+            {
+                "event": "guide_orchestrated",
+                "user_id": user_id,
+                "guide_status": guide.status.value,
+                "high_risk_flag": high_risk_flag,
+                "trigger_emergency_modal": trigger_emergency_modal,
+            }
+        )
+    )
 
     orchestrator_status = OrchestratorStatus(guide.status.value)
 

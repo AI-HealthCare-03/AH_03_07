@@ -2,6 +2,7 @@
 
 생성 트리거·입력 수집(REQ-AUTO-005)은 Phase 3 담당 — 이 모듈은 generate 엔진만.
 """
+
 import json
 
 from openai import AsyncOpenAI
@@ -21,20 +22,13 @@ from app.services.safety_filter import (
 _MODEL = "gpt-4o-mini"
 _TEMPERATURE = 0.2
 
-_DISCLAIMER = (
-    "※ 이 안내문은 의료 진단·처방·치료를 대체하지 않습니다. "
-    "증상이 있으면 반드시 담당 의료진과 상담하세요."
-)
+_DISCLAIMER = "※ 이 안내문은 의료 진단·처방·치료를 대체하지 않습니다. 증상이 있으면 반드시 담당 의료진과 상담하세요."
 
 _BLOCKED_HIGH_RISK_MESSAGE = (
-    "담당 의료진 검토가 필요한 항목이 확인되었습니다. "
-    "자동 안내문 생성이 보류됩니다. 담당 의료진과 상담하시기 바랍니다."
+    "담당 의료진 검토가 필요한 항목이 확인되었습니다. 자동 안내문 생성이 보류됩니다. 담당 의료진과 상담하시기 바랍니다."
 )
 
-_GENERATION_FAILED_MESSAGE = (
-    "안내문 생성 중 오류가 발생했습니다. "
-    "담당 의료진과 상담하시기 바랍니다."
-)
+_GENERATION_FAILED_MESSAGE = "안내문 생성 중 오류가 발생했습니다. 담당 의료진과 상담하시기 바랍니다."
 
 _SYSTEM_PROMPT = """당신은 자가면역 질환(루푸스, 류마티스관절염 등) 환자를 위한 의료 정보 안내문을 작성하는 어시스턴트입니다.
 
@@ -123,14 +117,16 @@ def _build_sources(chunks: list[KnowledgeChunk]) -> list[SourceItem]:
         key = (c.source_title, c.source_organization, c.published_year)
         if key not in seen:
             seen.add(key)
-            sources.append(SourceItem(
-                title=c.source_title,
-                section=c.section_title,
-                page=c.page_number,
-                organization=c.source_organization,
-                published_year=c.published_year,
-                score=c.score,
-            ))
+            sources.append(
+                SourceItem(
+                    title=c.source_title,
+                    section=c.section_title,
+                    page=c.page_number,
+                    organization=c.source_organization,
+                    published_year=c.published_year,
+                    score=c.score,
+                )
+            )
     return sources
 
 
@@ -162,10 +158,14 @@ async def generate_guide(guide_input: HealthGuideInput) -> HealthGuideOutput:
 
     # 고위험 플래그 우선 처리 — LLM·RAG 호출 없이 즉시 차단
     if guide_input.high_risk_flag:
-        logger.info(json.dumps({
-            "event": "guide_blocked_high_risk",
-            "user_id": guide_input.user_id,
-        }))
+        logger.info(
+            json.dumps(
+                {
+                    "event": "guide_blocked_high_risk",
+                    "user_id": guide_input.user_id,
+                }
+            )
+        )
         guide = await HealthGuide.create(
             user_id=guide_input.user_id,
             status=GuideStatus.BLOCKED_HIGH_RISK.value,
@@ -194,8 +194,7 @@ async def generate_guide(guide_input: HealthGuideInput) -> HealthGuideOutput:
 
     # Step 3: 컨텍스트 구성
     user_content = (
-        f"[임상 가이드라인 자료]\n{_build_kb_context(chunks)}\n\n"
-        f"[환자 정보]\n{_build_user_context(guide_input)}"
+        f"[임상 가이드라인 자료]\n{_build_kb_context(chunks)}\n\n[환자 정보]\n{_build_user_context(guide_input)}"
     )
 
     # Step 4: LLM 안내문 생성 (Temperature 0.2, JSON 출력 강제)
@@ -216,11 +215,15 @@ async def generate_guide(guide_input: HealthGuideInput) -> HealthGuideOutput:
     try:
         sections = _validate_llm_output(raw_llm_output)
     except ValueError as exc:
-        logger.error(json.dumps({
-            "event": "guide_llm_validation_error",
-            "user_id": guide_input.user_id,
-            "error": str(exc),
-        }))
+        logger.error(
+            json.dumps(
+                {
+                    "event": "guide_llm_validation_error",
+                    "user_id": guide_input.user_id,
+                    "error": str(exc),
+                }
+            )
+        )
         guide = await HealthGuide.create(
             user_id=guide_input.user_id,
             status=GuideStatus.GENERATION_FAILED.value,
@@ -261,12 +264,16 @@ async def generate_guide(guide_input: HealthGuideInput) -> HealthGuideOutput:
         disclaimer=_DISCLAIMER,
     )
 
-    logger.info(json.dumps({
-        "event": "guide_generated",
-        "user_id": guide_input.user_id,
-        "chunk_count": len(chunks),
-        "source_count": len(sources),
-    }))
+    logger.info(
+        json.dumps(
+            {
+                "event": "guide_generated",
+                "user_id": guide_input.user_id,
+                "chunk_count": len(chunks),
+                "source_count": len(sources),
+            }
+        )
+    )
 
     return HealthGuideOutput(
         user_id=guide_input.user_id,

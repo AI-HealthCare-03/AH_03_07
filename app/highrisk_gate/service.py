@@ -7,10 +7,7 @@ from app.highrisk_gate.schema import GateStatus, HighRiskGateInput, HighRiskGate
 _RULES_PATH = Path(__file__).parent / "gate_rules.json"
 
 # gate_rules.json 모듈 로드 시 1회 캐싱
-_GATE_RULES: dict[str, dict] = {
-    rule["code"]: rule
-    for rule in json.loads(_RULES_PATH.read_text(encoding="utf-8"))
-}
+_GATE_RULES: dict[str, dict] = {rule["code"]: rule for rule in json.loads(_RULES_PATH.read_text(encoding="utf-8"))}
 
 _DISCLAIMER = (
     "※ 이 결과는 사용자가 직접 입력한 항목의 목록 확인이며, "
@@ -18,14 +15,9 @@ _DISCLAIMER = (
     "증상이 있으면 반드시 담당 의료진과 상담하세요."
 )
 
-_MSG_PASS = (
-    "등록된 검토 항목이 없습니다. "
-    "증상 변화가 있으면 담당 의료진과 상담하세요."
-)
+_MSG_PASS = "등록된 검토 항목이 없습니다. 증상 변화가 있으면 담당 의료진과 상담하세요."
 _MSG_LOCKED = (
-    "담당 의료진 검토가 필요한 항목이 접수되었습니다. "
-    "자동 안내문 생성이 보류됩니다. "
-    "담당 의료진과 상담하시기 바랍니다."
+    "담당 의료진 검토가 필요한 항목이 접수되었습니다. 자동 안내문 생성이 보류됩니다. 담당 의료진과 상담하시기 바랍니다."
 )
 _MSG_LOCKED_EMERGENCY = (
     "즉시 확인이 필요한 항목이 접수되었습니다. "
@@ -37,9 +29,7 @@ _MSG_LOCKED_EMERGENCY = (
 def evaluate_highrisk_gate(gate_input: HighRiskGateInput) -> HighRiskGateResult:
     # 입력 코드 수집 — 사용자가 직접 체크한 값만
     raw_codes: set[str] = set(
-        gate_input.checked_symptom_codes
-        + gate_input.self_report_codes
-        + gate_input.pregnancy_status_codes
+        gate_input.checked_symptom_codes + gate_input.self_report_codes + gate_input.pregnancy_status_codes
     )
     # 검사 기준값 초과 플래그는 LAB 모듈이 판정한 결과를 그대로 수신
     if gate_input.lab_threshold_exceeded:

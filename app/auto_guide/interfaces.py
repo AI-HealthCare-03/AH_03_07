@@ -3,6 +3,7 @@
 각 소스 구현체는 이 프로토콜을 준수해야 한다.
 Phase 3에서는 StubDataSourceCollector만 제공한다.
 """
+
 from typing import Protocol, runtime_checkable
 
 
