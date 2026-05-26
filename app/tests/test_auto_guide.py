@@ -2,7 +2,8 @@
 
 모든 외부 서비스(guide_generator, highrisk_gate, DataSourceCollector)는 AsyncMock/MagicMock으로 대체.
 """
-from datetime import datetime, timezone
+
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -13,7 +14,7 @@ from app.guide_generator.schema import GuideStatus, HealthGuideInput, HealthGuid
 
 # ── 공통 픽스처 ──────────────────────────────────────────────────
 
-_FAKE_CREATED_AT = datetime(2026, 5, 27, 0, 0, 0, tzinfo=timezone.utc)
+_FAKE_CREATED_AT = datetime(2026, 5, 27, 0, 0, 0, tzinfo=UTC)
 
 
 def _make_guide(status: GuideStatus) -> HealthGuideOutput:
@@ -68,6 +69,7 @@ def _make_collector(
 
 # ── 트리거 조건 검사 ─────────────────────────────────────────────
 
+
 def test_trigger_met_when_all_conditions_satisfied():
     """모드·질환·입력 소스 3개 모두 충족 → MET."""
     result = _check_trigger(
@@ -121,6 +123,7 @@ def test_trigger_not_met_when_no_input_source():
 
 
 # ── orchestrate() ────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_orchestrate_trigger_not_met_returns_early():

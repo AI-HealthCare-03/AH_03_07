@@ -1,5 +1,3 @@
-import pytest
-
 from app.highrisk_gate.schema import GateStatus, HighRiskGateInput
 from app.highrisk_gate.service import evaluate_highrisk_gate
 
@@ -40,9 +38,7 @@ def test_red_flag_symptom_returns_locked_with_modal():
 
 
 def test_mixed_red_and_non_red_flag_triggers_modal():
-    result = evaluate_highrisk_gate(
-        _make_input(checked_symptom_codes=["FEVER", "DYSPNEA"])
-    )
+    result = evaluate_highrisk_gate(_make_input(checked_symptom_codes=["FEVER", "DYSPNEA"]))
     assert result.status == GateStatus.LOCKED
     assert result.trigger_emergency_modal is True
     codes = {item.code for item in result.matched_items}
@@ -72,9 +68,7 @@ def test_lab_threshold_exceeded_returns_locked():
 
 
 def test_unknown_code_is_ignored_returns_pass():
-    result = evaluate_highrisk_gate(
-        _make_input(checked_symptom_codes=["UNKNOWN_CODE_XYZ"])
-    )
+    result = evaluate_highrisk_gate(_make_input(checked_symptom_codes=["UNKNOWN_CODE_XYZ"]))
     assert result.status == GateStatus.PASS
     assert result.matched_items == []
 

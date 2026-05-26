@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -11,12 +11,14 @@ from app.services.safety_filter import apply_safety_filter
 
 # ── 공통 픽스처 ──────────────────────────────────────────────
 
-_VALID_LLM_JSON = json.dumps({
-    "medication_general": "약물 복용 시 의료진 지시를 따르세요.",
-    "side_effect_monitoring": ["두통이 생기면 의료진에게 알려주세요.", "구토 증상 시 상담하세요."],
-    "lifestyle_info": "규칙적인 생활을 유지하세요.",
-    "symptom_summary": "증상 변화를 다음 진료 시 의료진과 공유하세요.",
-})
+_VALID_LLM_JSON = json.dumps(
+    {
+        "medication_general": "약물 복용 시 의료진 지시를 따르세요.",
+        "side_effect_monitoring": ["두통이 생기면 의료진에게 알려주세요.", "구토 증상 시 상담하세요."],
+        "lifestyle_info": "규칙적인 생활을 유지하세요.",
+        "symptom_summary": "증상 변화를 다음 진료 시 의료진과 공유하세요.",
+    }
+)
 
 _FAKE_CHUNK = KnowledgeChunk(
     document_id=1,
@@ -30,7 +32,7 @@ _FAKE_CHUNK = KnowledgeChunk(
     published_year=2022,
 )
 
-_FAKE_CREATED_AT = datetime(2026, 5, 27, 0, 0, 0, tzinfo=timezone.utc)
+_FAKE_CREATED_AT = datetime(2026, 5, 27, 0, 0, 0, tzinfo=UTC)
 
 
 def _make_input(**kwargs) -> HealthGuideInput:
@@ -54,6 +56,7 @@ def _mock_health_guide_create() -> AsyncMock:
 
 # ── 고위험 플래그 ─────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_high_risk_flag_blocks_llm():
     """고위험 플래그 True → LLM 미호출, 단일 차단 문구 반환."""
@@ -74,6 +77,7 @@ async def test_high_risk_flag_blocks_llm():
 
 # ── JSON Schema 검증 ──────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_valid_llm_json_generates_guide():
     """유효한 JSON → GENERATED 상태로 반환."""
@@ -82,9 +86,7 @@ async def test_valid_llm_json_generates_guide():
         patch("app.guide_generator.service.AsyncOpenAI") as mock_openai_cls,
         patch("app.guide_generator.service.HealthGuide.create", _mock_health_guide_create()),
     ):
-        mock_openai_cls.return_value.chat.completions.create = AsyncMock(
-            return_value=_mock_completion(_VALID_LLM_JSON)
-        )
+        mock_openai_cls.return_value.chat.completions.create = AsyncMock(return_value=_mock_completion(_VALID_LLM_JSON))
         result = await generate_guide(_make_input())
 
     assert result.status == GuideStatus.GENERATED
@@ -120,15 +122,14 @@ async def test_missing_required_key_returns_fallback():
         patch("app.guide_generator.service.AsyncOpenAI") as mock_openai_cls,
         patch("app.guide_generator.service.HealthGuide.create", _mock_health_guide_create()),
     ):
-        mock_openai_cls.return_value.chat.completions.create = AsyncMock(
-            return_value=_mock_completion(incomplete)
-        )
+        mock_openai_cls.return_value.chat.completions.create = AsyncMock(return_value=_mock_completion(incomplete))
         result = await generate_guide(_make_input())
 
     assert result.status == GuideStatus.GENERATION_FAILED
 
 
 # ── NFR-SAFE-003 필터 ─────────────────────────────────────────
+
 
 def test_safety_filter_blocks_drug_stop_expression():
     """'중단하세요' 포함 텍스트 → 차단, 정형 문구 대체."""
@@ -172,20 +173,20 @@ def test_safety_filter_blocks_drug_adjust_with_safe_expression():
 @pytest.mark.asyncio
 async def test_forbidden_expression_in_llm_output_is_replaced():
     """LLM이 금지 표현 생성 → 해당 섹션 정형 문구로 대체."""
-    bad_json = json.dumps({
-        "medication_general": "메토트렉세이트 복용을 중단하세요.",
-        "side_effect_monitoring": ["구토 시 의료진에게 알려주세요."],
-        "lifestyle_info": "규칙적인 생활을 하세요.",
-        "symptom_summary": "증상 변화를 기록하세요.",
-    })
+    bad_json = json.dumps(
+        {
+            "medication_general": "메토트렉세이트 복용을 중단하세요.",
+            "side_effect_monitoring": ["구토 시 의료진에게 알려주세요."],
+            "lifestyle_info": "규칙적인 생활을 하세요.",
+            "symptom_summary": "증상 변화를 기록하세요.",
+        }
+    )
     with (
         patch("app.guide_generator.service.search_knowledge", AsyncMock(return_value=[])),
         patch("app.guide_generator.service.AsyncOpenAI") as mock_openai_cls,
         patch("app.guide_generator.service.HealthGuide.create", _mock_health_guide_create()),
     ):
-        mock_openai_cls.return_value.chat.completions.create = AsyncMock(
-            return_value=_mock_completion(bad_json)
-        )
+        mock_openai_cls.return_value.chat.completions.create = AsyncMock(return_value=_mock_completion(bad_json))
         result = await generate_guide(_make_input())
 
     assert result.medication_general == "담당 의료진과 상담하시기 바랍니다."
@@ -193,6 +194,7 @@ async def test_forbidden_expression_in_llm_output_is_replaced():
 
 
 # ── 출처 메타데이터·면책 조항 ──────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_sources_attached_from_rag_metadata():
@@ -202,9 +204,7 @@ async def test_sources_attached_from_rag_metadata():
         patch("app.guide_generator.service.AsyncOpenAI") as mock_openai_cls,
         patch("app.guide_generator.service.HealthGuide.create", _mock_health_guide_create()),
     ):
-        mock_openai_cls.return_value.chat.completions.create = AsyncMock(
-            return_value=_mock_completion(_VALID_LLM_JSON)
-        )
+        mock_openai_cls.return_value.chat.completions.create = AsyncMock(return_value=_mock_completion(_VALID_LLM_JSON))
         result = await generate_guide(_make_input())
 
     assert len(result.sources) == 1
@@ -231,6 +231,7 @@ async def test_disclaimer_always_present():
 
 # ── HealthGuide 저장 ──────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_health_guide_create_called_once():
     """generate_guide 성공 시 HealthGuide.create 1회 호출."""
@@ -240,9 +241,7 @@ async def test_health_guide_create_called_once():
         patch("app.guide_generator.service.AsyncOpenAI") as mock_openai_cls,
         patch("app.guide_generator.service.HealthGuide.create", mock_create),
     ):
-        mock_openai_cls.return_value.chat.completions.create = AsyncMock(
-            return_value=_mock_completion(_VALID_LLM_JSON)
-        )
+        mock_openai_cls.return_value.chat.completions.create = AsyncMock(return_value=_mock_completion(_VALID_LLM_JSON))
         await generate_guide(_make_input())
 
     mock_create.assert_awaited_once()
@@ -257,7 +256,7 @@ async def test_health_guide_create_called_on_high_risk():
         patch("app.guide_generator.service.AsyncOpenAI"),
         patch("app.guide_generator.service.HealthGuide.create", mock_create),
     ):
-        result = await generate_guide(_make_input(high_risk_flag=True))
+        await generate_guide(_make_input(high_risk_flag=True))
 
     mock_create.assert_awaited_once()
     call_kwargs = mock_create.call_args.kwargs
