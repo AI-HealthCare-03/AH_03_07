@@ -6,6 +6,12 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     python3-dev \
     libffi-dev \
+    libcairo2 \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libgdk-pixbuf-2.0-0 \
+    shared-mime-info \
+    fonts-noto-cjk \
     && rm -rf /var/lib/apt/lists/*
 
 # 1. uv 설치 (공식 이미지에서 복사해오는 가장 깔끔한 방법)
