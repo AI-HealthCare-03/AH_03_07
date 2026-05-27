@@ -4,6 +4,11 @@ from app.apis.v1.activity_alert_routers import activity_alert_router
 from app.apis.v1.activity_log_routers import activity_log_router
 from app.apis.v1.auth_routers import auth_router
 from app.apis.v1.auto_guide_router import auto_guide_router
+from app.apis.v1.autoimmune_care_routers import (
+    medication_card_router,
+    pregnancy_safety_router,
+    vaccine_prevention_router,
+)
 from app.apis.v1.chat_routers import chat_router
 from app.apis.v1.disease_routers import disease_router
 from app.apis.v1.knowledge_routers import knowledge_router
@@ -30,3 +35,6 @@ v1_routers.include_router(activity_alert_router)
 v1_routers.include_router(symptom_check_router)
 v1_routers.include_router(medical_schedule_router)
 v1_routers.include_router(lab_result_router)
+v1_routers.include_router(medication_card_router)
+v1_routers.include_router(pregnancy_safety_router)
+v1_routers.include_router(vaccine_prevention_router)
