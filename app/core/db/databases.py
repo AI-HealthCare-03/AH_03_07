@@ -15,6 +15,7 @@ TORTOISE_APP_MODELS = [
     "app.models.user_medication",
     "app.models.disease_activity_log",
     "app.models.symptom_check_log",
+    "app.models.activity_alert_setting",
 ]
 
 TORTOISE_ORM = {

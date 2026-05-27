@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from app.apis.v1.activity_alert_routers import activity_alert_router
 from app.apis.v1.activity_log_routers import activity_log_router
 from app.apis.v1.auth_routers import auth_router
 from app.apis.v1.auto_guide_router import auto_guide_router
@@ -23,4 +24,5 @@ v1_routers.include_router(auto_guide_router)
 v1_routers.include_router(disease_router)
 v1_routers.include_router(medication_router)
 v1_routers.include_router(activity_log_router)
+v1_routers.include_router(activity_alert_router)
 v1_routers.include_router(symptom_check_router)
