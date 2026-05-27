@@ -80,7 +80,7 @@ _APPLICABLE_STATUSES = {PregnancyStatus.PREGNANT, PregnancyStatus.BREASTFEEDING,
 
 def _build_mfds_search_url(drug_name: str) -> str:
     encoded = quote(drug_name)
-    return f"{MFDS_DRUG_SEARCH_BASE}/SEARCH/List?searchYn=Y&itemName={encoded}"
+    return f"{MFDS_DRUG_SEARCH_BASE}/searchDrug?itemName={encoded}"
 
 
 class MedicationCardService:
