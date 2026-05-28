@@ -1,6 +1,7 @@
 import fitz
-
+import pytest
 from ai_worker.utils.pdf_parser import (
+    ParsedBlock,
     check_pdf_safety,
     detect_section_title,
     extract_blocks,

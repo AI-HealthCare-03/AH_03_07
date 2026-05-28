@@ -12,4 +12,3 @@ wheels/
 .coverage
 *.coverage
 .coverage.*
-media/

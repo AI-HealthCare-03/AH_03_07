@@ -1,4 +1,5 @@
-from ai_worker.utils.chunker import CHUNK_SIZE_TOKENS, chunk_text, count_tokens
+import pytest
+from ai_worker.utils.chunker import CHUNK_SIZE_TOKENS, count_tokens, chunk_text
 
 
 def test_chunk_empty_string():
