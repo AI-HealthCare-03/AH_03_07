@@ -1,174 +1,177 @@
-# 🏥 AI 헬스케어 앱 - FastAPI 백엔드
-**AI-HealthCare-03 | 7조 | 이승혁 담당**
+# AI Healthcare Project Template
+
+이 프로젝트는 AI 모델 추론(Inference) 워커와 FastAPI API 서버를 통합한 서비스 템플릿입니다. 
+현대적인 Python 패키지 관리 도구인 `uv`와 컨테이너화 도구인 `Docker`를 활용하여 일관된 개발 및 배포 환경을 제공합니다.
 
 ---
 
-## 📡 구현 API
+## 🚀 주요 특징
 
-### 🔐 인증
-| 기능 | 메서드 | 경로 |
-|------|--------|------|
-| 회원가입 | POST | `/v1/auth/signup` |
-| 이메일 인증코드 발송 | POST | `/v1/auth/email-verify/send` |
-| 이메일 인증코드 확인 | POST | `/v1/auth/email-verify/confirm` |
-| 로그인 | POST | `/v1/auth/login` |
-| 구글 소셜 로그인 | POST | `/v1/auth/google` ✅ NEW |
-| 네이버 소셜 로그인 | POST | `/v1/auth/naver` ✅ NEW |
-| 토큰 갱신 | POST | `/v1/auth/refresh` |
-| 로그아웃 | POST | `/v1/auth/logout` |
-
-### 👤 사용자
-| 기능 | 메서드 | 경로 |
-|------|--------|------|
-| 내 정보 조회 | GET | `/v1/users/me` |
-| 내 정보 수정 | PATCH | `/v1/users/me` |
-| 회원 탈퇴 | DELETE | `/v1/users/me` |
-
-### 📋 진료기록
-| 기능 | 메서드 | 경로 |
-|------|--------|------|
-| 진료기록 목록 | GET | `/v1/medical-records` |
-| 진료기록 등록 | POST | `/v1/medical-records` |
-| 진료기록 상세 | GET | `/v1/medical-records/{id}` |
-| 진료기록 수정 | PUT | `/v1/medical-records/{id}` |
-| 진료기록 삭제 | DELETE | `/v1/medical-records/{id}` |
-
-### 📄 의료문서 / OCR
-| 기능 | 메서드 | 경로 |
-|------|--------|------|
-| 의료문서 업로드 | POST | `/v1/medical-documents` |
-| 의료문서 목록 | GET | `/v1/medical-documents` |
-| OCR 처리 시작 | POST | `/v1/medical-documents/{id}/ocr-jobs` |
-| OCR 결과 조회 | GET | `/v1/ocr-jobs/{id}` |
-| OCR 결과 확정 | PUT | `/v1/medical-documents/{id}/confirm` |
-| 의료문서 삭제 | DELETE | `/v1/medical-documents/{id}` |
-
-### 📖 안내문
-| 기능 | 메서드 | 경로 |
-|------|--------|------|
-| 안내문 목록 | GET | `/v1/guides` |
-| 안내문 상세 | GET | `/v1/guides/{id}` |
-| 안내문 재생성 | POST | `/v1/guides/{id}/regenerate` |
-| 안내문 평가 | POST | `/v1/guides/{id}/feedback` |
-
-### 🔔 알림
-| 기능 | 메서드 | 경로 |
-|------|--------|------|
-| 알림 목록 | GET | `/v1/notifications` |
-| 알림 읽음 처리 | PUT | `/v1/notifications/{id}/read` |
-| 알림 설정 조회 | GET | `/v1/notifications/settings` |
-| 알림 설정 저장 | POST | `/v1/notifications/settings` |
-
-### 🏠 대시보드 / 챗봇
-| 기능 | 메서드 | 경로 |
-|------|--------|------|
-| 대시보드 | GET | `/v1/dashboard` |
-| 챗봇 세션 생성 | POST | `/v1/chat/sessions` |
-| 챗봇 메시지 전송 | POST | `/v1/chat/sessions/{id}/messages` |
-| 챗봇 대화 내역 | GET | `/v1/chat/sessions/{id}/messages` |
+- **FastAPI Framework**: 고성능 비동기 API 서버 구현.
+- **AI Worker**: 모델 추론 및 학습 작업을 API 서버와 분리하여 처리.
+- **UV Package Manager**: 매우 빠른 의존성 설치 및 가상환경 관리.
+- **Tortoise ORM**: 비동기 방식의 데이터베이스 모델링 및 쿼리 관리.
+- **Docker-Compose**: MySQL, Redis, Nginx를 포함한 전체 서비스 스택을 한 번에 실행.
+- **CI/CD Scripts**: 코드 포맷팅(Ruff), 타입 체크(Mypy), 테스트(Pytest)를 위한 자동화 스크립트 제공.
 
 ---
 
-## 🗂 파일 구조
+## 📂 프로젝트 구조
 
-```
-PythonProject/
-├── main.py                          # FastAPI 앱 진입점
-├── models.py                        # DB 모델 (User 등)
-├── schemas.py                       # Pydantic 스키마
-├── database.py                      # DB/Redis 연결
-├── security.py                      # JWT 토큰 처리
-├── Dockerfile                       # Docker 설정
-├── docker-compose.yml               # Docker Compose 설정
-├── requirements.txt                 # 패키지 목록
-├── routers/
-│   ├── auth.py                      # 이메일 로그인/회원가입
-│   ├── social_auth.py               # 구글/네이버 소셜 로그인 ✅ NEW
-│   ├── users.py                     # 유저 정보
-│   ├── medical_documents.py         # 의료문서/OCR
-│   ├── medical_records.py           # 진료기록
-│   ├── guides.py                    # 안내문
-│   ├── notifications.py             # 알림
-│   ├── chats.py                     # 챗봇
-│   └── dashboard.py                 # 대시보드
-└── envs/
-    └── .local.env                   # 환경변수 (gitignore 적용)
+```text
+.
+├── ai_worker/          # AI 모델 추론 및 학습 관련 코드 (Worker)
+│   ├── core/           # 워커 설정 및 로거
+│   ├── models/         # AI 모델 파일 보관 (PyTorch 등)
+│   ├── tasks/          # 실제 처리할 작업 정의
+│   └── main.py         # 워커 진입점
+├── app/                # FastAPI 서버 코드
+│   ├── apis/           # API 라우터 (v1 버전 관리)
+│   ├── core/           # 서버 설정 (pydantic-settings), DB 설정, JWT, Validator 등 핵심 기능
+│   ├── dtos/           # 데이터 전송 객체 (Pydantic models)
+│   ├── models/         # DB 테이블 정의
+│   ├── services/       # 비즈니스 로직
+│   └── main.py         # FastAPI 애플리케이션 진입점
+├── envs/               # 환경 변수 설정 파일 (.env)
+├── infra/              # 인프라 설정 관련 디렉터리
+│   ├── docker/         # Docker Compose 설정 (운영용)
+│   └── nginx/          # Nginx 설정 파일 (리버스 프록시)
+├── scripts/            # 배포 및 CI용 쉘 스크립트
+├── docker-compose.yml  # 로컬 개발용 서비스 실행 설정
+└── pyproject.toml      # uv 기반 의존성 관리 설정
 ```
 
 ---
 
-## 🛠 기술 스택
+## ⚙️ 사전 준비 사항
 
-```
-FastAPI (Python)
-├── fastapi                   # 웹 프레임워크
-├── sqlalchemy                # ORM
-├── pymysql                   # MySQL 드라이버
-├── redis                     # 토큰 저장소
-├── httpx                     # 소셜 로그인 HTTP 클라이언트 ✅ NEW
-├── python-jose               # JWT 토큰
-└── passlib                   # 비밀번호 해싱
-
-인프라
-├── MySQL 8.0                 # 데이터베이스
-├── Redis                     # 토큰/캐시 저장소
-├── Nginx                     # 리버스 프록시
-└── Docker Compose            # 컨테이너 오케스트레이션
-```
+- **Python**: 3.13 이상 (로컬 개발 환경용)
+- **UV**: Python 패키지 매니저 ([설치 가이드](https://github.com/astral-sh/uv))
+- **Docker & Docker-Compose**: 전체 서비스 실행용
 
 ---
 
-## 🚀 실행 방법
+## 🛠️ 설치 및 설정
 
-### 1. 환경변수 설정
-`envs/.local.env` 파일 생성 후 아래 내용 입력:
-```
-DATABASE_URL=mysql+pymysql://root:비밀번호@mysql:3306/mydb
-REDIS_PASSWORD=비밀번호
-GOOGLE_WEB_CLIENT_ID=...
-GOOGLE_ANDROID_CLIENT_ID=...
-GOOGLE_IOS_CLIENT_ID=...
-NAVER_CLIENT_ID=...
-NAVER_CLIENT_SECRET=...
-```
+### 1. 가상환경 구축 및 의존성 설치
 
-### 2. 서버 실행
+`uv`를 사용하여 프로젝트에 필요한 패키지를 설치합니다.
+
 ```bash
-docker compose up -d --build
+# 의존성 설치 (가상환경 자동 생성)
+uv sync
+
+# 특정 그룹의 의존성만 설치하려는 경우
+uv sync --group app  # API 서버용
+uv sync --group ai   # AI 워커용
 ```
 
-### 3. 브랜치
+### 2. 환경 변수 설정
+
+`envs/` 디렉토리에 있는 예시 파일을 복사하여 `.env` 파일을 생성합니다.
+- 로컬용 
+    ```bash
+    cp envs/example.local.env envs/.local.env
+    ```
+- 배포용 
+    ```bash
+    cp envs/example.prod.env envs/.prod.env
+    ```
+
+생성된 `env` 파일 내의 환경변수들은 프로젝트 상황에 맞게 수정하세요.
+
+---
+
+## 🏃 실행 방법
+
+### 1. 로컬 및 개발 환경
+
+#### Docker Compose로 전체 스택 실행
+
+모든 서비스(API, Worker, DB, Redis, Nginx)를 한 번에 실행합니다.
+
+```bash
+docker-compose up -d --build
 ```
-feature/이승혁-backend
+
+실행 후 다음 주소로 접속 가능합니다:
+- **API 서버**: [http://localhost/api/docs](http://localhost/api/docs) (Swagger UI)
+- **Nginx**: 80 포트를 통해 API 서버로 요청을 전달합니다.
+
+#### 로컬에서 개별 실행 (개발용)
+
+**FastAPI 서버 실행:**
+```bash
+uv run uvicorn app.main:app --reload
+# or
+docker compose up -d --build app
+```
+
+**AI Worker 실행:**
+```bash
+uv run python -m ai_worker.main
+# or
+docker compose up -d --build ai_worker
+```
+
+### 2. EC2 배포 환경 (Production)
+
+제공된 쉘 스크립트를 사용하여 AWS EC2 환경에 이미지를 빌드, 푸시 및 배포할 수 있습니다.
+
+#### 사전 준비
+- EC2 인스턴스 (Ubuntu 권장)
+- SSH 키 페어 (`~/.ssh/` 경로에 위치)
+- 도커 허브(Docker Hub) 계정 및 Personal Access Token
+- 배포용 환경 변수 설정 (`envs/.prod.env`)
+- 도메인 구매 (Gabia, GoDaddy, AWS Route53 등)
+
+#### 자동 배포 스크립트 실행
+`scripts/deployment.sh`는 도커 이미지 빌드, 레포지토리 푸시, EC2 접속 및 컨테이너 실행 과정을 자동화합니다.
+
+```bash
+chmod +x scripts/deployment.sh
+./scripts/deployment.sh
+```
+스크립트 실행 시 다음 정보를 입력해야 합니다:
+1. 도커 허브 계정 정보 (Username, PAT)
+2. 이미지를 업로드할 레포지토리 이름
+3. 배포할 서비스 선택 (FastAPI, AI-Worker) 및 버전(Tag)
+4. SSH 키 파일명 및 EC2 IP 주소
+5. https 사용여부
+   - 5-1. https인 경우 도메인 추가 입력  
+
+#### SSL(HTTPS) 설정 (Certbot)
+도메인을 연결하고 HTTPS를 적용하려면 `scripts/certbot.sh`를 사용합니다.
+
+```bash
+chmod +x scripts/certbot.sh
+./scripts/certbot.sh
+```
+1. 도메인 주소 및 이메일 입력
+2. SSH 키 파일명 및 EC2 IP 주소 입력
+3. Let's Encrypt를 통한 인증서 발급 및 Nginx 설정 자동 갱신 적용
+
+---
+
+## 🧪 테스트 및 품질 관리
+
+제공된 스크립트를 사용하여 코드의 품질을 검증할 수 있습니다.
+
+```bash
+# 테스트 실행
+./scripts/ci/run_test.sh
+
+# 코드 포맷팅 확인 (Ruff)
+./scripts/ci/code_fommatting.sh
+
+# 정적 타입 검사 (Mypy)
+./scripts/ci/check_mypy.sh
 ```
 
 ---
 
-## 🔐 소셜 로그인 설정
+## 📝 개발 가이드
 
-### 구글 로그인
-- Google Cloud Console에서 OAuth 2.0 클라이언트 ID 발급
-- 웹 / Android / iOS 클라이언트 ID 각각 발급 필요
-- People API 활성화 필요
-
-### 네이버 로그인
-- Naver Developers에서 앱 등록 및 Client ID/Secret 발급
-- 현재 개발 상태 (배포 시 심사 필요)
-- 웹 환경에서는 임시 구현 (모바일 앱 빌드 시 정식 구현 예정)
-
-### DB 변경사항
-```sql
--- users 테이블에 소셜 로그인 컬럼 추가
-ALTER TABLE users 
-ADD COLUMN social_provider VARCHAR(20) NULL,
-ADD COLUMN social_id VARCHAR(200) NULL;
-```
-
----
-
-## ⚠️ 주의사항
-
-- 민감 의료정보 처리 시 면책문구 포함
-- 의료 진단/처방 관련 표현 사용 금지 (의료법 §27)
-- API 호출은 서비스 레이어로 분리
-- 소셜 로그인 키는 절대 코드에 하드코딩 금지 (`.env` 파일 사용)
+- **API 추가**: `app/apis/v1/` 아래에 새로운 라우터 파일을 생성하고 `app/apis/v1/__init__.py`에 등록하세요.
+- **DB 모델 추가**: `app/models/`에 Tortoise 모델을 정의하고 `app/db/databases.py`의 `MODELS` 리스트에 추가하세요.
+- **AI 로직 추가**: `ai_worker/tasks/`에 새로운 처리 로직을 작성하고 `ai_worker/main.py`에서 호출하도록 구성하세요.
