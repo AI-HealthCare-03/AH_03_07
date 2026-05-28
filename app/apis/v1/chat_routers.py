@@ -5,8 +5,10 @@ from pydantic import Field
 
 from app.dependencies.security import get_request_user
 from app.dtos.base import BaseSerializerModel
+from app.dtos.chat import SessionStartResponse
 from app.models.users import User
 from app.services.chat_service import chat_with_rag
+from app.services.chat_session_service import ChatSessionService
 
 chat_router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -28,6 +30,15 @@ class ChatResponse(BaseSerializerModel):
     answer: str
     is_general_info: bool
     sources: list[ChatSource]
+
+
+@chat_router.post("/sessions", status_code=status.HTTP_201_CREATED)
+async def start_chat_session(
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[ChatSessionService, Depends(ChatSessionService)],
+) -> SessionStartResponse:
+    session = await service.create_session(user)
+    return SessionStartResponse(session_id=session.id)
 
 
 @chat_router.post("", status_code=status.HTTP_200_OK)

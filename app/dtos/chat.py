@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 from app.models.chat_message import MessageRole
 
@@ -45,8 +45,7 @@ class MessageItem(BaseModel):
     blocked_by_filter: bool
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MessageHistoryResponse(BaseModel):
