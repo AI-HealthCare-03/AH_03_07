@@ -39,3 +39,6 @@ class Config(BaseSettings):
 
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4o-mini"
+
+    DRUG_API_KEY: str = ""
+    DRUG_API_BASE_URL: str = "https://apis.data.go.kr/1471000/DrbEasyDrugInfoService"
