@@ -5,7 +5,6 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-
 from app.core import config
 from app.dtos.pre_consultation_report import PreConsultationReportRequest
 from app.models.disease_activity_log import DiseaseActivityLog
@@ -83,6 +82,7 @@ class PreConsultationReportService:
         html_str = template.render(**context)
         stylesheets = [str(TEMPLATE_DIR / "pre_consultation_report.css")]
         from weasyprint import HTML
+
         return HTML(string=html_str, base_url=str(TEMPLATE_DIR)).write_pdf(
             stylesheets=stylesheets,
         )

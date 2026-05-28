@@ -57,15 +57,8 @@ class PillRecognitionService:
             user_confirm_required=True,
         )
 
-    async def get_recognitions(
-        self, user: User, page: int, size: int
-    ) -> list[PillRecognitionHistoryItem]:
-        records = (
-            await PillRecognition.filter(user=user)
-            .order_by("-created_at")
-            .offset((page - 1) * size)
-            .limit(size)
-        )
+    async def get_recognitions(self, user: User, page: int, size: int) -> list[PillRecognitionHistoryItem]:
+        records = await PillRecognition.filter(user=user).order_by("-created_at").offset((page - 1) * size).limit(size)
         return [
             PillRecognitionHistoryItem(
                 id=r.id,
