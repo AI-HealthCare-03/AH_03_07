@@ -4,6 +4,7 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from weasyprint import HTML
 
 from app.core import config
 from app.dtos.pre_consultation_report import PreConsultationReportRequest
@@ -81,8 +82,6 @@ class PreConsultationReportService:
         template = self._env.get_template("pre_consultation_report.html")
         html_str = template.render(**context)
         stylesheets = [str(TEMPLATE_DIR / "pre_consultation_report.css")]
-        from weasyprint import HTML
-
         return HTML(string=html_str, base_url=str(TEMPLATE_DIR)).write_pdf(
             stylesheets=stylesheets,
         )
