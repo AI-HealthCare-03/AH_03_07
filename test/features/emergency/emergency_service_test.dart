@@ -15,72 +15,81 @@ void main() {
     service = EmergencyService(client: mockClient);
   });
 
-  group('sendSos', () {
-    test('SOS 전송 성공 시 EmergencySosResult를 반환한다', () async {
-      when(() => mockClient.post(any(), body: any(named: 'body')))
-          .thenAnswer((_) async => ApiResponse.success(
-                {
-                  'sent': true,
-                  'notified_count': 2,
-                  'secure_link': 'https://example.com/sos/abc',
-                },
-                200,
-              ));
-
-      final result = await service.sendSos(message: '도움이 필요합니다');
-
-      expect(result.sent, isTrue);
-      expect(result.notifiedCount, equals(2));
-      expect(result.secureLink, isNotNull);
-    });
-
-    test('API 오류 시 Exception을 던진다', () async {
-      when(() => mockClient.post(any(), body: any(named: 'body')))
-          .thenAnswer((_) async => ApiResponse.failure('서버 오류', 500));
-
-      expect(() => service.sendSos(), throwsException);
-    });
-  });
+  final sampleContactJson = {
+    'id': 1,
+    'guardian_name': '홍길동',
+    'guardian_contact': '010-1234-5678',
+    'is_revoked': false,
+    'expires_at': DateTime.now().add(const Duration(days: 365)).toIso8601String(),
+    'share_categories': ['medical_records'],
+    'secure_link_token': 'token123',
+    'created_at': '2026-05-01T09:00:00.000Z',
+  };
 
   group('getContacts', () {
     test('보호자 목록을 반환한다', () async {
-      when(() => mockClient.get(any())).thenAnswer(
-        (_) async => ApiResponse.success(
-          {
-            'contacts': [
-              {'id': 1, 'name': '홍길동', 'phone': '010-1234-5678', 'relation': '부모'},
-              {'id': 2, 'name': '김철수', 'phone': '010-8765-4321'},
-            ],
-          },
-          200,
-        ),
+      when(() => mockClient.getList(any())).thenAnswer(
+        (_) async => ApiResponse.success([sampleContactJson], 200),
       );
 
       final contacts = await service.getContacts();
 
-      expect(contacts, hasLength(2));
+      expect(contacts, hasLength(1));
       expect(contacts.first.name, equals('홍길동'));
-      expect(contacts.first.relation, equals('부모'));
-      expect(contacts.last.relation, isNull);
+      expect(contacts.first.phone, equals('010-1234-5678'));
+      expect(contacts.first.isActive, isTrue);
+    });
+
+    test('API 오류 시 Exception을 던진다', () async {
+      when(() => mockClient.getList(any())).thenAnswer(
+        (_) async => ApiResponse.failure('서버 오류', 500),
+      );
+
+      expect(() => service.getContacts(), throwsException);
     });
   });
 
   group('addContact', () {
-    test('보호자를 추가하고 EmergencyContact를 반환한다', () async {
+    test('보호자를 추가하고 GuardianContact를 반환한다', () async {
       when(() => mockClient.post(any(), body: any(named: 'body')))
-          .thenAnswer((_) async => ApiResponse.success(
-                {'id': 3, 'name': '이순신', 'phone': '010-0000-0000', 'relation': '배우자'},
-                201,
-              ));
+          .thenAnswer((_) async => ApiResponse.success(sampleContactJson, 201));
 
       final contact = await service.addContact(
-        name: '이순신',
-        phone: '010-0000-0000',
-        relation: '배우자',
+        name: '홍길동',
+        phone: '010-1234-5678',
       );
 
-      expect(contact.id, equals(3));
-      expect(contact.name, equals('이순신'));
+      expect(contact.name, equals('홍길동'));
+      expect(contact.phone, equals('010-1234-5678'));
+    });
+  });
+
+  group('GuardianContact 모델', () {
+    test('fromJson으로 올바르게 파싱된다', () {
+      final contact = GuardianContact.fromJson(sampleContactJson);
+
+      expect(contact.id, equals(1));
+      expect(contact.name, equals('홍길동'));
+      expect(contact.isRevoked, isFalse);
+      expect(contact.isActive, isTrue);
+    });
+
+    test('철회된 보호자는 isActive가 false이다', () {
+      final revoked = GuardianContact.fromJson({
+        ...sampleContactJson,
+        'is_revoked': true,
+      });
+      expect(revoked.isActive, isFalse);
+    });
+
+    test('만료된 보호자는 isActive가 false이다', () {
+      final expired = GuardianContact.fromJson({
+        ...sampleContactJson,
+        'expires_at': DateTime.now()
+            .subtract(const Duration(days: 1))
+            .toIso8601String(),
+      });
+      expect(expired.isActive, isFalse);
     });
   });
 }

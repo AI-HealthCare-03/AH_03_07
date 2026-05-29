@@ -61,6 +61,30 @@ class ApiClient {
     }
   }
 
+  // 백엔드가 JSON 배열([])을 직접 반환하는 엔드포인트용
+  Future<ApiResponse<List<Map<String, dynamic>>>> getList(String path) async {
+    await _refreshIfNeeded();
+    final res = await _client.get(
+      Uri.parse('${OcrConfig.baseUrl}$path'),
+      headers: await _authHeaders(),
+    ).timeout(OcrConfig.timeoutDuration);
+    try {
+      if (res.statusCode >= 200 && res.statusCode < 300) {
+        final body = jsonDecode(res.body) as List;
+        return ApiResponse.success(
+          body.cast<Map<String, dynamic>>(),
+          res.statusCode,
+        );
+      }
+      final body = jsonDecode(res.body) as Map<String, dynamic>;
+      final detail = body['detail'];
+      final msg = detail is String ? detail : '오류가 발생했습니다.';
+      return ApiResponse.failure(msg, res.statusCode);
+    } catch (_) {
+      return ApiResponse.failure('서버 응답을 처리할 수 없습니다.', res.statusCode);
+    }
+  }
+
   Future<ApiResponse<Map<String, dynamic>>> get(String path) async {
     await _refreshIfNeeded();
     final res = await _client.get(

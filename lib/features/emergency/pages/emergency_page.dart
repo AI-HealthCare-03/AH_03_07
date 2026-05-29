@@ -15,9 +15,8 @@ class EmergencyPage extends StatefulWidget {
 
 class _EmergencyPageState extends State<EmergencyPage> {
   late final EmergencyService _service;
-  List<EmergencyContact> _contacts = [];
+  List<GuardianContact> _contacts = [];
   bool _loadingContacts = true;
-  bool _sendingSos = false;
 
   @override
   void initState() {
@@ -29,62 +28,21 @@ class _EmergencyPageState extends State<EmergencyPage> {
   Future<void> _loadContacts() async {
     try {
       final data = await _service.getContacts();
-      if (mounted) setState(() => _contacts = data);
-    } catch (_) {} finally {
+      if (mounted) setState(() => _contacts = data.where((c) => c.isActive).toList());
+    } catch (_) {
+    } finally {
       if (mounted) setState(() => _loadingContacts = false);
     }
   }
 
   Future<void> _call119() async {
     final uri = Uri.parse('tel:119');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    }
+    if (await canLaunchUrl(uri)) await launchUrl(uri);
   }
 
-  Future<void> _sendSos() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('SOS 전송'),
-        content: const Text(
-          '등록된 보호자에게 위치 정보가 포함된 SOS 링크를 전송합니다.\n'
-          '119 신고는 직접 전화하셔야 합니다.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('전송'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true || !mounted) return;
-
-    setState(() => _sendingSos = true);
-    try {
-      final result = await _service.sendSos(message: '도움이 필요합니다');
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${result.notifiedCount}명에게 SOS가 전송됐습니다.'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('전송 실패: $e'), backgroundColor: Colors.red),
-      );
-    } finally {
-      if (mounted) setState(() => _sendingSos = false);
-    }
+  Future<void> _callContact(String phone) async {
+    final uri = Uri.parse('tel:$phone');
+    if (await canLaunchUrl(uri)) await launchUrl(uri);
   }
 
   @override
@@ -102,70 +60,8 @@ class _EmergencyPageState extends State<EmergencyPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 119 직접 발신 버튼 (최우선)
             _PrimaryEmergencyButton(onPressed: _call119),
-            const SizedBox(height: 16),
-
-            // 보호자 SOS 전송
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      '보호자 알림',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '등록된 보호자(${_contacts.length}명)에게 위치 정보를 전송합니다.',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: (_sendingSos || _contacts.isEmpty) ? null : _sendSos,
-                        icon: _sendingSos
-                            ? const SizedBox(
-                                height: 16,
-                                width: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                              )
-                            : const Icon(Icons.notifications_active),
-                        label: const Text('보호자에게 SOS 전송'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (_contacts.isEmpty && !_loadingContacts)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          '보호자를 먼저 등록해주세요.',
-                          style: TextStyle(color: Colors.orange[700], fontSize: 12),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // 보호자 목록
+            const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -174,12 +70,17 @@ class _EmergencyPageState extends State<EmergencyPage> {
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                 ),
                 TextButton.icon(
-                  onPressed: _showAddContactDialog,
+                  onPressed: _contacts.length >= 3 ? null : _showAddDialog,
                   icon: const Icon(Icons.add, size: 18),
                   label: const Text('추가'),
                 ),
               ],
             ),
+            Text(
+              '보호자 전화번호로 직접 연락할 수 있습니다. (최대 3명)',
+              style: TextStyle(color: Colors.grey[500], fontSize: 12),
+            ),
+            const SizedBox(height: 12),
             if (_loadingContacts)
               const Center(child: CircularProgressIndicator())
             else if (_contacts.isEmpty)
@@ -195,6 +96,7 @@ class _EmergencyPageState extends State<EmergencyPage> {
             else
               ...(_contacts.map((c) => _ContactTile(
                     contact: c,
+                    onCall: () => _callContact(c.phone),
                     onDelete: () async {
                       await _service.deleteContact(c.id);
                       _loadContacts();
@@ -206,7 +108,7 @@ class _EmergencyPageState extends State<EmergencyPage> {
     );
   }
 
-  void _showAddContactDialog() {
+  void _showAddDialog() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -214,8 +116,8 @@ class _EmergencyPageState extends State<EmergencyPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) => _AddContactSheet(
-        onSave: (name, phone, relation) async {
-          await _service.addContact(name: name, phone: phone, relation: relation);
+        onSave: (name, phone) async {
+          await _service.addContact(name: name, phone: phone);
           if (mounted) {
             Navigator.pop(context);
             _loadContacts();
@@ -278,9 +180,14 @@ class _PrimaryEmergencyButton extends StatelessWidget {
 }
 
 class _ContactTile extends StatelessWidget {
-  final EmergencyContact contact;
+  final GuardianContact contact;
+  final VoidCallback onCall;
   final VoidCallback onDelete;
-  const _ContactTile({required this.contact, required this.onDelete});
+  const _ContactTile({
+    required this.contact,
+    required this.onCall,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -300,11 +207,10 @@ class _ContactTile extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (contact.relation != null)
-              Chip(
-                label: Text(contact.relation!, style: const TextStyle(fontSize: 11)),
-                padding: EdgeInsets.zero,
-              ),
+            IconButton(
+              icon: const Icon(Icons.call, color: Colors.green),
+              onPressed: onCall,
+            ),
             IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.red),
               onPressed: onDelete,
@@ -317,7 +223,7 @@ class _ContactTile extends StatelessWidget {
 }
 
 class _AddContactSheet extends StatefulWidget {
-  final Future<void> Function(String name, String phone, String? relation) onSave;
+  final Future<void> Function(String name, String phone) onSave;
   const _AddContactSheet({required this.onSave});
 
   @override
@@ -328,14 +234,12 @@ class _AddContactSheetState extends State<_AddContactSheet> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
-  final _relationCtrl = TextEditingController();
   bool _saving = false;
 
   @override
   void dispose() {
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
-    _relationCtrl.dispose();
     super.dispose();
   }
 
@@ -371,11 +275,6 @@ class _AddContactSheetState extends State<_AddContactSheet> {
               keyboardType: TextInputType.phone,
               validator: (v) => (v?.isEmpty ?? true) ? '전화번호를 입력하세요' : null,
             ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _relationCtrl,
-              decoration: const InputDecoration(labelText: '관계 (예: 부모, 배우자)'),
-            ),
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _saving ? null : _submit,
@@ -404,11 +303,7 @@ class _AddContactSheetState extends State<_AddContactSheet> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     try {
-      await widget.onSave(
-        _nameCtrl.text.trim(),
-        _phoneCtrl.text.trim(),
-        _relationCtrl.text.trim().isNotEmpty ? _relationCtrl.text.trim() : null,
-      );
+      await widget.onSave(_nameCtrl.text.trim(), _phoneCtrl.text.trim());
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
