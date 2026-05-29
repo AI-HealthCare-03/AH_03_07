@@ -1,9 +1,6 @@
 from datetime import date, datetime, timedelta
 from uuid import UUID
 
-from app.models.notifications import NotificationType
-from app.repositories.medication_repository import MedicationRepository
-from app.repositories.notification_repository import NotificationRepository
 from fastapi import HTTPException, status
 from openai import OpenAI
 
@@ -14,7 +11,10 @@ from app.dtos.prescriptions import (
     PrescriptionListResponse,
     PrescriptionResponse,
 )
+from app.models.notifications import NotificationType
 from app.models.prescriptions import OCRStatus
+from app.repositories.medication_repository import MedicationRepository
+from app.repositories.notification_repository import NotificationRepository
 from app.repositories.prescription_repository import PrescriptionRepository
 
 
