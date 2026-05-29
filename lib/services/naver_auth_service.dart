@@ -76,7 +76,6 @@ class NaverLoginDialog extends StatefulWidget {
 
 class _NaverLoginDialogState extends State<NaverLoginDialog> {
   final _codeController = TextEditingController();
-  bool _isLoading = false;
 
   @override
   void dispose() {

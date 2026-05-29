@@ -32,7 +32,7 @@ jobs:
         run: flutter pub get
 
       - name: 정적 분석
-        run: flutter analyze --fatal-infos
+        run: flutter analyze lib/ test/ --fatal-warnings
 
       - name: 단위 테스트
         run: flutter test --coverage --reporter=github

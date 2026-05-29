@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'ocr_service.dart';
-import 'auth_service.dart';
 
 // ════════════════════════════════════════════════════════════
 // 유저 상세 모델

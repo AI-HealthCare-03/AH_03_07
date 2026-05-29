@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'services/ocr_service.dart';
 import 'services/auth_service.dart';
 import 'main.dart';
 import 'login_page.dart';

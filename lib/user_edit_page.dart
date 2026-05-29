@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'services/user_service.dart';
 import 'services/ocr_service.dart';
-import 'main.dart';
 import 'login_page.dart';
 import 'chip_section.dart';
 

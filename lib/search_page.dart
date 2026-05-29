@@ -32,7 +32,6 @@ class _SearchPageState extends State<SearchPage> {
   static const _textPrimary = Color(0xFF1A1A1A);
   static const _textSecondary = Color(0xFF888888);
   static const _divider = Color(0xFFF0F0F0);
-  static const _green = Color(0xFF2ECC71);
 
   @override
   void initState() {
