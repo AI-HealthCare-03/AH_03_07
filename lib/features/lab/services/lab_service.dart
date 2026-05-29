@@ -34,6 +34,12 @@ class LabService {
     return LabResult.fromJson(res.data!);
   }
 
+  Future<LabResult> updateResult(int id, LabResultInput input) async {
+    final res = await _client.put('/v1/lab-results/$id', body: input.toJson());
+    if (!res.isSuccess) throw Exception(_friendlyError(res.statusCode, res.error));
+    return LabResult.fromJson(res.data!);
+  }
+
   Future<void> deleteResult(int id) async {
     final res = await _client.delete('/v1/lab-results/$id');
     if (!res.isSuccess) throw Exception(_friendlyError(res.statusCode, res.error));

@@ -66,7 +66,48 @@ class _LabPageState extends State<LabPage> {
                       child: ListView.builder(
                         padding: const EdgeInsets.all(16),
                         itemCount: _results.length,
-                        itemBuilder: (_, i) => _LabResultCard(result: _results[i]),
+                        itemBuilder: (_, i) => Dismissible(
+                          key: ValueKey(_results[i].id),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.only(right: 20),
+                            margin: const EdgeInsets.only(bottom: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.delete, color: Colors.white),
+                          ),
+                          confirmDismiss: (_) async {
+                            return await showDialog<bool>(
+                              context: context,
+                              builder: (_) => AlertDialog(
+                                title: const Text('삭제'),
+                                content: Text('${_results[i].testType} 결과를 삭제할까요?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, false),
+                                    child: const Text('취소'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, true),
+                                    child: const Text('삭제',
+                                        style: TextStyle(color: Colors.red)),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          onDismissed: (_) async {
+                            await _service.deleteResult(_results[i].id);
+                            _load();
+                          },
+                          child: GestureDetector(
+                            onTap: () => _showEditDialog(_results[i]),
+                            child: _LabResultCard(result: _results[i]),
+                          ),
+                        ),
                       ),
                     ),
     );
@@ -82,6 +123,23 @@ class _LabPageState extends State<LabPage> {
       builder: (_) => _AddLabResultSheet(
         onSave: (input) async {
           await _service.addResult(input);
+          if (mounted) { Navigator.pop(context); _load(); }
+        },
+      ),
+    );
+  }
+
+  void _showEditDialog(LabResult result) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => _AddLabResultSheet(
+        initial: result,
+        onSave: (input) async {
+          await _service.updateResult(result.id, input);
           if (mounted) { Navigator.pop(context); _load(); }
         },
       ),
@@ -199,7 +257,8 @@ class _EmptyView extends StatelessWidget {
 
 class _AddLabResultSheet extends StatefulWidget {
   final Future<void> Function(LabResultInput) onSave;
-  const _AddLabResultSheet({required this.onSave});
+  final LabResult? initial; // 수정 모드일 때 기존 값
+  const _AddLabResultSheet({required this.onSave, this.initial});
 
   @override
   State<_AddLabResultSheet> createState() => _AddLabResultSheetState();
@@ -213,13 +272,26 @@ class _AddLabResultSheetState extends State<_AddLabResultSheet> {
   ];
 
   final _formKey = GlobalKey<FormState>();
-  final _typeCtrl = TextEditingController();
-  final _valueCtrl = TextEditingController();
-  String _selectedUnit = '없음';
-  final _rangeCtrl = TextEditingController();
-  final _memoCtrl = TextEditingController();
-  DateTime _testDate = DateTime.now();
+  late final TextEditingController _typeCtrl;
+  late final TextEditingController _valueCtrl;
+  late String _selectedUnit;
+  late final TextEditingController _rangeCtrl;
+  late final TextEditingController _memoCtrl;
+  late DateTime _testDate;
   bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final init = widget.initial;
+    _typeCtrl = TextEditingController(text: init?.testType ?? '');
+    _valueCtrl = TextEditingController(text: init?.userRecordedValue ?? '');
+    _rangeCtrl = TextEditingController(text: init?.referenceRange ?? '');
+    _memoCtrl = TextEditingController(text: init?.memo ?? '');
+    _testDate = init?.testDate ?? DateTime.now();
+    final unit = init?.unit;
+    _selectedUnit = (unit != null && _unitOptions.contains(unit)) ? unit : '없음';
+  }
 
   @override
   void dispose() {
@@ -244,9 +316,9 @@ class _AddLabResultSheetState extends State<_AddLabResultSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                '검사 결과 추가',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                widget.initial != null ? '검사 결과 수정' : '검사 결과 추가',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
               TextFormField(
