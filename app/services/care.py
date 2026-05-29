@@ -2,8 +2,6 @@ import secrets
 from datetime import datetime, timedelta
 from uuid import UUID
 
-from app.models.share_links import ShareDuration
-
 from app.dtos.care import (
     GuardianCreateRequest,
     GuardianListResponse,
@@ -12,6 +10,7 @@ from app.dtos.care import (
     ShareLinkListResponse,
     ShareLinkResponse,
 )
+from app.models.share_links import ShareDuration
 from app.repositories.care_repository import CareRepository
 
 
