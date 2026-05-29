@@ -22,10 +22,13 @@ from app.apis.v1.pre_consultation_report_routers import pre_consultation_report_
 from app.apis.v1.ra_exposure_routers import ra_exposure_router
 from app.apis.v1.risk_profile_routers import risk_profile_router
 from app.apis.v1.symptom_check_routers import symptom_check_router
+from app.apis.v1.user_consent_routers import user_consent_router
+from app.apis.v1.user_medication_routers import user_medication_router
 from app.apis.v1.user_routers import user_router
 
 v1_routers = APIRouter(prefix="/api/v1")
 v1_routers.include_router(auth_router)
+v1_routers.include_router(user_consent_router)
 v1_routers.include_router(user_router)
 v1_routers.include_router(mode_router)
 v1_routers.include_router(risk_profile_router)
@@ -34,6 +37,7 @@ v1_routers.include_router(chat_router)
 v1_routers.include_router(auto_guide_router)
 v1_routers.include_router(disease_router)
 v1_routers.include_router(medication_router)
+v1_routers.include_router(user_medication_router)
 v1_routers.include_router(activity_log_router)
 v1_routers.include_router(activity_alert_router)
 v1_routers.include_router(symptom_check_router)

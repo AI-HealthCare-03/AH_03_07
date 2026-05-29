@@ -1,12 +1,9 @@
 import asyncio
 from collections.abc import Generator
-from typing import Any
-from unittest.mock import Mock, patch
 
 import pytest
 import pytest_asyncio
 from _pytest.fixtures import FixtureRequest
-from tortoise import generate_config
 from tortoise.contrib.test import finalizer, initializer
 
 from app.core import config
@@ -17,29 +14,19 @@ TEST_DB_LABEL = "models"
 TEST_DB_TZ = "Asia/Seoul"
 
 
-def get_test_db_config() -> dict[str, Any]:
-    tortoise_config = generate_config(
-        db_url=f"mysql://{config.DB_USER}:{config.DB_PASSWORD}@{config.DB_HOST}:{config.DB_PORT}/test",
-        app_modules={TEST_DB_LABEL: TORTOISE_APP_MODELS},
-        connection_label=TEST_DB_LABEL,
-        testing=True,
-    )
-    tortoise_config["timezone"] = TEST_DB_TZ
-
-    return tortoise_config
-
-
 @pytest.fixture(scope="session", autouse=True)
 def initialize(request: FixtureRequest) -> Generator[None, None]:
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     db_available = True
+    _app_models = [m for m in TORTOISE_APP_MODELS if m != "aerich.models"]
     try:
-        with patch("tortoise.contrib.test.getDBConfig", Mock(return_value=get_test_db_config())):
-            initializer(modules=TORTOISE_APP_MODELS)
+        initializer(
+            modules=_app_models,
+            db_url=f"mysql://{config.DB_USER}:{config.DB_PASSWORD}@{config.DB_HOST}:{config.DB_PORT}/test",
+            app_label=TEST_DB_LABEL,
+        )
     except Exception:
-        # MySQL not available (e.g. local dev without Docker) — fall back to SQLite in-memory
-        _app_models = [m for m in TORTOISE_APP_MODELS if m != "aerich.models"]
         try:
             initializer(modules=_app_models, db_url="sqlite://:memory:")
         except Exception:

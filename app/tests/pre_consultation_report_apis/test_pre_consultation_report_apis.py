@@ -70,7 +70,7 @@ class TestPreConsultationReportApis(TestCase):
             token = await _signup_and_login(client, "report_meddata@example.com", "01055550005")
             headers = {"Authorization": f"Bearer {token}"}
             await client.post(
-                "/api/v1/medications",
+                "/api/v1/user-medications",
                 json={
                     "medications": [{"name": "히드록시클로로퀸", "drug_class": "ANTIMALARIAL", "is_injection": False}]
                 },
@@ -86,7 +86,7 @@ class TestPreConsultationReportApis(TestCase):
             token_a = await _signup_and_login(client, "report_owner@example.com", "01055550006")
             token_b = await _signup_and_login(client, "report_other@example.com", "01055550007")
             await client.post(
-                "/api/v1/medications",
+                "/api/v1/user-medications",
                 json={
                     "medications": [
                         {"name": "비밀약물XYZ", "drug_class": "STEROID", "is_injection": False},
