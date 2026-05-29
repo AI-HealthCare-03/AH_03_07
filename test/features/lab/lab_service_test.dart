@@ -16,15 +16,14 @@ void main() {
     service = LabService(client: mockClient);
   });
 
-  // 백엔드 LabResultResponse 스키마 기준
+  // 실제 백엔드 LabResultResponse 스키마 기준
   final sampleJson = {
     'id': 1,
     'test_date': '2026-05-01',
-    'test_type': 'CRP',
-    'user_recorded_value': '5.2',
+    'test_item': 'CRP',
+    'value': '5.2 mg/L',
     'reference_range': '0~5 mg/L',
-    'unit': 'mg/L',
-    'memo': null,
+    'note': null,
     'created_at': '2026-05-01T09:00:00.000Z',
     'updated_at': '2026-05-01T09:00:00.000Z',
   };
@@ -38,9 +37,8 @@ void main() {
       final results = await service.getResults();
 
       expect(results, hasLength(1));
-      expect(results.first.testType, equals('CRP'));
-      expect(results.first.userRecordedValue, equals('5.2'));
-      expect(results.first.displayValue, equals('5.2 mg/L'));
+      expect(results.first.testItem, equals('CRP'));
+      expect(results.first.value, equals('5.2 mg/L'));
     });
 
     test('빈 목록을 반환한다', () async {
@@ -48,8 +46,7 @@ void main() {
         (_) async => ApiResponse.success([], 200),
       );
 
-      final results = await service.getResults();
-      expect(results, isEmpty);
+      expect(await service.getResults(), isEmpty);
     });
 
     test('API 오류 시 Exception을 던진다', () async {
@@ -66,16 +63,29 @@ void main() {
       when(() => mockClient.post(any(), body: any(named: 'body')))
           .thenAnswer((_) async => ApiResponse.success(sampleJson, 201));
 
-      final input = LabResultInput(
+      final result = await service.addResult(LabResultInput(
         testDate: DateTime(2026, 5, 1),
-        testType: 'CRP',
-        userRecordedValue: '5.2',
-        unit: 'mg/L',
-      );
+        testItem: 'CRP',
+        value: '5.2 mg/L',
+      ));
 
-      final result = await service.addResult(input);
       expect(result.id, equals(1));
-      expect(result.testType, equals('CRP'));
+      expect(result.testItem, equals('CRP'));
+    });
+  });
+
+  group('updateResult', () {
+    test('PATCH로 검사 결과를 수정한다', () async {
+      when(() => mockClient.patch(any(), body: any(named: 'body')))
+          .thenAnswer((_) async => ApiResponse.success(sampleJson, 200));
+
+      final result = await service.updateResult(1, LabResultInput(
+        testDate: DateTime(2026, 5, 1),
+        testItem: 'CRP',
+        value: '3.1 mg/L',
+      ));
+
+      expect(result.id, equals(1));
     });
   });
 
@@ -84,36 +94,27 @@ void main() {
       final result = LabResult.fromJson(sampleJson);
 
       expect(result.id, equals(1));
-      expect(result.testType, equals('CRP'));
-      expect(result.userRecordedValue, equals('5.2'));
-      expect(result.unit, equals('mg/L'));
+      expect(result.testItem, equals('CRP'));
+      expect(result.value, equals('5.2 mg/L'));
       expect(result.referenceRange, equals('0~5 mg/L'));
-    });
-
-    test('displayValue는 값과 단위를 합친다', () {
-      final result = LabResult.fromJson(sampleJson);
-      expect(result.displayValue, equals('5.2 mg/L'));
-    });
-
-    test('단위 없는 경우 displayValue는 값만 반환한다', () {
-      final result = LabResult.fromJson({...sampleJson, 'unit': null});
-      expect(result.displayValue, equals('5.2'));
+      expect(result.note, isNull);
     });
   });
 
   group('LabResultInput', () {
-    test('toJson은 올바른 날짜 포맷을 반환한다', () {
+    test('toJson은 올바른 필드명을 사용한다', () {
       final input = LabResultInput(
         testDate: DateTime(2026, 5, 1),
-        testType: 'ESR',
-        userRecordedValue: '10',
+        testItem: 'ESR',
+        value: '10 mm/h',
       );
 
       final json = input.toJson();
       expect(json['test_date'], equals('2026-05-01'));
-      expect(json['test_type'], equals('ESR'));
-      expect(json['user_recorded_value'], equals('10'));
-      expect(json.containsKey('unit'), isFalse);
+      expect(json['test_item'], equals('ESR'));
+      expect(json['value'], equals('10 mm/h'));
+      expect(json.containsKey('reference_range'), isFalse);
+      expect(json.containsKey('note'), isFalse);
     });
   });
 }

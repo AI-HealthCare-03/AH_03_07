@@ -120,6 +120,19 @@ class ApiClient {
     return _parse(res);
   }
 
+  Future<ApiResponse<Map<String, dynamic>>> patch(
+    String path, {
+    Map<String, dynamic>? body,
+  }) async {
+    await _refreshIfNeeded();
+    final res = await _client.patch(
+      Uri.parse('${OcrConfig.baseUrl}$path'),
+      headers: await _authHeaders(),
+      body: body != null ? jsonEncode(body) : null,
+    ).timeout(OcrConfig.timeoutDuration);
+    return _parse(res);
+  }
+
   Future<ApiResponse<Map<String, dynamic>>> delete(String path) async {
     await _refreshIfNeeded();
     final res = await _client.delete(

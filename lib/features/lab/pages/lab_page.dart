@@ -49,10 +49,7 @@ class _LabPageState extends State<LabPage> {
         foregroundColor: Colors.black87,
         elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _showAddDialog,
-          ),
+          IconButton(icon: const Icon(Icons.add), onPressed: _showAddDialog),
         ],
       ),
       body: _loading
@@ -84,7 +81,7 @@ class _LabPageState extends State<LabPage> {
                               context: context,
                               builder: (_) => AlertDialog(
                                 title: const Text('삭제'),
-                                content: Text('${_results[i].testType} 결과를 삭제할까요?'),
+                                content: Text('${_results[i].testItem} 결과를 삭제할까요?'),
                                 actions: [
                                   TextButton(
                                     onPressed: () => Navigator.pop(context, false),
@@ -113,33 +110,24 @@ class _LabPageState extends State<LabPage> {
     );
   }
 
-  void _showAddDialog() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => _AddLabResultSheet(
-        onSave: (input) async {
-          await _service.addResult(input);
-          if (mounted) { Navigator.pop(context); _load(); }
-        },
-      ),
-    );
-  }
+  void _showAddDialog() => _showSheet(null);
+  void _showEditDialog(LabResult result) => _showSheet(result);
 
-  void _showEditDialog(LabResult result) {
+  void _showSheet(LabResult? initial) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (_) => _AddLabResultSheet(
-        initial: result,
+      builder: (_) => _LabResultSheet(
+        initial: initial,
         onSave: (input) async {
-          await _service.updateResult(result.id, input);
+          if (initial == null) {
+            await _service.addResult(input);
+          } else {
+            await _service.updateResult(initial.id, input);
+          }
           if (mounted) { Navigator.pop(context); _load(); }
         },
       ),
@@ -175,15 +163,12 @@ class _LabResultCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    result.testType,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
+                    result.testItem,
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    result.displayValue,
+                    result.value,
                     style: const TextStyle(
                       color: Color(0xFFFF8C00),
                       fontWeight: FontWeight.w500,
@@ -197,9 +182,16 @@ class _LabResultCard extends StatelessWidget {
                 ],
               ),
             ),
-            Text(
-              '${result.testDate.year}.${result.testDate.month.toString().padLeft(2, '0')}.${result.testDate.day.toString().padLeft(2, '0')}',
-              style: TextStyle(color: Colors.grey[500], fontSize: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '${result.testDate.year}.${result.testDate.month.toString().padLeft(2, '0')}.${result.testDate.day.toString().padLeft(2, '0')}',
+                  style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                ),
+                const SizedBox(height: 4),
+                Icon(Icons.edit_outlined, size: 14, color: Colors.grey[400]),
+              ],
             ),
           ],
         ),
@@ -214,20 +206,18 @@ class _ErrorView extends StatelessWidget {
   const _ErrorView({required this.error, required this.onRetry});
 
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.error_outline, size: 48, color: Colors.red),
-          const SizedBox(height: 8),
-          Text(error, textAlign: TextAlign.center),
-          const SizedBox(height: 16),
-          ElevatedButton(onPressed: onRetry, child: const Text('다시 시도')),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const SizedBox(height: 8),
+            Text(error, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            ElevatedButton(onPressed: onRetry, child: const Text('다시 시도')),
+          ],
+        ),
+      );
 }
 
 class _EmptyView extends StatelessWidget {
@@ -235,48 +225,39 @@ class _EmptyView extends StatelessWidget {
   const _EmptyView({required this.onAdd});
 
   @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.science_outlined, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text('검사 결과가 없습니다', style: TextStyle(color: Colors.grey[600])),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: onAdd,
-            icon: const Icon(Icons.add),
-            label: const Text('검사 결과 추가'),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.science_outlined, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text('검사 결과가 없습니다', style: TextStyle(color: Colors.grey[600])),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: onAdd,
+              icon: const Icon(Icons.add),
+              label: const Text('검사 결과 추가'),
+            ),
+          ],
+        ),
+      );
 }
 
-class _AddLabResultSheet extends StatefulWidget {
+class _LabResultSheet extends StatefulWidget {
+  final LabResult? initial;
   final Future<void> Function(LabResultInput) onSave;
-  final LabResult? initial; // 수정 모드일 때 기존 값
-  const _AddLabResultSheet({required this.onSave, this.initial});
+  const _LabResultSheet({this.initial, required this.onSave});
 
   @override
-  State<_AddLabResultSheet> createState() => _AddLabResultSheetState();
+  State<_LabResultSheet> createState() => _LabResultSheetState();
 }
 
-class _AddLabResultSheetState extends State<_AddLabResultSheet> {
-  static const _unitOptions = [
-    '없음', 'mg/L', 'mg/dL', 'g/dL', 'μg/mL', 'μg/dL',
-    'mm/h', 'IU/L', 'U/L', 'mIU/mL', 'ng/mL', 'pg/mL',
-    'mmHg', 'mmol/L', '%', 'cells/μL', 'x10³/μL', 'x10⁶/μL',
-  ];
-
+class _LabResultSheetState extends State<_LabResultSheet> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _typeCtrl;
+  late final TextEditingController _itemCtrl;
   late final TextEditingController _valueCtrl;
-  late String _selectedUnit;
   late final TextEditingController _rangeCtrl;
-  late final TextEditingController _memoCtrl;
+  late final TextEditingController _noteCtrl;
   late DateTime _testDate;
   bool _saving = false;
 
@@ -284,21 +265,19 @@ class _AddLabResultSheetState extends State<_AddLabResultSheet> {
   void initState() {
     super.initState();
     final init = widget.initial;
-    _typeCtrl = TextEditingController(text: init?.testType ?? '');
-    _valueCtrl = TextEditingController(text: init?.userRecordedValue ?? '');
+    _itemCtrl = TextEditingController(text: init?.testItem ?? '');
+    _valueCtrl = TextEditingController(text: init?.value ?? '');
     _rangeCtrl = TextEditingController(text: init?.referenceRange ?? '');
-    _memoCtrl = TextEditingController(text: init?.memo ?? '');
+    _noteCtrl = TextEditingController(text: init?.note ?? '');
     _testDate = init?.testDate ?? DateTime.now();
-    final unit = init?.unit;
-    _selectedUnit = (unit != null && _unitOptions.contains(unit)) ? unit : '없음';
   }
 
   @override
   void dispose() {
-    _typeCtrl.dispose();
+    _itemCtrl.dispose();
     _valueCtrl.dispose();
     _rangeCtrl.dispose();
-    _memoCtrl.dispose();
+    _noteCtrl.dispose();
     super.dispose();
   }
 
@@ -322,43 +301,33 @@ class _AddLabResultSheetState extends State<_AddLabResultSheet> {
               ),
               const SizedBox(height: 20),
               TextFormField(
-                controller: _typeCtrl,
-                decoration: const InputDecoration(labelText: '검사 유형 * (예: ESR, CRP, 혈당)'),
-                validator: (v) => (v?.isEmpty ?? true) ? '검사 유형을 입력하세요' : null,
+                controller: _itemCtrl,
+                decoration: const InputDecoration(
+                  labelText: '검사 항목 *',
+                  hintText: '예: ESR, CRP, 혈당, 혈압',
+                ),
+                validator: (v) => (v?.isEmpty ?? true) ? '검사 항목을 입력하세요' : null,
               ),
               const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: TextFormField(
-                      controller: _valueCtrl,
-                      decoration: const InputDecoration(labelText: '검사값 *'),
-                      validator: (v) => (v?.isEmpty ?? true) ? '검사값을 입력하세요' : null,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedUnit,
-                      decoration: const InputDecoration(labelText: '단위'),
-                      isExpanded: true,
-                      items: _unitOptions
-                          .map((u) => DropdownMenuItem(value: u, child: Text(u)))
-                          .toList(),
-                      onChanged: (v) => setState(() => _selectedUnit = v ?? '없음'),
-                    ),
-                  ),
-                ],
+              TextFormField(
+                controller: _valueCtrl,
+                decoration: const InputDecoration(
+                  labelText: '검사값 *',
+                  hintText: '예: 5.2 mg/L, 120/80 mmHg',
+                ),
+                validator: (v) => (v?.isEmpty ?? true) ? '검사값을 입력하세요' : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _rangeCtrl,
-                decoration: const InputDecoration(labelText: '참고범위 (예: 0~5 mg/L)'),
+                decoration: const InputDecoration(
+                  labelText: '참고범위',
+                  hintText: '예: 0~5 mg/L',
+                ),
               ),
               const SizedBox(height: 12),
               TextFormField(
-                controller: _memoCtrl,
+                controller: _noteCtrl,
                 decoration: const InputDecoration(labelText: '메모'),
                 maxLines: 2,
               ),
@@ -394,7 +363,7 @@ class _AddLabResultSheetState extends State<_AddLabResultSheet> {
                         height: 20, width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Text('저장'),
+                    : Text(widget.initial != null ? '수정' : '저장'),
               ),
               const SizedBox(height: 24),
             ],
@@ -410,11 +379,10 @@ class _AddLabResultSheetState extends State<_AddLabResultSheet> {
     try {
       await widget.onSave(LabResultInput(
         testDate: _testDate,
-        testType: _typeCtrl.text.trim(),
-        userRecordedValue: _valueCtrl.text.trim(),
-        unit: _selectedUnit == '없음' ? null : _selectedUnit,
+        testItem: _itemCtrl.text.trim(),
+        value: _valueCtrl.text.trim(),
         referenceRange: _rangeCtrl.text.trim().isNotEmpty ? _rangeCtrl.text.trim() : null,
-        memo: _memoCtrl.text.trim().isNotEmpty ? _memoCtrl.text.trim() : null,
+        note: _noteCtrl.text.trim().isNotEmpty ? _noteCtrl.text.trim() : null,
       ));
     } catch (e) {
       if (mounted) {

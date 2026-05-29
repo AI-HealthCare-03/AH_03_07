@@ -6,24 +6,8 @@ class LabService {
 
   const LabService({required ApiClient client}) : _client = client;
 
-  Future<List<LabResult>> getResults({
-    DateTime? from,
-    DateTime? to,
-    int page = 1,
-    int size = 20,
-  }) async {
-    final params = StringBuffer('?page=$page&size=$size');
-    if (from != null) {
-      params.write(
-          '&date_from=${from.year}-${from.month.toString().padLeft(2, '0')}-${from.day.toString().padLeft(2, '0')}');
-    }
-    if (to != null) {
-      params.write(
-          '&date_to=${to.year}-${to.month.toString().padLeft(2, '0')}-${to.day.toString().padLeft(2, '0')}');
-    }
-
-    // 백엔드 엔드포인트: /v1/lab-results (List 반환)
-    final res = await _client.getList('/v1/lab-results$params');
+  Future<List<LabResult>> getResults() async {
+    final res = await _client.getList('/v1/lab-results');
     if (!res.isSuccess) throw Exception(_friendlyError(res.statusCode, res.error));
     return (res.data ?? []).map(LabResult.fromJson).toList();
   }
@@ -34,8 +18,9 @@ class LabService {
     return LabResult.fromJson(res.data!);
   }
 
+  // 실제 API: PATCH (PUT 아님)
   Future<LabResult> updateResult(int id, LabResultInput input) async {
-    final res = await _client.put('/v1/lab-results/$id', body: input.toJson());
+    final res = await _client.patch('/v1/lab-results/$id', body: input.toJson());
     if (!res.isSuccess) throw Exception(_friendlyError(res.statusCode, res.error));
     return LabResult.fromJson(res.data!);
   }
