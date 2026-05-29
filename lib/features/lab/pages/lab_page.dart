@@ -206,10 +206,16 @@ class _AddLabResultSheet extends StatefulWidget {
 }
 
 class _AddLabResultSheetState extends State<_AddLabResultSheet> {
+  static const _unitOptions = [
+    '없음', 'mg/L', 'mg/dL', 'g/dL', 'μg/mL', 'μg/dL',
+    'mm/h', 'IU/L', 'U/L', 'mIU/mL', 'ng/mL', 'pg/mL',
+    'mmHg', 'mmol/L', '%', 'cells/μL', 'x10³/μL', 'x10⁶/μL',
+  ];
+
   final _formKey = GlobalKey<FormState>();
   final _typeCtrl = TextEditingController();
   final _valueCtrl = TextEditingController();
-  final _unitCtrl = TextEditingController();
+  String _selectedUnit = '없음';
   final _rangeCtrl = TextEditingController();
   final _memoCtrl = TextEditingController();
   DateTime _testDate = DateTime.now();
@@ -219,7 +225,6 @@ class _AddLabResultSheetState extends State<_AddLabResultSheet> {
   void dispose() {
     _typeCtrl.dispose();
     _valueCtrl.dispose();
-    _unitCtrl.dispose();
     _rangeCtrl.dispose();
     _memoCtrl.dispose();
     super.dispose();
@@ -262,9 +267,14 @@ class _AddLabResultSheetState extends State<_AddLabResultSheet> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: TextFormField(
-                      controller: _unitCtrl,
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedUnit,
                       decoration: const InputDecoration(labelText: '단위'),
+                      isExpanded: true,
+                      items: _unitOptions
+                          .map((u) => DropdownMenuItem(value: u, child: Text(u)))
+                          .toList(),
+                      onChanged: (v) => setState(() => _selectedUnit = v ?? '없음'),
                     ),
                   ),
                 ],
@@ -330,7 +340,7 @@ class _AddLabResultSheetState extends State<_AddLabResultSheet> {
         testDate: _testDate,
         testType: _typeCtrl.text.trim(),
         userRecordedValue: _valueCtrl.text.trim(),
-        unit: _unitCtrl.text.trim().isNotEmpty ? _unitCtrl.text.trim() : null,
+        unit: _selectedUnit == '없음' ? null : _selectedUnit,
         referenceRange: _rangeCtrl.text.trim().isNotEmpty ? _rangeCtrl.text.trim() : null,
         memo: _memoCtrl.text.trim().isNotEmpty ? _memoCtrl.text.trim() : null,
       ));

@@ -271,9 +271,19 @@ class _AddContactSheetState extends State<_AddContactSheet> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _phoneCtrl,
-              decoration: const InputDecoration(labelText: '전화번호 *'),
+              decoration: const InputDecoration(
+                labelText: '전화번호 *',
+                hintText: '010-1234-5678',
+              ),
               keyboardType: TextInputType.phone,
-              validator: (v) => (v?.isEmpty ?? true) ? '전화번호를 입력하세요' : null,
+              validator: (v) {
+                if (v == null || v.isEmpty) return '전화번호를 입력하세요';
+                final clean = v.replaceAll('-', '');
+                if (!RegExp(r'^01[0-9]\d{7,8}$').hasMatch(clean)) {
+                  return '010-XXXX-XXXX 형식으로 입력하세요';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 20),
             ElevatedButton(

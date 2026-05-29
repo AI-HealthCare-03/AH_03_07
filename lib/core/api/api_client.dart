@@ -136,10 +136,20 @@ class ApiClient {
         return ApiResponse.success(body, res.statusCode);
       }
       final detail = body['detail'];
-      final msg = detail is String
-          ? detail
-          : (detail is Map ? detail['message'] as String? : null) ??
-              '오류가 발생했습니다.';
+      String msg;
+      if (detail is String) {
+        msg = detail;
+      } else if (detail is List && detail.isNotEmpty) {
+        // 422 Pydantic 유효성 오류: [{msg: '...', loc: [...]}]
+        final first = detail.first;
+        msg = (first is Map ? first['msg'] as String? : null) ?? '입력값을 확인해주세요.';
+        // "Value error, " 접두사 제거
+        msg = msg.replaceFirst('Value error, ', '');
+      } else if (detail is Map) {
+        msg = detail['message'] as String? ?? '오류가 발생했습니다.';
+      } else {
+        msg = '오류가 발생했습니다.';
+      }
       return ApiResponse.failure(msg, res.statusCode);
     } catch (_) {
       return ApiResponse.failure('서버 응답을 처리할 수 없습니다.', res.statusCode);
