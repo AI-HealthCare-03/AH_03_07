@@ -6,6 +6,8 @@ import 'services/ocr_service.dart';
 import 'main.dart';
 import 'login_page.dart';
 import 'home_page.dart';
+import 'core/api/api_client.dart';
+import 'features/lab/pages/lab_page.dart';
 
 class MedicalRecordsPage extends StatefulWidget {
   const MedicalRecordsPage({super.key});
@@ -189,6 +191,20 @@ class _MedicalRecordsPageState extends State<MedicalRecordsPage> {
           ),
         ),
         centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.science_outlined, color: Color(0xFFFF8C00)),
+            tooltip: '검사 결과',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => LabPage(
+                  apiClient: ApiClient(storage: SecureTokenStorage()),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _openAddRecord,
