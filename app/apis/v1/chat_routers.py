@@ -6,6 +6,8 @@ from pydantic import Field
 from app.dependencies.security import get_request_user
 from app.dtos.base import BaseSerializerModel
 from app.dtos.chat import (
+    FeedbackRequest,
+    FeedbackResponse,
     MessageHistoryResponse,
     MessageItem,
     MessageRequest,
@@ -14,6 +16,7 @@ from app.dtos.chat import (
     SessionStartResponse,
 )
 from app.models.users import User
+from app.services.chat_feedback_service import ChatFeedbackService
 from app.services.chat_message_service import ChatMessageService, get_chat_message_service
 from app.services.chat_service import chat_with_rag
 from app.services.chat_session_service import ChatSessionService
@@ -80,6 +83,23 @@ async def list_chat_messages(
         page=page,
         size=size,
         total=total,
+    )
+
+
+@chat_router.post("/messages/{message_id}/feedback", status_code=status.HTTP_200_OK)
+async def submit_feedback(
+    message_id: int,
+    body: FeedbackRequest,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[ChatFeedbackService, Depends(ChatFeedbackService)],
+) -> FeedbackResponse:
+    feedback = await service.record_feedback(user, message_id, body.score, body.comment)
+    if feedback is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="메시지를 찾을 수 없습니다")
+    return FeedbackResponse(
+        message_id=message_id,
+        score=feedback.score,
+        recorded_at=feedback.created_at,
     )
 
 
