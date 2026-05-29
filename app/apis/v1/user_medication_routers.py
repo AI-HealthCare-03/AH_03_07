@@ -25,7 +25,10 @@ async def create_medications(
     service: Annotated[MedicationService, Depends(MedicationService)],
 ) -> Response:
     result = await service.create_medications(user=user, data=request)
-    return Response([MedicationResponse.model_validate(m).model_dump(mode="json") for m in result], status_code=status.HTTP_201_CREATED)
+    return Response(
+        [MedicationResponse.model_validate(m).model_dump(mode="json") for m in result],
+        status_code=status.HTTP_201_CREATED,
+    )
 
 
 @user_medication_router.get(
@@ -37,7 +40,9 @@ async def list_medications(
     service: Annotated[MedicationService, Depends(MedicationService)],
 ) -> Response:
     result = await service.list_medications(user=user)
-    return Response([MedicationResponse.model_validate(m).model_dump(mode="json") for m in result], status_code=status.HTTP_200_OK)
+    return Response(
+        [MedicationResponse.model_validate(m).model_dump(mode="json") for m in result], status_code=status.HTTP_200_OK
+    )
 
 
 @user_medication_router.patch(
