@@ -1,8 +1,9 @@
 from datetime import datetime
 from uuid import UUID
 
-from app.models.favorite_places import PlaceType
 from pydantic import BaseModel
+
+from app.models.favorite_places import PlaceType
 
 
 class AppointmentCreateRequest(BaseModel):

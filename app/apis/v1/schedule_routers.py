@@ -1,6 +1,5 @@
 from typing import Annotated
 
-from app.models.favorite_places import PlaceType
 from fastapi import APIRouter, Depends, Query, status
 
 from app.dependencies.security import get_request_user
@@ -12,6 +11,7 @@ from app.dtos.schedules import (
     FavoritePlaceListResponse,
     FavoritePlaceResponse,
 )
+from app.models.favorite_places import PlaceType
 from app.models.users import User
 from app.services.schedules import ScheduleService
 

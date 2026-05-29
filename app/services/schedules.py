@@ -1,8 +1,6 @@
 from datetime import timedelta
 from uuid import UUID
 
-from app.models.favorite_places import PlaceType
-
 from app.dtos.schedules import (
     AppointmentCreateRequest,
     AppointmentListResponse,
@@ -11,6 +9,7 @@ from app.dtos.schedules import (
     FavoritePlaceListResponse,
     FavoritePlaceResponse,
 )
+from app.models.favorite_places import PlaceType
 from app.models.notifications import NotificationType
 from app.repositories.notification_repository import NotificationRepository
 from app.repositories.schedule_repository import ScheduleRepository
