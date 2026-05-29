@@ -28,8 +28,6 @@ TORTOISE_APP_MODELS = [
     "app.models.feedback_logs",
     "app.models.notifications",
     "app.models.notification_settings",
-    "app.models.prescriptions",
-    "app.models.medications",
     "app.models.pharmacies",
     "app.models.favorite_places",
     "app.models.medical_appointments",
@@ -38,7 +36,6 @@ TORTOISE_APP_MODELS = [
     "app.models.share_logs",
     "app.models.prompts",
     "app.models.health_guides",
-    "app.models.pill_recognitions",
 ]
 
 TORTOISE_ORM = {
