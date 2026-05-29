@@ -1,8 +1,9 @@
 from datetime import datetime
 from uuid import UUID
 
-from app.models.share_links import ShareDuration
 from pydantic import BaseModel
+
+from app.models.share_links import ShareDuration
 
 
 class GuardianCreateRequest(BaseModel):
