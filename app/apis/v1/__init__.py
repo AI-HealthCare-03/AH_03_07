@@ -16,6 +16,7 @@ from app.apis.v1.lab_result_routers import lab_result_router
 from app.apis.v1.lupus_skin_routers import lupus_skin_router
 from app.apis.v1.medical_schedule_routers import medical_schedule_router
 from app.apis.v1.medication_routers import medication_router
+from app.apis.v1.user_medication_routers import user_medication_router
 from app.apis.v1.mode_routers import mode_router
 from app.apis.v1.pill_recognition_routers import pill_router
 from app.apis.v1.pre_consultation_report_routers import pre_consultation_report_router
@@ -34,6 +35,7 @@ v1_routers.include_router(chat_router)
 v1_routers.include_router(auto_guide_router)
 v1_routers.include_router(disease_router)
 v1_routers.include_router(medication_router)
+v1_routers.include_router(user_medication_router)
 v1_routers.include_router(activity_log_router)
 v1_routers.include_router(activity_alert_router)
 v1_routers.include_router(symptom_check_router)
