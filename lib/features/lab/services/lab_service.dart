@@ -19,7 +19,7 @@ class LabService {
     if (to != null) params.write('&to=${to.toIso8601String()}');
 
     final res = await _client.get('/v1/lab/results$params');
-    if (!res.isSuccess) throw Exception(res.error);
+    if (!res.isSuccess) throw Exception(_friendlyError(res.statusCode, res.error));
 
     final items = (res.data!['results'] as List?) ?? [];
     return items
@@ -33,18 +33,24 @@ class LabService {
       '/v1/lab/results',
       body: input.toJson(),
     );
-    if (!res.isSuccess) throw Exception(res.error);
+    if (!res.isSuccess) throw Exception(_friendlyError(res.statusCode, res.error));
     return LabResult.fromJson(res.data!);
   }
 
   Future<LabResult> getResult(int id) async {
     final res = await _client.get('/v1/lab/results/$id');
-    if (!res.isSuccess) throw Exception(res.error);
+    if (!res.isSuccess) throw Exception(_friendlyError(res.statusCode, res.error));
     return LabResult.fromJson(res.data!);
   }
 
   Future<void> deleteResult(int id) async {
     final res = await _client.delete('/v1/lab/results/$id');
-    if (!res.isSuccess) throw Exception(res.error);
+    if (!res.isSuccess) throw Exception(_friendlyError(res.statusCode, res.error));
+  }
+
+  String _friendlyError(int? statusCode, String? msg) {
+    if (statusCode == 404) return '서버에 검사결과 기능이 아직 준비되지 않았습니다.';
+    if (statusCode == 401) return '로그인이 필요합니다.';
+    return msg ?? '오류가 발생했습니다.';
   }
 }

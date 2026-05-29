@@ -18,13 +18,13 @@ class EmergencyService {
       if (longitude != null) 'longitude': longitude,
       if (message != null && message.isNotEmpty) 'message': message,
     });
-    if (!res.isSuccess) throw Exception(res.error);
+    if (!res.isSuccess) throw Exception(_friendlyError(res.statusCode, res.error));
     return EmergencySosResult.fromJson(res.data!);
   }
 
   Future<List<EmergencyContact>> getContacts() async {
     final res = await _client.get('/v1/emergency/contacts');
-    if (!res.isSuccess) throw Exception(res.error);
+    if (!res.isSuccess) throw Exception(_friendlyError(res.statusCode, res.error));
     final items = (res.data!['contacts'] as List?) ?? [];
     return items.cast<Map<String, dynamic>>().map(EmergencyContact.fromJson).toList();
   }
@@ -39,13 +39,19 @@ class EmergencyService {
       'phone': phone,
       if (relation != null) 'relation': relation,
     });
-    if (!res.isSuccess) throw Exception(res.error);
+    if (!res.isSuccess) throw Exception(_friendlyError(res.statusCode, res.error));
     return EmergencyContact.fromJson(res.data!);
   }
 
   Future<void> deleteContact(int id) async {
     final res = await _client.delete('/v1/emergency/contacts/$id');
-    if (!res.isSuccess) throw Exception(res.error);
+    if (!res.isSuccess) throw Exception(_friendlyError(res.statusCode, res.error));
+  }
+
+  String _friendlyError(int? statusCode, String? msg) {
+    if (statusCode == 404) return '서버에 응급 SOS 기능이 아직 준비되지 않았습니다.';
+    if (statusCode == 401) return '로그인이 필요합니다.';
+    return msg ?? '오류가 발생했습니다.';
   }
 }
 
