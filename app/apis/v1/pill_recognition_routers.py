@@ -1,32 +1,46 @@
 from typing import Annotated
+from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, UploadFile, status
-from fastapi.responses import JSONResponse as Response
+from fastapi import APIRouter, Depends, status
 
 from app.dependencies.security import get_request_user
-from app.dtos.pill_recognition import PillRecognitionHistoryItem, PillRecognizeResponse
+from app.dtos.pill_recognitions import (
+    PillRecognitionCreateRequest,
+    PillRecognitionListResponse,
+    PillRecognitionResponse,
+    PillSelectRequest,
+)
 from app.models.users import User
-from app.services.pill_recognition_service import PillRecognitionService
+from app.services.pill_recognitions import PillRecognitionService
 
 pill_router = APIRouter(prefix="/pills", tags=["pills"])
 
 
-@pill_router.post("/recognize", status_code=status.HTTP_200_OK, response_model=PillRecognizeResponse)
+@pill_router.post("/recognize", response_model=PillRecognitionResponse, status_code=status.HTTP_201_CREATED)
 async def recognize_pill(
-    file: UploadFile,
-    current_user: Annotated[User, Depends(get_request_user)],
-    service: Annotated[PillRecognitionService, Depends(PillRecognitionService)],
-) -> Response:
-    result = await service.recognize(current_user, file)
-    return Response(content=result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+    data: PillRecognitionCreateRequest,
+    user: Annotated[User, Depends(get_request_user)],
+):
+    """약품 이미지 인식 (PILL-002)"""
+    service = PillRecognitionService()
+    return await service.recognize_pill(user.id, data.image_url)
 
 
-@pill_router.get("/recognitions", status_code=status.HTTP_200_OK, response_model=list[PillRecognitionHistoryItem])
-async def get_recognitions(
-    current_user: Annotated[User, Depends(get_request_user)],
-    service: Annotated[PillRecognitionService, Depends(PillRecognitionService)],
-    page: Annotated[int, Query(ge=1)] = 1,
-    size: Annotated[int, Query(ge=1, le=50)] = 10,
-) -> Response:
-    result = await service.get_recognitions(current_user, page, size)
-    return Response(content=[r.model_dump(mode="json") for r in result], status_code=status.HTTP_200_OK)
+@pill_router.put("/{recognition_id}/select", response_model=PillRecognitionResponse)
+async def select_drug(
+    recognition_id: UUID,
+    data: PillSelectRequest,
+    user: Annotated[User, Depends(get_request_user)],
+):
+    """Top 후보 중 약품 선택"""
+    service = PillRecognitionService()
+    return await service.select_drug(recognition_id, data)
+
+
+@pill_router.get("", response_model=PillRecognitionListResponse)
+async def get_my_recognitions(
+    user: Annotated[User, Depends(get_request_user)],
+):
+    """내 약품 인식 이력"""
+    service = PillRecognitionService()
+    return await service.get_my_recognitions(user.id)
