@@ -138,7 +138,7 @@ class TestRAExposureApis(TestCase):
             headers = {"Authorization": f"Bearer {token}"}
             await _register_ra_disease(client, headers)
             await client.post(
-                "/api/v1/medications",
+                "/api/v1/user-medications",
                 json={
                     "medications": [
                         {"name": "메토트렉세이트", "drug_class": "IMMUNOSUPPRESSANT", "is_injection": False}
@@ -159,7 +159,7 @@ class TestRAExposureApis(TestCase):
             headers = {"Authorization": f"Bearer {token}"}
             await _register_ra_disease(client, headers)
             await client.post(
-                "/api/v1/medications",
+                "/api/v1/user-medications",
                 json={"medications": [{"name": "아달리무맙", "drug_class": "BIOLOGIC", "is_injection": True}]},
                 headers=headers,
             )
@@ -201,7 +201,7 @@ class TestRAExposureApis(TestCase):
                     fatigue=8,
                 )
             await client.post(
-                "/api/v1/medications",
+                "/api/v1/user-medications",
                 json={"medications": [{"name": "프레드니솔론", "drug_class": "STEROID", "is_injection": True}]},
                 headers=headers,
             )
