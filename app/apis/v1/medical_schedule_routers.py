@@ -12,6 +12,7 @@ from app.dtos.autoimmune_medical import (
 from app.models.medical_schedule import MedicalScheduleType
 from app.models.users import User
 from app.services.autoimmune_medical_service import MedicalScheduleService
+from app.services.schedule_reminder_service import ScheduleReminderService
 
 medical_schedule_router = APIRouter(prefix="/medical-schedules", tags=["medical-schedules"])
 
@@ -21,8 +22,10 @@ async def create_medical_schedule(
     body: MedicalScheduleCreateRequest,
     user: Annotated[User, Depends(get_request_user)],
     service: Annotated[MedicalScheduleService, Depends(MedicalScheduleService)],
+    reminder_service: Annotated[ScheduleReminderService, Depends(ScheduleReminderService)],
 ) -> ORJSONResponse:
     schedule = await service.create_schedule(user=user, data=body)
+    await reminder_service.create_reminder_for_schedule(schedule)
     return ORJSONResponse(
         MedicalScheduleResponse.model_validate(schedule).model_dump(),
         status_code=status.HTTP_201_CREATED,
