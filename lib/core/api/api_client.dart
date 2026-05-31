@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/api_response.dart';
+import '../models/error_mapper.dart';
 import '../../services/ocr_service.dart';
 
 class ApiClient {
@@ -163,20 +164,18 @@ class ApiClient {
         return ApiResponse.success(body, res.statusCode);
       }
       final detail = body['detail'];
-      String msg;
+      String rawMsg;
       if (detail is String) {
-        msg = detail;
+        rawMsg = detail;
       } else if (detail is List && detail.isNotEmpty) {
-        // 422 Pydantic 유효성 오류: [{msg: '...', loc: [...]}]
         final first = detail.first;
-        msg = (first is Map ? first['msg'] as String? : null) ?? '입력값을 확인해주세요.';
-        // "Value error, " 접두사 제거
-        msg = msg.replaceFirst('Value error, ', '');
+        rawMsg = (first is Map ? first['msg'] as String? : null) ?? '';
       } else if (detail is Map) {
-        msg = detail['message'] as String? ?? '오류가 발생했습니다.';
+        rawMsg = detail['message'] as String? ?? '';
       } else {
-        msg = '오류가 발생했습니다.';
+        rawMsg = '';
       }
+      final msg = ErrorMapper.toUserMessage(res.statusCode, rawMsg.isNotEmpty ? rawMsg : null);
       return ApiResponse.failure(msg, res.statusCode);
     } catch (_) {
       return ApiResponse.failure('서버 응답을 처리할 수 없습니다.', res.statusCode);

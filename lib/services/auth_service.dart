@@ -209,6 +209,8 @@ class AuthService {
     return true;
   }
 
+  // P2: ApiClient와 갱신 로직 공유 — 단일 진입점
+  // (ApiClient._refreshIfNeeded와 중복 방지를 위해 isLoggedIn에서만 사용)
   Future<void> _tryRefreshToken() async {
     final refreshToken = await _tokenStorage.getRefreshToken();
     if (refreshToken == null) throw const AuthException('리프레시 토큰 없음');

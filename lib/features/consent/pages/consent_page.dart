@@ -50,7 +50,9 @@ class _ConsentPageState extends State<ConsentPage>
       setState(() => _history = history);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = e.toString());
+      // P3: 내부 에러 타입 노출 방지 — 사용자 친화적 메시지
+      setState(() => _error = '동의 이력을 불러오지 못했습니다.\n잠시 후 다시 시도해주세요.');
+      logger.error(LogCategory.consent, '동의 이력 조회 실패', {'error': e.toString()});
     } finally {
       if (mounted) setState(() => _loading = false);
     }

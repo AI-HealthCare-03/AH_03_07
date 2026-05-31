@@ -1,50 +1,30 @@
 // NFR-SEC-003: 민감정보 암호화 관리
-// FlutterSecureStorage 기반 암호화 저장소 + 접근 감사 로그
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+// P2: SecureTokenStorage 단일 인스턴스 사용으로 통합
 import '../logging/app_logger.dart';
+import '../../main.dart'; // SecureTokenStorage.readKey / writeKey
 
 class SecureDataManager {
   SecureDataManager._();
   static final SecureDataManager instance = SecureDataManager._();
 
-  final _storage = const FlutterSecureStorage(
-    webOptions: WebOptions(
-      dbName: 'medapp_secure_v2',
-      publicKey: 'medapp_sec_key',
-    ),
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-  );
-
-  // 민감 데이터 키 목록 (감사 로그용)
   static const _sensitiveKeys = {
-    'access_token', 'refresh_token', 'user_id', 'user_email',
-    'medical_cache', 'consent_data',
+    'access_token', 'refresh_token', 'user_id', 'user_email', 'is_logged_out',
+    'consent_terms', 'consent_privacy', 'consent_sensitive_medical', 'consent_marketing',
   };
 
   Future<void> write(String key, String value) async {
-    if (_sensitiveKeys.contains(key)) {
-      logger.logSensitiveAccess('write:$key');
-    }
-    await _storage.write(key: key, value: value);
+    if (_sensitiveKeys.contains(key)) logger.logSensitiveAccess('write:$key');
+    await SecureTokenStorage.writeKey(key, value);
   }
 
   Future<String?> read(String key) async {
-    if (_sensitiveKeys.contains(key)) {
-      logger.logSensitiveAccess('read:$key');
-    }
-    return _storage.read(key: key);
+    if (_sensitiveKeys.contains(key)) logger.logSensitiveAccess('read:$key');
+    return SecureTokenStorage.readKey(key);
   }
 
   Future<void> delete(String key) async {
-    if (_sensitiveKeys.contains(key)) {
-      logger.logSensitiveAccess('delete:$key');
-    }
-    await _storage.delete(key: key);
-  }
-
-  Future<void> deleteAll() async {
-    logger.warn(LogCategory.security, '전체 보안 데이터 삭제');
-    await _storage.deleteAll();
+    if (_sensitiveKeys.contains(key)) logger.logSensitiveAccess('delete:$key');
+    await SecureTokenStorage.deleteKey(key);
   }
 
   // 동의 데이터 저장 (NFR-COMPLI-001)

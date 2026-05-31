@@ -53,7 +53,8 @@ void main() {
 
       expect(res.isSuccess, isFalse);
       expect(res.statusCode, equals(401));
-      expect(res.error, equals('Unauthorized'));
+      // ErrorMapper 적용: 401 → 로그인 필요 메시지
+      expect(res.error, contains('로그인'));
     });
 
     test('잘못된 JSON 응답은 오류 메시지를 반환한다', () async {

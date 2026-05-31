@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -75,12 +76,19 @@ class _SplashScreenState extends State<SplashScreen>
         if (accessToken == null || accessToken.isEmpty) {
           _isLoggedIn = false;
         } else {
-          // 서버 검증 선택적 시도 — 네트워크 오류 시 토큰 유지
+          // P2: 로컬 만료 우선 체크
+          final isLocallyExpired = _isTokenLocallyExpired(accessToken);
           try {
             _isLoggedIn = await _authService.isLoggedIn()
                 .timeout(const Duration(seconds: 3));
           } catch (_) {
-            _isLoggedIn = true;
+            // 네트워크 오류: 만료된 토큰이면 재로그인, 유효하면 유지
+            if (isLocallyExpired) {
+              await _tokenStorage.deleteAll();
+              _isLoggedIn = false;
+            } else {
+              _isLoggedIn = true;
+            }
           }
         }
       }
@@ -90,6 +98,19 @@ class _SplashScreenState extends State<SplashScreen>
     } finally {
       _authCheckDone = true;
       _tryNavigate();
+    }
+  }
+
+  bool _isTokenLocallyExpired(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return true;
+      final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+      final exp = (jsonDecode(payload) as Map)['exp'] as int?;
+      if (exp == null) return true;
+      return DateTime.now().millisecondsSinceEpoch ~/ 1000 >= exp;
+    } catch (_) {
+      return true;
     }
   }
 

@@ -8,44 +8,50 @@ import 'services/ocr_service.dart';
 import 'splash_screen.dart';
 import 'home_page.dart';
 
+// P2: SecureTokenStorage를 단일 FlutterSecureStorage 인스턴스로 통합
+// (SecureDataManager와 별도 인스턴스 사용 시 deleteAll 누락 위험 해소)
 class SecureTokenStorage implements TokenStorage {
-  final _storage = const FlutterSecureStorage(
-    webOptions: WebOptions(
-      dbName: 'medapp_storage',
-      publicKey: 'medapp_key',
-    ),
+  // 앱 전역 단일 인스턴스 (SecureDataManager와 공유)
+  static const _storage = FlutterSecureStorage(
+    webOptions: WebOptions(dbName: 'medapp_storage', publicKey: 'medapp_key'),
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
+
+  // 외부에서도 접근 가능하도록 노출 (SecureDataManager 통합)
+  static Future<String?> readKey(String key) => _storage.read(key: key);
+  static Future<void> writeKey(String key, String value) =>
+      _storage.write(key: key, value: value);
+  static Future<void> deleteKey(String key) => _storage.delete(key: key);
 
   @override
   Future<String?> getAccessToken() => _storage.read(key: 'access_token');
-
   @override
   Future<String?> getRefreshToken() => _storage.read(key: 'refresh_token');
-
   @override
   Future<void> saveAccessToken(String token) =>
       _storage.write(key: 'access_token', value: token);
-
   @override
   Future<void> saveRefreshToken(String token) =>
       _storage.write(key: 'refresh_token', value: token);
-
   @override
   Future<void> saveUserId(String id) =>
       _storage.write(key: 'user_id', value: id);
-
   @override
   Future<void> saveUserEmail(String email) =>
       _storage.write(key: 'user_email', value: email);
 
   @override
   Future<void> deleteAll() async {
-    // 웹에서 deleteAll()이 불완전할 수 있어 개별 삭제 + 로그아웃 플래그 기록
+    // 웹 호환성: 개별 삭제 + 로그아웃 플래그
     await Future.wait([
       _storage.delete(key: 'access_token'),
       _storage.delete(key: 'refresh_token'),
       _storage.delete(key: 'user_id'),
       _storage.delete(key: 'user_email'),
+      _storage.delete(key: 'consent_terms'),
+      _storage.delete(key: 'consent_privacy'),
+      _storage.delete(key: 'consent_sensitive_medical'),
+      _storage.delete(key: 'consent_marketing'),
       _storage.write(key: 'is_logged_out', value: 'true'),
     ]);
   }
