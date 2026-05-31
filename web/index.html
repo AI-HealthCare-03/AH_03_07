@@ -55,11 +55,36 @@
         o.start(now); o.stop(now + dur);
       } catch(e) {}
     }
-    window.cardFlip     = function() { cardTone(600, 0.08, 0.2, 'sine', 0); };
-    window.cardMatch    = function() { cardTone(523, 0.15, 0.25, 'sine', 0); cardTone(784, 0.15, 0.25, 'sine', 0.12); };
-    window.cardMiss     = function() { cardTone(180, 0.2, 0.15, 'sawtooth', 0); };
+    // 카드 뒤집기: 경쾌한 클릭
+    window.cardFlip = function() {
+      cardTone(800, 0.06, 0.15, 'sine', 0);
+    };
+
+    // 매칭 성공: 밝은 3음 상승 (도-미-솔)
+    window.cardMatch = function() {
+      cardTone(523, 0.12, 0.3, 'sine', 0);
+      cardTone(659, 0.12, 0.3, 'sine', 0.1);
+      cardTone(784, 0.2,  0.35, 'sine', 0.2);
+    };
+
+    // 매칭 실패: 하강 버즈 두 음 (틀렸어!)
+    window.cardMiss = function() {
+      cardTone(300, 0.12, 0.3, 'sawtooth', 0);
+      cardTone(220, 0.18, 0.25, 'sawtooth', 0.13);
+    };
+
+    // 연속 정답 콤보: 빠른 상승 4음 + 반짝임
+    window.cardCombo = function() {
+      [523, 659, 784, 988, 1047].forEach(function(f, i) {
+        cardTone(f, 0.1, 0.3, 'sine', i * 0.07);
+      });
+    };
+
+    // 게임 완료: 화려한 승리 팡파레
     window.cardComplete = function() {
-      [523,659,784,1047].forEach(function(f,i){ cardTone(f, 0.2, 0.3, 'sine', i*0.15); });
+      [523,659,784,659,784,1047].forEach(function(f,i){
+        cardTone(f, i===5?0.4:0.15, 0.35, 'sine', i*0.13);
+      });
     };
   </script>
   <script src="flutter_bootstrap.js" async></script>

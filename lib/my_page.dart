@@ -621,6 +621,7 @@ class _CardSound {
 
   static void flip()     => _call('cardFlip');
   static void match()    => _call('cardMatch');
+  static void combo()    => _call('cardCombo');
   static void mismatch() => _call('cardMiss');
   static void complete() => _call('cardComplete');
 }
@@ -643,6 +644,7 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
   bool _isChecking = false;
   int _moves = 0;
   int _matchedPairs = 0;
+  int _comboCount = 0; // 연속 정답 카운터
 
   @override
   void initState() { super.initState(); _initGame(); }
@@ -656,6 +658,7 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
     _isChecking = false;
     _moves = 0;
     _matchedPairs = 0;
+    _comboCount = 0;
   }
 
   void _onCardTap(int index) {
@@ -668,7 +671,13 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
     _firstIndex = null;
     _moves++;
     if (_cards[first] == _cards[index]) {
-      _CardSound.match();
+      _comboCount++;
+      // 2연속 이상이면 콤보 소리, 아니면 일반 성공 소리
+      if (_comboCount >= 2) {
+        _CardSound.combo();
+      } else {
+        _CardSound.match();
+      }
       setState(() { _matched[first] = true; _matched[index] = true; _matchedPairs++; _isChecking = false; });
       if (_matchedPairs == _emojis.length) {
         final score = max(0, 100 - (_moves - _emojis.length) * 5);
@@ -677,6 +686,7 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
         _showGameOverDialog(score);
       }
     } else {
+      _comboCount = 0; // 틀리면 콤보 리셋
       Future.delayed(const Duration(milliseconds: 400), () {
         _CardSound.mismatch();
       });
@@ -728,8 +738,25 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
       ),
       body: Column(children: [
         const SizedBox(height: 20),
-        Text('${_matchedPairs}/${_emojis.length} 매칭 완료',
-            style: const TextStyle(color: Colors.grey, fontSize: 14)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('${_matchedPairs}/${_emojis.length} 매칭 완료',
+                style: const TextStyle(color: Colors.grey, fontSize: 14)),
+            if (_comboCount >= 2) ...[
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF8C00),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text('🔥 $_comboCount연속!',
+                    style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ],
+        ),
         const SizedBox(height: 20),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
