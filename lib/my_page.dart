@@ -498,6 +498,50 @@ class _GamePageState extends State<GamePage> {
                   onGameEnd: (score) => _submitScore('memory_card', score)),
               )),
             ),
+            const SizedBox(height: 12),
+            _buildGameCard(
+              title: 'OX 퀴즈',
+              description: '건강 상식을 O/X로 맞춰보세요',
+              icon: Icons.quiz_outlined,
+              color: Colors.blue,
+              onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => OxQuizPage(
+                  onGameEnd: (score) => _submitScore('ox_quiz', score)),
+              )),
+            ),
+            const SizedBox(height: 12),
+            _buildGameCard(
+              title: '단어 맞추기',
+              description: '초성 힌트로 의학 용어를 맞춰보세요',
+              icon: Icons.abc_outlined,
+              color: Colors.purple,
+              onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => WordGuessPage(
+                  onGameEnd: (score) => _submitScore('word_guess', score)),
+              )),
+            ),
+            const SizedBox(height: 12),
+            _buildGameCard(
+              title: '타이머 챌린지',
+              description: '제한 시간 안에 카드를 모두 뒤집으세요',
+              icon: Icons.timer_outlined,
+              color: Colors.red,
+              onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => TimerChallengeGame(
+                  onGameEnd: (score) => _submitScore('timer_challenge', score)),
+              )),
+            ),
+            const SizedBox(height: 12),
+            _buildGameCard(
+              title: '수치 범위 맞추기',
+              description: '정상 건강 수치 범위를 슬라이더로 맞춰보세요',
+              icon: Icons.show_chart_outlined,
+              color: Colors.teal,
+              onTap: () => Navigator.push(context, MaterialPageRoute(
+                builder: (_) => HealthRangeQuizPage(
+                  onGameEnd: (score) => _submitScore('health_range', score)),
+              )),
+            ),
             const SizedBox(height: 20),
             const Text('복약 확인',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
@@ -998,5 +1042,634 @@ class _MedicationQuizPageState extends State<MedicationQuizPage> {
         )),
       ]),
     ));
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// OX 퀴즈
+// ══════════════════════════════════════════════════════════
+class OxQuizPage extends StatefulWidget {
+  final void Function(int score) onGameEnd;
+  const OxQuizPage({super.key, required this.onGameEnd});
+  @override
+  State<OxQuizPage> createState() => _OxQuizPageState();
+}
+
+class _OxQuizPageState extends State<OxQuizPage> {
+  static const _questions = [
+    (q: '류마티스 관절염은 노인에게만 발생한다.', answer: false, desc: '청년층에도 발생하며 30~50대에 많습니다.'),
+    (q: '혈압 정상 범위는 수축기 120mmHg 미만입니다.', answer: true, desc: '정상 혈압은 120/80mmHg 미만입니다.'),
+    (q: '루푸스(SLE)는 남성에게 더 흔한 질환이다.', answer: false, desc: '루푸스는 여성 환자가 약 9배 더 많습니다.'),
+    (q: '공복 혈당 정상치는 100mg/dL 미만이다.', answer: true, desc: '100 이상이면 당뇨 전단계로 봅니다.'),
+    (q: '복약은 식사와 상관없이 아무 때나 먹어도 된다.', answer: false, desc: '약에 따라 식전/식후/공복 복용 지침이 다릅니다.'),
+    (q: '관절염 환자는 운동을 완전히 피해야 한다.', answer: false, desc: '적절한 저강도 운동은 관절 기능 유지에 도움이 됩니다.'),
+    (q: 'BMI 25 이상은 과체중으로 분류된다.', answer: true, desc: 'WHO 기준 BMI 25~29.9는 과체중입니다.'),
+    (q: '자가면역 질환은 면역계가 자기 몸을 공격하는 질환이다.', answer: true, desc: '면역계 오작동으로 자신의 조직을 공격합니다.'),
+    (q: '항생제는 바이러스 감염에 효과적이다.', answer: false, desc: '항생제는 세균에만 효과적이며 바이러스에는 무효합니다.'),
+    (q: '정상 체온은 약 36.5°C입니다.', answer: true, desc: '36~37.5°C가 정상 체온 범위입니다.'),
+  ];
+
+  int _index = 0;
+  int _correct = 0;
+  bool? _answered;
+  bool _done = false;
+
+  void _answer(bool userAnswer) {
+    if (_answered != null || _done) return;
+    final correct = userAnswer == _questions[_index].answer;
+    setState(() { _answered = userAnswer; if (correct) _correct++; });
+    Future.delayed(const Duration(milliseconds: 1200), () {
+      if (!mounted) return;
+      if (_index + 1 >= _questions.length) {
+        final score = (_correct / _questions.length * 100).round();
+        setState(() => _done = true);
+        widget.onGameEnd(score);
+        _showResult(score);
+      } else {
+        setState(() { _index++; _answered = null; });
+      }
+    });
+  }
+
+  void _showResult(int score) {
+    showDialog(
+      context: context, barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(score >= 80 ? '🎉 훌륭해요!' : score >= 60 ? '👍 잘했어요!' : '💪 다시 도전!',
+            style: const TextStyle(fontWeight: FontWeight.bold)),
+        content: Text('$_correct/${_questions.length} 정답\n점수: $score점'),
+        actions: [
+          TextButton(onPressed: () { Navigator.pop(context); Navigator.pop(context); }, child: const Text('나가기')),
+          ElevatedButton(
+            onPressed: () { Navigator.pop(context); setState(() { _index = 0; _correct = 0; _answered = null; _done = false; }); },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+            child: const Text('다시하기', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final q = _questions[_index];
+    final answered = _answered;
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F8F8),
+      appBar: AppBar(
+        backgroundColor: Colors.white, elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.black87), onPressed: () => Navigator.pop(context)),
+        title: const Text('OX 퀴즈', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+        actions: [Center(child: Padding(padding: const EdgeInsets.only(right: 16),
+            child: Text('${_index + 1}/${_questions.length}', style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold))))],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(children: [
+          LinearProgressIndicator(value: (_index + 1) / _questions.length, color: Colors.blue, backgroundColor: Colors.blue.shade100),
+          const SizedBox(height: 32),
+          Container(
+            width: double.infinity, padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 12)]),
+            child: Text(q.q, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, height: 1.5), textAlign: TextAlign.center),
+          ),
+          if (answered != null) ...[
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: (answered == q.answer) ? Colors.green.shade50 : Colors.red.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: (answered == q.answer) ? Colors.green : Colors.red),
+              ),
+              child: Row(children: [
+                Icon((answered == q.answer) ? Icons.check_circle : Icons.cancel, color: (answered == q.answer) ? Colors.green : Colors.red),
+                const SizedBox(width: 8),
+                Expanded(child: Text(q.desc, style: TextStyle(color: (answered == q.answer) ? Colors.green.shade800 : Colors.red.shade800))),
+              ]),
+            ),
+          ],
+          const Spacer(),
+          Row(children: [
+            Expanded(child: _OxButton(label: 'O', color: Colors.blue,
+                onTap: answered == null ? () => _answer(true) : null,
+                selected: answered == true, correct: answered != null && q.answer == true)),
+            const SizedBox(width: 16),
+            Expanded(child: _OxButton(label: 'X', color: Colors.red,
+                onTap: answered == null ? () => _answer(false) : null,
+                selected: answered == false, correct: answered != null && q.answer == false)),
+          ]),
+          const SizedBox(height: 32),
+        ]),
+      ),
+    );
+  }
+}
+
+class _OxButton extends StatelessWidget {
+  final String label;
+  final Color color;
+  final VoidCallback? onTap;
+  final bool selected;
+  final bool correct;
+  const _OxButton({required this.label, required this.color, this.onTap, required this.selected, required this.correct});
+
+  @override
+  Widget build(BuildContext context) {
+    Color bg = Colors.white;
+    if (selected) {
+      bg = correct ? Colors.green : Colors.red;
+    } else if (correct && onTap == null) {
+      bg = Colors.green.shade100;
+    }
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 90,
+        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: selected ? bg : color, width: 3),
+            boxShadow: [BoxShadow(color: color.withValues(alpha: 0.2), blurRadius: 8)]),
+        child: Center(child: Text(label, style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold,
+            color: selected ? Colors.white : color))),
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// 단어 맞추기
+// ══════════════════════════════════════════════════════════
+class WordGuessPage extends StatefulWidget {
+  final void Function(int score) onGameEnd;
+  const WordGuessPage({super.key, required this.onGameEnd});
+  @override
+  State<WordGuessPage> createState() => _WordGuessPageState();
+}
+
+class _WordGuessPageState extends State<WordGuessPage> {
+  static const _words = [
+    (word: '류마티스', hint: 'ㄹㅁㅌㅅ', desc: '관절에 염증이 생기는 자가면역 질환'),
+    (word: '혈압', hint: 'ㅎㅇ', desc: '혈관 벽에 가해지는 혈액의 압력'),
+    (word: '항생제', hint: 'ㅎㅅㅈ', desc: '세균 감염을 치료하는 약물'),
+    (word: '루푸스', hint: 'ㄹㅍㅅ', desc: '피부·관절·신장 등을 침범하는 자가면역 질환'),
+    (word: '복약', hint: 'ㅂㅇ', desc: '약을 정해진 방법대로 먹는 것'),
+    (word: '혈당', hint: 'ㅎㄷ', desc: '혈액 속 포도당 농도'),
+    (word: '면역', hint: 'ㅁㅇ', desc: '외부 병원체로부터 몸을 보호하는 시스템'),
+    (word: '염증', hint: 'ㅇㅈ', desc: '조직 손상 시 나타나는 발적·부종·통증 반응'),
+  ];
+
+  int _index = 0;
+  int _correct = 0;
+  final _ctrl = TextEditingController();
+  bool? _result;
+  bool _done = false;
+
+  @override
+  void dispose() { _ctrl.dispose(); super.dispose(); }
+
+  void _submit() {
+    final ans = _ctrl.text.trim();
+    if (ans.isEmpty) return;
+    final isCorrect = ans == _words[_index].word;
+    if (isCorrect) _correct++;
+    setState(() => _result = isCorrect);
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (!mounted) return;
+      _ctrl.clear();
+      if (_index + 1 >= _words.length) {
+        final score = (_correct / _words.length * 100).round();
+        setState(() => _done = true);
+        widget.onGameEnd(score);
+        _showResult(score);
+      } else {
+        setState(() { _index++; _result = null; });
+      }
+    });
+  }
+
+  void _skip() {
+    if (_done) return;
+    _ctrl.clear();
+    setState(() { _result = false; });
+    Future.delayed(const Duration(milliseconds: 800), () {
+      if (!mounted) return;
+      if (_index + 1 >= _words.length) {
+        final score = (_correct / _words.length * 100).round();
+        setState(() => _done = true);
+        widget.onGameEnd(score);
+        _showResult(score);
+      } else {
+        setState(() { _index++; _result = null; });
+      }
+    });
+  }
+
+  void _showResult(int score) {
+    showDialog(
+      context: context, barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(score >= 80 ? '🎉 단어 마스터!' : '💪 다시 도전!', style: const TextStyle(fontWeight: FontWeight.bold)),
+        content: Text('$_correct/${_words.length} 정답\n점수: $score점'),
+        actions: [
+          TextButton(onPressed: () { Navigator.pop(context); Navigator.pop(context); }, child: const Text('나가기')),
+          ElevatedButton(
+            onPressed: () { Navigator.pop(context); setState(() { _index = 0; _correct = 0; _result = null; _done = false; _ctrl.clear(); }); },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
+            child: const Text('다시하기', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final w = _words[_index];
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F8F8),
+      appBar: AppBar(
+        backgroundColor: Colors.white, elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.black87), onPressed: () => Navigator.pop(context)),
+        title: const Text('단어 맞추기', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+        actions: [Center(child: Padding(padding: const EdgeInsets.only(right: 16),
+            child: Text('${_index + 1}/${_words.length}', style: const TextStyle(color: Colors.purple, fontWeight: FontWeight.bold))))],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(children: [
+          LinearProgressIndicator(value: (_index + 1) / _words.length, color: Colors.purple, backgroundColor: Colors.purple.shade100),
+          const SizedBox(height: 32),
+          Container(
+            width: double.infinity, padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 12)]),
+            child: Column(children: [
+              const Text('힌트 (초성)', style: TextStyle(color: Colors.grey, fontSize: 13)),
+              const SizedBox(height: 12),
+              Text(w.hint, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: 8, color: Colors.purple)),
+              const SizedBox(height: 16),
+              Text(w.desc, style: const TextStyle(color: Colors.grey, fontSize: 14), textAlign: TextAlign.center),
+            ]),
+          ),
+          const SizedBox(height: 24),
+          if (_result != null)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: _result! ? Colors.green.shade50 : Colors.red.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: _result! ? Colors.green : Colors.red),
+              ),
+              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Icon(_result! ? Icons.check_circle : Icons.cancel, color: _result! ? Colors.green : Colors.red),
+                const SizedBox(width: 8),
+                Text(_result! ? '정답!' : '정답: ${w.word}',
+                    style: TextStyle(color: _result! ? Colors.green : Colors.red, fontWeight: FontWeight.bold)),
+              ]),
+            ),
+          const Spacer(),
+          TextField(
+            controller: _ctrl,
+            enabled: _result == null,
+            decoration: InputDecoration(
+              hintText: '정답을 입력하세요',
+              filled: true, fillColor: Colors.white,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            onSubmitted: (_) => _submit(),
+          ),
+          const SizedBox(height: 12),
+          Row(children: [
+            Expanded(child: OutlinedButton(
+              onPressed: _result == null ? _skip : null,
+              child: const Text('건너뛰기'),
+            )),
+            const SizedBox(width: 12),
+            Expanded(child: ElevatedButton(
+              onPressed: _result == null ? _submit : null,
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
+              child: const Text('확인', style: TextStyle(color: Colors.white)),
+            )),
+          ]),
+          const SizedBox(height: 32),
+        ]),
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// 타이머 챌린지
+// ══════════════════════════════════════════════════════════
+class TimerChallengeGame extends StatefulWidget {
+  final void Function(int score) onGameEnd;
+  const TimerChallengeGame({super.key, required this.onGameEnd});
+  @override
+  State<TimerChallengeGame> createState() => _TimerChallengeGameState();
+}
+
+class _TimerChallengeGameState extends State<TimerChallengeGame> {
+  static const _emojis = ['💊', '🏥', '🩺', '💉', '🩹', '🧬', '🦠', '🧪'];
+  static const _totalTime = 30; // 초
+
+  late List<String> _cards;
+  late List<bool> _flipped;
+  late List<bool> _matched;
+  int? _firstIndex;
+  bool _isChecking = false;
+  int _matchedPairs = 0;
+  int _timeLeft = _totalTime;
+  bool _started = false;
+  bool _done = false;
+
+  @override
+  void initState() { super.initState(); _initGame(); }
+
+  void _initGame() {
+    final pairs = [..._emojis, ..._emojis]..shuffle(Random());
+    _cards = pairs;
+    _flipped = List.filled(16, false);
+    _matched = List.filled(16, false);
+    _firstIndex = null;
+    _isChecking = false;
+    _matchedPairs = 0;
+    _timeLeft = _totalTime;
+    _started = false;
+    _done = false;
+  }
+
+  void _startTimer() {
+    if (_started) return;
+    _started = true;
+    _tick();
+  }
+
+  void _tick() {
+    Future.delayed(const Duration(seconds: 1), () {
+      if (!mounted || _done) return;
+      setState(() => _timeLeft--);
+      if (_timeLeft <= 0) {
+        _endGame();
+      } else {
+        _tick();
+      }
+    });
+  }
+
+  void _endGame() {
+    if (_done) return;
+    _done = true;
+    final score = (_matchedPairs * 100 ~/ _emojis.length).clamp(0, 100);
+    widget.onGameEnd(score);
+    _showResult(score);
+  }
+
+  void _onCardTap(int index) {
+    if (!_started) _startTimer();
+    if (_done || _isChecking || _flipped[index] || _matched[index]) return;
+    setState(() => _flipped[index] = true);
+    if (_firstIndex == null) { _firstIndex = index; return; }
+    _isChecking = true;
+    final first = _firstIndex!;
+    _firstIndex = null;
+    if (_cards[first] == _cards[index]) {
+      setState(() { _matched[first] = true; _matched[index] = true; _matchedPairs++; _isChecking = false; });
+      if (_matchedPairs == _emojis.length) _endGame();
+    } else {
+      Future.delayed(const Duration(milliseconds: 600), () {
+        if (!mounted) return;
+        setState(() { _flipped[first] = false; _flipped[index] = false; _isChecking = false; });
+      });
+    }
+  }
+
+  void _showResult(int score) {
+    showDialog(
+      context: context, barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(_matchedPairs == _emojis.length ? '🏆 완벽 클리어!' : '⏱️ 시간 초과!',
+            style: const TextStyle(fontWeight: FontWeight.bold)),
+        content: Text('$_matchedPairs/${_emojis.length} 완료\n점수: $score점'),
+        actions: [
+          TextButton(onPressed: () { Navigator.pop(context); Navigator.pop(context); }, child: const Text('나가기')),
+          ElevatedButton(
+            onPressed: () { Navigator.pop(context); setState(() => _initGame()); },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('다시하기', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final timerColor = _timeLeft <= 10 ? Colors.red : _timeLeft <= 20 ? Colors.orange : Colors.green;
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F8F8),
+      appBar: AppBar(
+        backgroundColor: Colors.white, elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.black87), onPressed: () => Navigator.pop(context)),
+        title: const Text('타이머 챌린지', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+        actions: [Center(child: Padding(padding: const EdgeInsets.only(right: 16),
+            child: Text('⏱️ $_timeLeft초', style: TextStyle(color: timerColor, fontWeight: FontWeight.bold, fontSize: 18))))],
+      ),
+      body: Column(children: [
+        LinearProgressIndicator(value: _timeLeft / _totalTime, color: timerColor, backgroundColor: Colors.grey.shade200, minHeight: 6),
+        const SizedBox(height: 12),
+        if (!_started)
+          Padding(padding: const EdgeInsets.all(8),
+            child: Text('카드를 탭하면 타이머 시작!', style: TextStyle(color: Colors.grey.shade600, fontSize: 13))),
+        Text('$_matchedPairs/${_emojis.length} 매칭 완료', style: const TextStyle(color: Colors.grey, fontSize: 14)),
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: GridView.builder(
+            shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4, crossAxisSpacing: 8, mainAxisSpacing: 8),
+            itemCount: 16,
+            itemBuilder: (_, i) => GestureDetector(
+              onTap: () => _onCardTap(i),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                decoration: BoxDecoration(
+                  color: _matched[i] ? Colors.green.withValues(alpha: 0.15) : _flipped[i] ? Colors.white : Colors.red,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 4)],
+                ),
+                child: Center(child: Text(
+                  _flipped[i] || _matched[i] ? _cards[i] : '?',
+                  style: TextStyle(fontSize: 28, color: _flipped[i] || _matched[i] ? null : Colors.white),
+                )),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        ElevatedButton.icon(
+          onPressed: () => setState(() => _initGame()),
+          icon: const Icon(Icons.refresh, color: Colors.white),
+          label: const Text('초기화', style: TextStyle(color: Colors.white)),
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.grey,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+        ),
+      ]),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// 건강 수치 범위 맞추기
+// ══════════════════════════════════════════════════════════
+class HealthRangeQuizPage extends StatefulWidget {
+  final void Function(int score) onGameEnd;
+  const HealthRangeQuizPage({super.key, required this.onGameEnd});
+  @override
+  State<HealthRangeQuizPage> createState() => _HealthRangeQuizPageState();
+}
+
+class _HealthRangeQuizPageState extends State<HealthRangeQuizPage> {
+  static const _quizzes = [
+    (q: '정상 수축기 혈압 (mmHg)', min: 60.0, max: 200.0, answerMin: 90.0, answerMax: 120.0, unit: 'mmHg'),
+    (q: '공복 혈당 정상 범위 (mg/dL)', min: 50.0, max: 300.0, answerMin: 70.0, answerMax: 100.0, unit: 'mg/dL'),
+    (q: '정상 체온 범위 (°C)', min: 35.0, max: 42.0, answerMin: 36.1, answerMax: 37.2, unit: '°C'),
+    (q: '정상 심박수 범위 (bpm)', min: 30.0, max: 150.0, answerMin: 60.0, answerMax: 100.0, unit: 'bpm'),
+    (q: '정상 BMI 범위', min: 10.0, max: 50.0, answerMin: 18.5, answerMax: 24.9, unit: ''),
+  ];
+
+  int _index = 0;
+  int _totalScore = 0;
+  double _userMin = 0;
+  double _userMax = 0;
+  bool _submitted = false;
+
+  @override
+  void initState() { super.initState(); _initQuestion(); }
+
+  void _initQuestion() {
+    final q = _quizzes[_index];
+    _userMin = q.min + (q.max - q.min) * 0.3;
+    _userMax = q.min + (q.max - q.min) * 0.7;
+    _submitted = false;
+  }
+
+  int _calcScore() {
+    final q = _quizzes[_index];
+    final range = q.max - q.min;
+    final minDiff = (_userMin - q.answerMin).abs() / range;
+    final maxDiff = (_userMax - q.answerMax).abs() / range;
+    final accuracy = 1.0 - ((minDiff + maxDiff) / 2).clamp(0.0, 1.0);
+    return (accuracy * 100).round();
+  }
+
+  void _submit() {
+    final score = _calcScore();
+    _totalScore += score;
+    setState(() => _submitted = true);
+    Future.delayed(const Duration(milliseconds: 1800), () {
+      if (!mounted) return;
+      if (_index + 1 >= _quizzes.length) {
+        final avg = _totalScore ~/ _quizzes.length;
+        widget.onGameEnd(avg);
+        _showResult(avg);
+      } else {
+        setState(() { _index++; _initQuestion(); });
+      }
+    });
+  }
+
+  void _showResult(int score) {
+    showDialog(
+      context: context, barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(score >= 80 ? '🎉 건강 박사!' : score >= 60 ? '👍 잘 알고 있어요!' : '📚 더 공부해봐요!',
+            style: const TextStyle(fontWeight: FontWeight.bold)),
+        content: Text('평균 점수: $score점'),
+        actions: [
+          TextButton(onPressed: () { Navigator.pop(context); Navigator.pop(context); }, child: const Text('나가기')),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() { _index = 0; _totalScore = 0; _initQuestion(); });
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.teal),
+            child: const Text('다시하기', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final q = _quizzes[_index];
+    final score = _submitted ? _calcScore() : null;
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F8F8),
+      appBar: AppBar(
+        backgroundColor: Colors.white, elevation: 0,
+        leading: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.black87), onPressed: () => Navigator.pop(context)),
+        title: const Text('수치 범위 맞추기', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
+        actions: [Center(child: Padding(padding: const EdgeInsets.only(right: 16),
+            child: Text('${_index + 1}/${_quizzes.length}', style: const TextStyle(color: Colors.teal, fontWeight: FontWeight.bold))))],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          LinearProgressIndicator(value: (_index + 1) / _quizzes.length, color: Colors.teal, backgroundColor: Colors.teal.shade100),
+          const SizedBox(height: 24),
+          Container(
+            width: double.infinity, padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 10)]),
+            child: Text(q.q, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+          ),
+          const SizedBox(height: 24),
+          Text('최솟값: ${_userMin.toStringAsFixed(1)} ${q.unit}',
+              style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.teal)),
+          Slider(value: _userMin, min: q.min, max: q.max - 1, activeColor: Colors.teal,
+              onChanged: _submitted ? null : (v) => setState(() => _userMin = v < _userMax ? v : _userMax - 1)),
+          Text('최댓값: ${_userMax.toStringAsFixed(1)} ${q.unit}',
+              style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.teal)),
+          Slider(value: _userMax, min: q.min + 1, max: q.max, activeColor: Colors.teal,
+              onChanged: _submitted ? null : (v) => setState(() => _userMax = v > _userMin ? v : _userMin + 1)),
+          if (_submitted) ...[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: score! >= 80 ? Colors.green.shade50 : score >= 50 ? Colors.orange.shade50 : Colors.red.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: score >= 80 ? Colors.green : score >= 50 ? Colors.orange : Colors.red),
+              ),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('정답: ${q.answerMin.toStringAsFixed(1)} ~ ${q.answerMax.toStringAsFixed(1)} ${q.unit}',
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text('내 답: ${_userMin.toStringAsFixed(1)} ~ ${_userMax.toStringAsFixed(1)} ${q.unit}',
+                    style: TextStyle(color: Colors.grey.shade600)),
+                Text('정확도: $score점', style: TextStyle(
+                    color: score >= 80 ? Colors.green : score >= 50 ? Colors.orange : Colors.red,
+                    fontWeight: FontWeight.bold)),
+              ]),
+            ),
+          ],
+          const Spacer(),
+          SizedBox(width: double.infinity, child: ElevatedButton(
+            onPressed: _submitted ? null : _submit,
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.teal, padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+            child: const Text('확인', style: TextStyle(color: Colors.white, fontSize: 16)),
+          )),
+          const SizedBox(height: 24),
+        ]),
+      ),
+    );
   }
 }
