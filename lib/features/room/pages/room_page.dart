@@ -4,6 +4,7 @@ import '../models/room_models.dart';
 import '../services/room_service.dart';
 import '../../../widgets/helcy_widget.dart';
 import '../../../features/gamification/services/gamification_service.dart';
+import '../widgets/room_item_painter.dart';
 
 class RoomPage extends StatefulWidget {
   final GamificationService gamificationService;
@@ -253,14 +254,12 @@ class _RoomPageState extends State<RoomPage> with TickerProviderStateMixin {
             final sz = W * def.defaultSize;
             return _DraggableItem(
               key: ValueKey('item_$i'),
-              emoji: def.emoji,
+              itemId: def.id,
               size: sz,
               x: placed.x * W,
               y: placed.y * H,
               maxW: W,
               maxH: H,
-              bgColor: Color(def.category.bgColor),
-              borderColor: Color(def.category.borderColor),
               onMove: (nx, ny) {
                 setState(() { placed.x = nx / W; placed.y = ny / H; });
                 _roomService.save(_state);
@@ -355,7 +354,7 @@ class _RoomPageState extends State<RoomPage> with TickerProviderStateMixin {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(def.emoji, style: const TextStyle(fontSize: 28)),
+                              RoomItemWidget(itemId: def.id, size: 44),
                               const SizedBox(height: 4),
                               Text(def.name,
                                   style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
@@ -485,7 +484,7 @@ class _RoomPageState extends State<RoomPage> with TickerProviderStateMixin {
 
 // ── 드래그 아이템 ─────────────────────────────────────────
 class _DraggableItem extends StatefulWidget {
-  final String emoji;
+  final String itemId;
   final double size;
   final double x;
   final double y;
@@ -493,12 +492,10 @@ class _DraggableItem extends StatefulWidget {
   final double maxH;
   final void Function(double, double) onMove;
   final VoidCallback onDelete;
-  final Color bgColor;
-  final Color borderColor;
 
   const _DraggableItem({
     super.key,
-    required this.emoji,
+    required this.itemId,
     required this.size,
     required this.x,
     required this.y,
@@ -506,8 +503,6 @@ class _DraggableItem extends StatefulWidget {
     required this.maxH,
     required this.onMove,
     required this.onDelete,
-    required this.bgColor,
-    required this.borderColor,
   });
 
   @override
@@ -545,22 +540,7 @@ class _DraggableItemState extends State<_DraggableItem> {
         child: SizedBox(
           width: widget.size,
           height: widget.size,
-          child: Center(
-            child: Container(
-              width: widget.size,
-              height: widget.size,
-              decoration: BoxDecoration(
-                color: widget.bgColor,
-                shape: BoxShape.circle,
-                border: Border.all(color: widget.borderColor, width: 2),
-                boxShadow: [BoxShadow(color: widget.borderColor.withValues(alpha: 0.4), blurRadius: 6, offset: const Offset(0, 3))],
-              ),
-              child: Center(
-                child: Text(widget.emoji,
-                    style: TextStyle(fontSize: widget.size * 0.55)),
-              ),
-            ),
-          ),
+          child: RoomItemWidget(itemId: widget.itemId, size: widget.size),
         ),
       ),
     );
@@ -661,7 +641,10 @@ class _ShopSheetState extends State<_ShopSheet> with SingleTickerProviderStateMi
                         shape: BoxShape.circle,
                         border: Border.all(color: Color(def.category.borderColor), width: 1.5),
                       ),
-                      child: Center(child: Text(def.emoji, style: const TextStyle(fontSize: 26))),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4),
+                        child: RoomItemWidget(itemId: def.id, size: 42),
+                      ),
                     ),
                     const SizedBox(height: 5),
                     Text(def.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600), textAlign: TextAlign.center),
