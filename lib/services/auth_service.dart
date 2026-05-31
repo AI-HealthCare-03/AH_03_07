@@ -165,6 +165,25 @@ class AuthService {
     await _tokenStorage.deleteAll();
   }
 
+  // REQ-USER-008: 회원탈퇴 — 의료 데이터 즉시 삭제, 계정 30일 후 영구 삭제
+  Future<void> withdraw({String? reason}) async {
+    _assertNotDisposed();
+    final token = await _tokenStorage.getAccessToken();
+    if (token == null) throw const AuthException('로그인이 필요합니다.');
+    try {
+      await _client.delete(
+        Uri.parse('${OcrConfig.baseUrl}/v1/users/me'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(OcrConfig.timeoutDuration);
+    } catch (_) {
+      throw const AuthException('회원탈퇴 중 오류가 발생했습니다.');
+    }
+    await _tokenStorage.deleteAll();
+  }
+
   Future<bool> isLoggedIn() async {
     final token = await _tokenStorage.getAccessToken();
     if (token == null || token.isEmpty) return false;

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'services/user_service.dart';
 import 'services/ocr_service.dart';
+import 'services/auth_service.dart';
 import 'widgets/helcy_widget.dart';
 import 'widgets/helcy_cheer_widget.dart';
 import 'features/room/pages/room_page.dart';
@@ -316,6 +317,7 @@ class _MyPageState extends State<MyPage> {
         _MenuItem(icon: Icons.help_outline, label: '도움말', route: 'help'),
         _MenuItem(icon: Icons.campaign_outlined, label: '문의하기', route: 'contact'),
         _MenuItem(icon: Icons.logout, label: '로그아웃', route: 'logout', isDestructive: true),
+        _MenuItem(icon: Icons.person_remove_outlined, label: '회원탈퇴', route: 'withdraw', isDestructive: true),
       ];
 
   Widget _buildMenuCard(List<_MenuItem> items) {
@@ -363,6 +365,7 @@ class _MyPageState extends State<MyPage> {
 
   void _handleMenuTap(String route) {
     if (route == 'logout') { _confirmLogout(); return; }
+    if (route == 'withdraw') { _confirmWithdraw(); return; }
     _navigate(route);
   }
 
@@ -390,6 +393,77 @@ class _MyPageState extends State<MyPage> {
       return;
     }
     debugPrint('Navigate to: $route');
+  }
+
+  void _confirmWithdraw() {
+    final reasons = ['서비스가 필요 없어졌어요', '다른 앱을 사용할 예정이에요', '개인정보가 걱정돼요', '기타'];
+    String? selectedReason;
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialog) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.red, size: 22),
+              SizedBox(width: 8),
+              Text('회원탈퇴', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17, color: Colors.red)),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '탈퇴 시 모든 의료 기록, 가이드, OCR 데이터가\n즉시 삭제되며 복구가 불가능합니다.',
+                style: TextStyle(fontSize: 13, color: Colors.black87),
+              ),
+              const SizedBox(height: 16),
+              const Text('탈퇴 사유 (선택)', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+              const SizedBox(height: 8),
+              ...reasons.map((r) => RadioListTile<String>(
+                    dense: true,
+                    value: r,
+                    groupValue: selectedReason,
+                    onChanged: (v) => setDialog(() => selectedReason = v),
+                    title: Text(r, style: const TextStyle(fontSize: 13)),
+                    contentPadding: EdgeInsets.zero,
+                    activeColor: Colors.red,
+                  )),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('취소'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(ctx);
+                await _doWithdraw(selectedReason);
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('탈퇴하기', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _doWithdraw(String? reason) async {
+    try {
+      final authService = AuthService(tokenStorage: widget.tokenStorage);
+      await authService.withdraw(reason: reason);
+      authService.dispose();
+      if (mounted) widget.onLogout?.call();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('탈퇴 실패: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   void _confirmLogout() {
