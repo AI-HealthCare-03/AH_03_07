@@ -1,16 +1,21 @@
 # NFR-MNTN-002: 테스트 자동화·CI
-# PR 및 main/feature 브랜치 push 시 자동 실행
 name: Flutter CI
 
 on:
   push:
     branches:
       - main
+      - develop
       - 'feature/**'
   pull_request:
     branches:
       - main
+      - develop
       - 'feature/**'
+
+defaults:
+  run:
+    working-directory: frontend
 
 jobs:
   test:
@@ -41,7 +46,7 @@ jobs:
         uses: codecov/codecov-action@v4
         if: always()
         with:
-          file: coverage/lcov.info
+          file: frontend/coverage/lcov.info
           fail_ci_if_error: false
 
   build-check:
@@ -68,6 +73,8 @@ jobs:
 
       - name: 의존성 설치
         run: flutter pub get
+        working-directory: frontend
 
       - name: Android APK 빌드 확인 (debug)
         run: flutter build apk --debug --dart-define=BASE_URL=https://api.example.com
+        working-directory: frontend
