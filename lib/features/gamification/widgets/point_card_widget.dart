@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/gamification_models.dart';
 import '../services/gamification_service.dart';
+import '../../../widgets/helcy_widget.dart';
 
 class PointCardWidget extends StatefulWidget {
   final GamificationService service;
@@ -68,21 +69,27 @@ class _PointCardWidgetState extends State<PointCardWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
-                  Text(
-                    'Lv.${p.level} ${p.levelName}',
-                    style: const TextStyle(color: Colors.white70, fontSize: 13),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${p.totalPoints} P',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  HelcyWidget(level: p.level, mood: HelcyMood.happy, size: 64),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Lv.${p.level} ${p.levelName}',
+                        style: const TextStyle(color: Colors.white70, fontSize: 13),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${p.totalPoints} P',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

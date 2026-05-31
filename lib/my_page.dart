@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'services/user_service.dart';
 import 'services/ocr_service.dart';
+import 'widgets/helcy_widget.dart';
 import 'user_edit_page.dart';
 import 'ocr_history_page.dart';
 import 'notification_toggle_page.dart';
@@ -1132,9 +1133,14 @@ class _OxQuizPageState extends State<OxQuizPage> {
       context: context, barrierDismissible: false,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(score >= 80 ? '🎉 훌륭해요!' : score >= 60 ? '👍 잘했어요!' : '💪 다시 도전!',
-            style: const TextStyle(fontWeight: FontWeight.bold)),
-        content: Text('$_correct/${_questions.length} 정답\n점수: $score점'),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          HelcyWidget(level: 3, mood: score >= 60 ? HelcyMood.excited : HelcyMood.sad, size: 90),
+          const SizedBox(height: 8),
+          Text(score >= 80 ? '🎉 훌륭해요!' : score >= 60 ? '👍 잘했어요!' : '💪 다시 도전!',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          const SizedBox(height: 6),
+          Text('$_correct/${_questions.length} 정답  |  $score점'),
+        ]),
         actions: [
           TextButton(onPressed: () { Navigator.pop(context); Navigator.pop(context); }, child: const Text('나가기')),
           ElevatedButton(
@@ -1633,18 +1639,38 @@ class HealthRangeQuizPage extends StatefulWidget {
 
 class _HealthRangeQuizPageState extends State<HealthRangeQuizPage> {
   static const _allQuizzes = [
+    // 심혈관
     (q: '정상 수축기 혈압 (mmHg)', min: 60.0, max: 200.0, answerMin: 90.0, answerMax: 120.0, unit: 'mmHg'),
-    (q: '공복 혈당 정상 범위 (mg/dL)', min: 50.0, max: 300.0, answerMin: 70.0, answerMax: 100.0, unit: 'mg/dL'),
-    (q: '정상 체온 범위 (°C)', min: 35.0, max: 42.0, answerMin: 36.1, answerMax: 37.2, unit: '°C'),
-    (q: '정상 심박수 범위 (bpm)', min: 30.0, max: 150.0, answerMin: 60.0, answerMax: 100.0, unit: 'bpm'),
-    (q: '정상 BMI 범위', min: 10.0, max: 50.0, answerMin: 18.5, answerMax: 24.9, unit: ''),
     (q: '정상 이완기 혈압 (mmHg)', min: 40.0, max: 130.0, answerMin: 60.0, answerMax: 80.0, unit: 'mmHg'),
-    (q: '성인 정상 ESR 범위 (mm/h)', min: 0.0, max: 100.0, answerMin: 0.0, answerMax: 20.0, unit: 'mm/h'),
-    (q: '정상 CRP 수치 (mg/L)', min: 0.0, max: 50.0, answerMin: 0.0, answerMax: 5.0, unit: 'mg/L'),
-    (q: '성인 정상 호흡수 (회/분)', min: 5.0, max: 40.0, answerMin: 12.0, answerMax: 20.0, unit: '회/분'),
+    (q: '성인 정상 심박수 (bpm)', min: 30.0, max: 150.0, answerMin: 60.0, answerMax: 100.0, unit: 'bpm'),
     (q: '정상 산소포화도 (%)', min: 80.0, max: 100.0, answerMin: 95.0, answerMax: 100.0, unit: '%'),
-    (q: '성인 정상 체중 BMI 범위', min: 10.0, max: 50.0, answerMin: 18.5, answerMax: 24.9, unit: ''),
-    (q: '정상 공복 인슐린 범위 (μU/mL)', min: 0.0, max: 50.0, answerMin: 2.0, answerMax: 20.0, unit: 'μU/mL'),
+    (q: '성인 정상 호흡수 (회/분)', min: 5.0, max: 40.0, answerMin: 12.0, answerMax: 20.0, unit: '회/분'),
+    // 혈당·대사
+    (q: '공복 혈당 정상 범위 (mg/dL)', min: 50.0, max: 300.0, answerMin: 70.0, answerMax: 100.0, unit: 'mg/dL'),
+    (q: '식후 2시간 혈당 정상치 (mg/dL)', min: 50.0, max: 350.0, answerMin: 70.0, answerMax: 140.0, unit: 'mg/dL'),
+    (q: '정상 공복 인슐린 (μU/mL)', min: 0.0, max: 50.0, answerMin: 2.0, answerMax: 20.0, unit: 'μU/mL'),
+    (q: 'HbA1c 정상 범위 (%)', min: 3.0, max: 15.0, answerMin: 4.0, answerMax: 5.7, unit: '%'),
+    // 체온·체중
+    (q: '정상 체온 범위 (°C)', min: 35.0, max: 42.0, answerMin: 36.1, answerMax: 37.2, unit: '°C'),
+    (q: '정상 BMI 범위', min: 10.0, max: 50.0, answerMin: 18.5, answerMax: 24.9, unit: ''),
+    // 염증 수치
+    (q: '정상 CRP 수치 (mg/L)', min: 0.0, max: 50.0, answerMin: 0.0, answerMax: 5.0, unit: 'mg/L'),
+    (q: '성인 정상 ESR (mm/h)', min: 0.0, max: 100.0, answerMin: 0.0, answerMax: 20.0, unit: 'mm/h'),
+    (q: '정상 백혈구 수 (×10³/μL)', min: 1.0, max: 20.0, answerMin: 4.0, answerMax: 10.0, unit: '×10³/μL'),
+    (q: '정상 혈소판 수 (×10³/μL)', min: 50.0, max: 600.0, answerMin: 150.0, answerMax: 400.0, unit: '×10³/μL'),
+    // 신장·간
+    (q: '정상 크레아티닌 수치 (mg/dL)', min: 0.0, max: 5.0, answerMin: 0.6, answerMax: 1.2, unit: 'mg/dL'),
+    (q: '정상 ALT (GPT) 수치 (U/L)', min: 0.0, max: 100.0, answerMin: 7.0, answerMax: 40.0, unit: 'U/L'),
+    (q: '정상 AST (GOT) 수치 (U/L)', min: 0.0, max: 100.0, answerMin: 10.0, answerMax: 40.0, unit: 'U/L'),
+    // 콜레스테롤
+    (q: '정상 총 콜레스테롤 (mg/dL)', min: 100.0, max: 400.0, answerMin: 0.0, answerMax: 200.0, unit: 'mg/dL'),
+    (q: 'LDL 콜레스테롤 정상치 (mg/dL)', min: 0.0, max: 300.0, answerMin: 0.0, answerMax: 130.0, unit: 'mg/dL'),
+    (q: 'HDL 콜레스테롤 정상치 (mg/dL)', min: 0.0, max: 150.0, answerMin: 40.0, answerMax: 150.0, unit: 'mg/dL'),
+    (q: '정상 중성지방 (mg/dL)', min: 0.0, max: 500.0, answerMin: 0.0, answerMax: 150.0, unit: 'mg/dL'),
+    // 갑상선·호르몬
+    (q: '정상 TSH 범위 (μIU/mL)', min: 0.0, max: 10.0, answerMin: 0.4, answerMax: 4.0, unit: 'μIU/mL'),
+    (q: '정상 비타민 D 수치 (ng/mL)', min: 0.0, max: 100.0, answerMin: 30.0, answerMax: 100.0, unit: 'ng/mL'),
+    (q: '정상 요산 수치 (mg/dL)', min: 0.0, max: 15.0, answerMin: 2.5, answerMax: 7.0, unit: 'mg/dL'),
   ];
   late List<({String q, double min, double max, double answerMin, double answerMax, String unit})> _quizzes;
 

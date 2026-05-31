@@ -7,6 +7,7 @@ import 'main.dart';
 import 'login_page.dart';
 import 'onboarding_page.dart';
 import 'home_page.dart';
+import 'widgets/helcy_widget.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -156,20 +157,8 @@ class _SplashScreenState extends State<SplashScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFF8C00),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: const Icon(
-                  Icons.medical_services_outlined,
-                  color: Colors.white,
-                  size: 64,
-                ),
-              ),
-              const SizedBox(height: 24),
+              const HelcyWidget(level: 3, mood: HelcyMood.waving, size: 140),
+              const SizedBox(height: 16),
               const Text(
                 'MediGuide',
                 style: TextStyle(
@@ -182,6 +171,11 @@ class _SplashScreenState extends State<SplashScreen>
               const Text(
                 '복약을 한눈에',
                 style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                '헬씨와 함께 건강을 관리해요! 👋',
+                style: TextStyle(fontSize: 13, color: Color(0xFFFF8C00)),
               ),
             ],
           ),
