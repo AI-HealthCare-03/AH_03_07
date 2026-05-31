@@ -613,69 +613,16 @@ class _GamePageState extends State<GamePage> {
   }
 }
 
-// ── 메모리 카드 효과음 (Web Audio API) ───────────────────
+// ── 메모리 카드 효과음 (web/index.html에 정의된 함수 호출) ─
 class _CardSound {
-  static void _play(String script) {
-    try { js.context.callMethod('eval', [script]); } catch (_) {}
+  static void _call(String fn) {
+    try { js.context.callMethod(fn, []); } catch (_) {}
   }
 
-  // 카드 뒤집기: 짧은 클릭음
-  static void flip() => _play('''
-    (function(){
-      var c=new(window.AudioContext||window.webkitAudioContext)();
-      var o=c.createOscillator(),g=c.createGain();
-      o.connect(g);g.connect(c.destination);
-      o.frequency.value=600;o.type='sine';
-      g.gain.setValueAtTime(0.2,c.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.08);
-      o.start(c.currentTime);o.stop(c.currentTime+0.08);
-    })();
-  ''');
-
-  // 매칭 성공: 상승 두 음
-  static void match() => _play('''
-    (function(){
-      var c=new(window.AudioContext||window.webkitAudioContext)();
-      [523,784].forEach(function(f,i){
-        var o=c.createOscillator(),g=c.createGain();
-        o.connect(g);g.connect(c.destination);
-        o.frequency.value=f;o.type='sine';
-        var t=c.currentTime+i*0.12;
-        g.gain.setValueAtTime(0.25,t);
-        g.gain.exponentialRampToValueAtTime(0.001,t+0.15);
-        o.start(t);o.stop(t+0.15);
-      });
-    })();
-  ''');
-
-  // 매칭 실패: 낮은 버즈음
-  static void mismatch() => _play('''
-    (function(){
-      var c=new(window.AudioContext||window.webkitAudioContext)();
-      var o=c.createOscillator(),g=c.createGain();
-      o.connect(g);g.connect(c.destination);
-      o.frequency.value=180;o.type='sawtooth';
-      g.gain.setValueAtTime(0.15,c.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.2);
-      o.start(c.currentTime);o.stop(c.currentTime+0.2);
-    })();
-  ''');
-
-  // 게임 완료: 승리 멜로디
-  static void complete() => _play('''
-    (function(){
-      var c=new(window.AudioContext||window.webkitAudioContext)();
-      [523,659,784,1047].forEach(function(f,i){
-        var o=c.createOscillator(),g=c.createGain();
-        o.connect(g);g.connect(c.destination);
-        o.frequency.value=f;o.type='sine';
-        var t=c.currentTime+i*0.15;
-        g.gain.setValueAtTime(0.3,t);
-        g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
-        o.start(t);o.stop(t+0.2);
-      });
-    })();
-  ''');
+  static void flip()     => _call('cardFlip');
+  static void match()    => _call('cardMatch');
+  static void mismatch() => _call('cardMiss');
+  static void complete() => _call('cardComplete');
 }
 
 // ── 메모리 카드 매칭 ──────────────────────────────────────
