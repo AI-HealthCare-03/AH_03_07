@@ -7,6 +7,9 @@ import 'package:http/http.dart' as http;
 import 'services/user_service.dart';
 import 'services/ocr_service.dart';
 import 'services/auth_service.dart';
+import 'features/consent/pages/consent_page.dart';
+import 'core/logging/app_logger.dart';
+import 'core/api/api_client.dart';
 import 'widgets/helcy_widget.dart';
 import 'widgets/helcy_cheer_widget.dart';
 import 'features/room/pages/room_page.dart';
@@ -316,6 +319,7 @@ class _MyPageState extends State<MyPage> {
         _MenuItem(icon: Icons.videogame_asset_outlined, label: '오늘의 활동', route: 'game'),
         _MenuItem(icon: Icons.notifications_none_outlined, label: '알림 설정', route: 'notification_settings'),
         _MenuItem(icon: Icons.swap_horiz_outlined, label: '모드 전환', route: 'mode_switch'),
+        _MenuItem(icon: Icons.policy_outlined, label: '동의 관리', route: 'consent'),
         _MenuItem(icon: Icons.settings_outlined, label: '설정', route: 'settings'),
       ];
 
@@ -394,6 +398,14 @@ class _MyPageState extends State<MyPage> {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationTogglePage()));
       return;
     }
+    if (route == 'consent') {
+      Navigator.push(context, MaterialPageRoute(
+        builder: (_) => ConsentPage(
+          apiClient: ApiClient(storage: widget.tokenStorage),
+        ),
+      ));
+      return;
+    }
     if (route == 'pill_recognize') {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const PillRecognizePage()));
       return;
@@ -468,6 +480,7 @@ class _MyPageState extends State<MyPage> {
   Future<void> _doWithdraw(String? reason) async {
     try {
       final authService = AuthService(tokenStorage: widget.tokenStorage);
+      logger.logWithdraw(reason);
       await authService.withdraw(reason: reason);
       authService.dispose();
       if (mounted) widget.onLogout?.call();
