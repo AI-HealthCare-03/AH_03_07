@@ -1077,11 +1077,13 @@ class _OxQuizPageState extends State<OxQuizPage> {
   void _answer(bool userAnswer) {
     if (_answered != null || _done) return;
     final correct = userAnswer == _questions[_index].answer;
+    correct ? _CardSound.match() : _CardSound.mismatch();
     setState(() { _answered = userAnswer; if (correct) _correct++; });
     Future.delayed(const Duration(milliseconds: 1200), () {
       if (!mounted) return;
       if (_index + 1 >= _questions.length) {
         final score = (_correct / _questions.length * 100).round();
+        _CardSound.complete();
         setState(() => _done = true);
         widget.onGameEnd(score);
         _showResult(score);
@@ -1233,7 +1235,7 @@ class _WordGuessPageState extends State<WordGuessPage> {
     final ans = _ctrl.text.trim();
     if (ans.isEmpty) return;
     final isCorrect = ans == _words[_index].word;
-    if (isCorrect) _correct++;
+    if (isCorrect) { _correct++; _CardSound.match(); } else { _CardSound.mismatch(); }
     setState(() => _result = isCorrect);
     Future.delayed(const Duration(milliseconds: 1000), () {
       if (!mounted) return;
@@ -1251,12 +1253,14 @@ class _WordGuessPageState extends State<WordGuessPage> {
 
   void _skip() {
     if (_done) return;
+    _CardSound.mismatch();
     _ctrl.clear();
     setState(() { _result = false; });
     Future.delayed(const Duration(milliseconds: 800), () {
       if (!mounted) return;
       if (_index + 1 >= _words.length) {
         final score = (_correct / _words.length * 100).round();
+        _CardSound.complete();
         setState(() => _done = true);
         widget.onGameEnd(score);
         _showResult(score);
@@ -1419,31 +1423,35 @@ class _TimerChallengeGameState extends State<TimerChallengeGame> {
     });
   }
 
-  void _endGame() {
-    if (_done) return;
-    _done = true;
-    final score = (_matchedPairs * 100 ~/ _emojis.length).clamp(0, 100);
-    widget.onGameEnd(score);
-    _showResult(score);
-  }
-
   void _onCardTap(int index) {
     if (!_started) _startTimer();
     if (_done || _isChecking || _flipped[index] || _matched[index]) return;
+    _CardSound.flip();
     setState(() => _flipped[index] = true);
     if (_firstIndex == null) { _firstIndex = index; return; }
     _isChecking = true;
     final first = _firstIndex!;
     _firstIndex = null;
     if (_cards[first] == _cards[index]) {
+      _CardSound.match();
       setState(() { _matched[first] = true; _matched[index] = true; _matchedPairs++; _isChecking = false; });
       if (_matchedPairs == _emojis.length) _endGame();
     } else {
+      Future.delayed(const Duration(milliseconds: 300), () => _CardSound.mismatch());
       Future.delayed(const Duration(milliseconds: 600), () {
         if (!mounted) return;
         setState(() { _flipped[first] = false; _flipped[index] = false; _isChecking = false; });
       });
     }
+  }
+
+  void _endGame() {
+    if (_done) return;
+    _done = true;
+    final score = (_matchedPairs * 100 ~/ _emojis.length).clamp(0, 100);
+    if (_matchedPairs == _emojis.length) _CardSound.complete();
+    widget.onGameEnd(score);
+    _showResult(score);
   }
 
   void _showResult(int score) {
@@ -1478,47 +1486,50 @@ class _TimerChallengeGameState extends State<TimerChallengeGame> {
         actions: [Center(child: Padding(padding: const EdgeInsets.only(right: 16),
             child: Text('⏱️ $_timeLeft초', style: TextStyle(color: timerColor, fontWeight: FontWeight.bold, fontSize: 18))))],
       ),
-      body: Column(children: [
-        LinearProgressIndicator(value: _timeLeft / _totalTime, color: timerColor, backgroundColor: Colors.grey.shade200, minHeight: 6),
-        const SizedBox(height: 12),
-        if (!_started)
-          Padding(padding: const EdgeInsets.all(8),
-            child: Text('카드를 탭하면 타이머 시작!', style: TextStyle(color: Colors.grey.shade600, fontSize: 13))),
-        Text('$_matchedPairs/${_emojis.length} 매칭 완료', style: const TextStyle(color: Colors.grey, fontSize: 14)),
-        const SizedBox(height: 12),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: GridView.builder(
-            shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4, crossAxisSpacing: 8, mainAxisSpacing: 8),
-            itemCount: 16,
-            itemBuilder: (_, i) => GestureDetector(
-              onTap: () => _onCardTap(i),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                decoration: BoxDecoration(
-                  color: _matched[i] ? Colors.green.withValues(alpha: 0.15) : _flipped[i] ? Colors.white : Colors.red,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 4)],
+      body: LayoutBuilder(builder: (context, constraints) {
+        final cardSize = (constraints.maxWidth - 24 - 8 * 3) / 4;
+        final fontSize = cardSize * 0.42;
+        return Column(children: [
+          LinearProgressIndicator(value: _timeLeft / _totalTime, color: timerColor, backgroundColor: Colors.grey.shade200, minHeight: 6),
+          const SizedBox(height: 8),
+          if (!_started)
+            Text('카드를 탭하면 타이머 시작!', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+          Text('$_matchedPairs/${_emojis.length} 매칭 완료', style: const TextStyle(color: Colors.grey, fontSize: 14)),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: GridView.builder(
+              shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4, crossAxisSpacing: 6, mainAxisSpacing: 6),
+              itemCount: 16,
+              itemBuilder: (_, i) => GestureDetector(
+                onTap: () => _onCardTap(i),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  decoration: BoxDecoration(
+                    color: _matched[i] ? Colors.green.withValues(alpha: 0.15) : _flipped[i] ? Colors.white : Colors.red,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 4)],
+                  ),
+                  child: Center(child: Text(
+                    _flipped[i] || _matched[i] ? _cards[i] : '?',
+                    style: TextStyle(fontSize: fontSize, color: _flipped[i] || _matched[i] ? null : Colors.white),
+                  )),
                 ),
-                child: Center(child: Text(
-                  _flipped[i] || _matched[i] ? _cards[i] : '?',
-                  style: TextStyle(fontSize: 28, color: _flipped[i] || _matched[i] ? null : Colors.white),
-                )),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 16),
-        ElevatedButton.icon(
-          onPressed: () => setState(() => _initGame()),
-          icon: const Icon(Icons.refresh, color: Colors.white),
-          label: const Text('초기화', style: TextStyle(color: Colors.white)),
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.grey,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-        ),
-      ]),
+          const SizedBox(height: 10),
+          ElevatedButton.icon(
+            onPressed: () => setState(() => _initGame()),
+            icon: const Icon(Icons.refresh, color: Colors.white),
+            label: const Text('초기화', style: TextStyle(color: Colors.white)),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.grey,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+          ),
+        ]);
+      }),
     );
   }
 }
@@ -1570,11 +1581,14 @@ class _HealthRangeQuizPageState extends State<HealthRangeQuizPage> {
   void _submit() {
     final score = _calcScore();
     _totalScore += score;
+    // 80점 이상 성공음, 미만 실패음
+    score >= 80 ? _CardSound.match() : _CardSound.mismatch();
     setState(() => _submitted = true);
     Future.delayed(const Duration(milliseconds: 1800), () {
       if (!mounted) return;
       if (_index + 1 >= _quizzes.length) {
         final avg = _totalScore ~/ _quizzes.length;
+        _CardSound.complete();
         widget.onGameEnd(avg);
         _showResult(avg);
       } else {
