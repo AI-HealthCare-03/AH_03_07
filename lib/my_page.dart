@@ -1547,44 +1547,58 @@ class _TimerChallengeGameState extends State<TimerChallengeGame> {
       ),
       body: SafeArea(
         child: LayoutBuilder(builder: (context, constraints) {
-          // 상단 UI 높이(진행바+텍스트+버튼) 제외하고 그리드에 남은 공간 할당
-          const topH = 6 + 8 + 20 + 8 + 10 + 44 + 12.0;
-          final gridH = constraints.maxHeight - topH;
-          final cardSize = ((gridH - 6 * 3) / 4).clamp(0.0, (constraints.maxWidth - 24 - 6 * 3) / 4);
+          // 고정 UI 높이: 진행바6 + gap8 + 텍스트20 + gap8 + 버튼44 + gap10 + gap12
+          const fixedH = 6.0 + 8 + 20 + 8 + 44 + 10 + 12;
+          const hPad = 24.0; // 좌우 패딩 합계
+          const gap = 6.0;
+          const cols = 4;
+          const rows = 4;
+          // 카드 크기 = 너비/높이 중 더 작은 값 사용 (항상 화면 안에 맞도록)
+          final byWidth  = (constraints.maxWidth  - hPad - gap * (cols - 1)) / cols;
+          final byHeight = (constraints.maxHeight - fixedH - gap * (rows - 1)) / rows;
+          final cardSize = byWidth < byHeight ? byWidth : byHeight;
           final fontSize = cardSize * 0.42;
+          final gridSize = cardSize * rows + gap * (rows - 1);
+
           return Column(children: [
-            LinearProgressIndicator(value: _timeLeft / _totalTime, color: timerColor, backgroundColor: Colors.grey.shade200, minHeight: 6),
+            LinearProgressIndicator(
+              value: _timeLeft / _totalTime,
+              color: timerColor,
+              backgroundColor: Colors.grey.shade200,
+              minHeight: 6,
+            ),
             const SizedBox(height: 8),
             Text(
               !_started ? '카드를 탭하면 타이머 시작!' : '$_matchedPairs/${_emojis.length} 매칭 완료',
               style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
             ),
             const SizedBox(height: 8),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: GridView.builder(
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4,
-                      crossAxisSpacing: 6,
-                      mainAxisSpacing: 6,
-                      childAspectRatio: cardSize / cardSize),
-                  itemCount: 16,
-                  itemBuilder: (_, i) => GestureDetector(
-                    onTap: () => _onCardTap(i),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      decoration: BoxDecoration(
-                        color: _matched[i] ? Colors.green.withValues(alpha: 0.15) : _flipped[i] ? Colors.white : Colors.red,
-                        borderRadius: BorderRadius.circular(10),
-                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 4)],
-                      ),
-                      child: Center(child: Text(
-                        _flipped[i] || _matched[i] ? _cards[i] : '?',
-                        style: TextStyle(fontSize: fontSize, color: _flipped[i] || _matched[i] ? null : Colors.white),
-                      )),
+            SizedBox(
+              width: cardSize * cols + gap * (cols - 1),
+              height: gridSize,
+              child: GridView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: cols,
+                  crossAxisSpacing: gap,
+                  mainAxisSpacing: gap,
+                ),
+                itemCount: 16,
+                itemBuilder: (_, i) => GestureDetector(
+                  onTap: () => _onCardTap(i),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    decoration: BoxDecoration(
+                      color: _matched[i]
+                          ? Colors.green.withValues(alpha: 0.15)
+                          : _flipped[i] ? Colors.white : Colors.red,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 4)],
                     ),
+                    child: Center(child: Text(
+                      _flipped[i] || _matched[i] ? _cards[i] : '?',
+                      style: TextStyle(fontSize: fontSize, color: _flipped[i] || _matched[i] ? null : Colors.white),
+                    )),
                   ),
                 ),
               ),
@@ -1594,8 +1608,10 @@ class _TimerChallengeGameState extends State<TimerChallengeGame> {
               onPressed: () => setState(() => _initGame()),
               icon: const Icon(Icons.refresh, color: Colors.white),
               label: const Text('초기화', style: TextStyle(color: Colors.white)),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.grey,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
             ),
             const SizedBox(height: 12),
           ]);
