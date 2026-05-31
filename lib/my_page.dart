@@ -13,6 +13,8 @@ import 'features/room/pages/room_page.dart';
 import 'user_edit_page.dart';
 import 'ocr_history_page.dart';
 import 'notification_toggle_page.dart';
+import 'pill_page.dart';
+import 'contents_page.dart';
 import 'main.dart';
 import 'features/gamification/services/gamification_service.dart';
 import 'features/gamification/widgets/point_card_widget.dart';
@@ -298,12 +300,16 @@ class _MyPageState extends State<MyPage> {
           _MenuItem(icon: Icons.medication_outlined, label: '약물 목록', route: 'medication_list'),
           _MenuItem(icon: Icons.monitor_heart_outlined, label: '위험요인 프로필', route: 'risk_profile'),
           _MenuItem(icon: Icons.folder_outlined, label: '문서 보관함', route: 'documents'),
+          _MenuItem(icon: Icons.medication_liquid_outlined, label: '약품 인식', route: 'pill_recognize'),
+          _MenuItem(icon: Icons.play_circle_outline, label: '콘텐츠 변환 내역', route: 'contents'),
         ]
       : [
           _MenuItem(icon: Icons.description_outlined, label: '진료 기록', route: 'medical_records'),
           _MenuItem(icon: Icons.medication_outlined, label: '약물 목록', route: 'medication_list'),
           _MenuItem(icon: Icons.monitor_heart_outlined, label: '건강 수치 기록', route: 'health_metrics'),
           _MenuItem(icon: Icons.folder_outlined, label: '문서 보관함', route: 'documents'),
+          _MenuItem(icon: Icons.medication_liquid_outlined, label: '약품 인식', route: 'pill_recognize'),
+          _MenuItem(icon: Icons.play_circle_outline, label: '콘텐츠 변환 내역', route: 'contents'),
         ];
 
   List<_MenuItem> get _appSettingsMenuItems => [
@@ -386,6 +392,14 @@ class _MyPageState extends State<MyPage> {
     }
     if (route == 'notification_settings') {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationTogglePage()));
+      return;
+    }
+    if (route == 'pill_recognize') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const PillRecognizePage()));
+      return;
+    }
+    if (route == 'contents') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const ContentsPage()));
       return;
     }
     if (route == 'game') {
