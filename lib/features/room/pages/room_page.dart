@@ -130,16 +130,15 @@ class _RoomPageState extends State<RoomPage> with TickerProviderStateMixin {
     return def?.category == RoomItemCategory.pet;
   });
 
-  String get _petEmoji {
+  String get _petId {
     final pet = _state.placedItems.firstWhere(
       (p) {
         final def = allRoomItems.where((d) => d.id == p.defId).firstOrNull;
         return def?.category == RoomItemCategory.pet;
       },
-      orElse: () => PlacedItem(defId: '', x: 0, y: 0),
+      orElse: () => PlacedItem(defId: 'dog', x: 0, y: 0),
     );
-    if (pet.defId.isEmpty) return '🐶';
-    return allRoomItems.firstWhere((d) => d.id == pet.defId).emoji;
+    return pet.defId.isEmpty ? 'dog' : pet.defId;
   }
 
   int get _helcyLevel => math.min(5, 1 + _state.ownedItemIds.length ~/ 4);
@@ -242,37 +241,44 @@ class _RoomPageState extends State<RoomPage> with TickerProviderStateMixin {
               ),
             ),
           ),
-          // 배치 아이템 (펫 제외)
-          ..._state.placedItems.asMap().entries.map((entry) {
-            final i = entry.key;
-            final placed = entry.value;
-            final def = allRoomItems.firstWhere(
-              (d) => d.id == placed.defId,
-              orElse: () => allRoomItems.first,
-            );
-            if (def.category == RoomItemCategory.pet) return const SizedBox();
-            final sz = W * def.defaultSize;
-            return _DraggableItem(
-              key: ValueKey('item_$i'),
-              itemId: def.id,
-              size: sz,
-              x: placed.x * W,
-              y: placed.y * H,
-              maxW: W,
-              maxH: H,
-              onMove: (nx, ny) {
-                setState(() { placed.x = nx / W; placed.y = ny / H; });
-                _roomService.save(_state);
-              },
-              onDelete: () => _confirmDelete(i, def.name),
-            );
-          }),
+          // 배치 아이템 (펫 제외 — Stack에 SizedBox 반환 금지)
+          ..._state.placedItems.asMap().entries
+              .where((entry) {
+                final def = allRoomItems.firstWhere(
+                  (d) => d.id == entry.value.defId,
+                  orElse: () => allRoomItems.first,
+                );
+                return def.category != RoomItemCategory.pet;
+              })
+              .map((entry) {
+                final i = entry.key;
+                final placed = entry.value;
+                final def = allRoomItems.firstWhere(
+                  (d) => d.id == placed.defId,
+                  orElse: () => allRoomItems.first,
+                );
+                final sz = (W * def.defaultSize).clamp(40.0, 200.0);
+                return _DraggableItem(
+                  key: ValueKey('item_${def.id}_$i'),
+                  itemId: def.id,
+                  size: sz,
+                  x: (placed.x * W).clamp(sz / 2, W - sz / 2),
+                  y: (placed.y * H).clamp(sz / 2, H - sz / 2),
+                  maxW: W,
+                  maxH: H,
+                  onMove: (nx, ny) {
+                    setState(() { placed.x = nx / W; placed.y = ny / H; });
+                    _roomService.save(_state);
+                  },
+                  onDelete: () => _confirmDelete(i, def.name),
+                );
+              }),
           // 헬씨 — 애니메이션 적용
           AnimatedBuilder(
             animation: _helcyController,
             builder: (_, __) => Positioned(
-              left: W * 0.38 + _helcySway.value,
-              bottom: floorH - 4 + _helcyBounce.value.abs(),
+              left: (W * 0.38 + _helcySway.value).clamp(0.0, W - helcySize),
+              bottom: (floorH - 4 + _helcyBounce.value.abs()).clamp(0.0, H - helcySize),
               child: HelcyWidget(
                 level: _helcyLevel,
                 mood: _hasPet ? HelcyMood.excited : HelcyMood.happy,
@@ -280,14 +286,14 @@ class _RoomPageState extends State<RoomPage> with TickerProviderStateMixin {
               ),
             ),
           ),
-          // 움직이는 펫
+          // 움직이는 펫 — RoomItemWidget으로 렌더링 (이모지 흑백 방지)
           if (_hasPet)
             Positioned(
-              left: _petX * W,
-              bottom: floorH,
+              left: (_petX * W).clamp(0.0, W - helcySize * 0.8),
+              bottom: floorH.clamp(0.0, H - helcySize),
               child: Transform.scale(
                 scaleX: _petGoingRight ? 1 : -1,
-                child: Text(_petEmoji, style: TextStyle(fontSize: H * 0.08)),
+                child: RoomItemWidget(itemId: _petId, size: helcySize * 0.8),
               ),
             ),
         ],
