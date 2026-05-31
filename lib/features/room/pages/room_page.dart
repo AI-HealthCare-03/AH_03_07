@@ -522,6 +522,8 @@ class _DraggableItemState extends State<_DraggableItem> {
     _x = widget.x; _y = widget.y;
   }
 
+  bool _isDragging = false;
+
   @override
   Widget build(BuildContext context) {
     final half = widget.size / 2;
@@ -530,17 +532,26 @@ class _DraggableItemState extends State<_DraggableItem> {
       top: (_y - half).clamp(0, widget.maxH - widget.size),
       child: GestureDetector(
         onLongPress: widget.onDelete,
-        onPanUpdate: (d) {
-          setState(() {
-            _x = (_x + d.delta.dx).clamp(half, widget.maxW - half);
-            _y = (_y + d.delta.dy).clamp(half, widget.maxH - half);
-          });
-          widget.onMove(_x, _y);
-        },
-        child: SizedBox(
-          width: widget.size,
-          height: widget.size,
-          child: RoomItemWidget(itemId: widget.itemId, size: widget.size),
+        onSecondaryTap: widget.onDelete,
+        child: Listener(
+          onPointerDown: (_) => _isDragging = true,
+          onPointerUp: (_) => _isDragging = false,
+          onPointerMove: (e) {
+            if (!_isDragging) return;
+            setState(() {
+              _x = (_x + e.delta.dx).clamp(half, widget.maxW - half);
+              _y = (_y + e.delta.dy).clamp(half, widget.maxH - half);
+            });
+            widget.onMove(_x, _y);
+          },
+          child: MouseRegion(
+            cursor: SystemMouseCursors.grab,
+            child: SizedBox(
+              width: widget.size,
+              height: widget.size,
+              child: RoomItemWidget(itemId: widget.itemId, size: widget.size),
+            ),
+          ),
         ),
       ),
     );
