@@ -8,6 +8,9 @@ import 'user_edit_page.dart';
 import 'ocr_history_page.dart';
 import 'notification_toggle_page.dart';
 import 'main.dart';
+import 'features/gamification/services/gamification_service.dart';
+import 'features/gamification/widgets/point_card_widget.dart';
+import 'features/gamification/pages/gamification_page.dart';
 
 class MyPage extends StatefulWidget {
   final TokenStorage tokenStorage;
@@ -25,6 +28,7 @@ class MyPage extends StatefulWidget {
 
 class _MyPageState extends State<MyPage> {
   late final UserService _userService;
+  final _gamificationService = GamificationService();
 
   bool _loading = true;
   String? _error;
@@ -116,6 +120,10 @@ class _MyPageState extends State<MyPage> {
             _buildProfileCard(),
             const SizedBox(height: 8),
             _buildTypeBadge(),
+            const SizedBox(height: 16),
+            PointCardWidget(service: _gamificationService),
+            const SizedBox(height: 8),
+            _buildGamificationCard(),
             const SizedBox(height: 20),
             _sectionLabel('내 건강 정보'),
             const SizedBox(height: 8),
@@ -129,6 +137,43 @@ class _MyPageState extends State<MyPage> {
             const SizedBox(height: 8),
             _buildMenuCard(_supportMenuItems),
             const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGamificationCard() {
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => GamificationPage(service: _gamificationService),
+        ),
+      ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE8F8F0)),
+        ),
+        child: const Row(
+          children: [
+            Text('🏅', style: TextStyle(fontSize: 22)),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('뱃지 · 보상',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  Text('획득한 뱃지와 포인트 보상을 확인하세요',
+                      style: TextStyle(color: Colors.grey, fontSize: 12)),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: Colors.grey),
           ],
         ),
       ),
