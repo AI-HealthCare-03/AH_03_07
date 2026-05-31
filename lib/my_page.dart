@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import 'services/user_service.dart';
 import 'services/ocr_service.dart';
 import 'widgets/helcy_widget.dart';
+import 'widgets/helcy_cheer_widget.dart';
+import 'features/room/pages/room_page.dart';
 import 'user_edit_page.dart';
 import 'ocr_history_page.dart';
 import 'notification_toggle_page.dart';
@@ -127,6 +129,8 @@ class _MyPageState extends State<MyPage> {
             PointCardWidget(service: _gamificationService),
             const SizedBox(height: 8),
             _buildGamificationCard(),
+            const SizedBox(height: 8),
+            _buildRoomCard(),
             const SizedBox(height: 20),
             _sectionLabel('내 건강 정보'),
             const SizedBox(height: 8),
@@ -172,6 +176,43 @@ class _MyPageState extends State<MyPage> {
                   Text('뱃지 · 보상',
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                   Text('획득한 뱃지와 포인트 보상을 확인하세요',
+                      style: TextStyle(color: Colors.grey, fontSize: 12)),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: Colors.grey),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoomCard() {
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => RoomPage(gamificationService: _gamificationService),
+        ),
+      ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE8F8F0)),
+        ),
+        child: const Row(
+          children: [
+            Text('🏠', style: TextStyle(fontSize: 22)),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('내 방 꾸미기',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  Text('포인트로 가구·동물 구매 후 방을 꾸며보세요',
                       style: TextStyle(color: Colors.grey, fontSize: 12)),
                 ],
               ),
@@ -788,7 +829,8 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
           )),
         ],
       ),
-      body: Column(children: [
+      body: Stack(children: [
+        Column(children: [
         const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -849,6 +891,22 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.grey,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+        ),
+      ]),
+        // 응원 헬씨
+        Positioned(
+          right: 8,
+          bottom: 80,
+          child: HelcyCheerWidget(
+            mood: _matchedPairs > 0
+                ? (_comboCount >= 2 ? HelcyMood.excited : HelcyMood.happy)
+                : HelcyMood.waving,
+            message: _comboCount >= 2
+                ? '$_comboCount연속!\n최고야!'
+                : _matchedPairs > 0
+                    ? '잘하고 있어!'
+                    : '화이팅!',
+          ),
         ),
       ]),
     );
