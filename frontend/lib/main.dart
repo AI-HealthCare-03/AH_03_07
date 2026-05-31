@@ -4,44 +4,67 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'services/auth_service.dart';
 import 'services/ocr_service.dart';
-import 'login_page.dart';
 import 'splash_screen.dart';
 import 'home_page.dart';
 
+// P2: SecureTokenStorage를 단일 FlutterSecureStorage 인스턴스로 통합
+// (SecureDataManager와 별도 인스턴스 사용 시 deleteAll 누락 위험 해소)
 class SecureTokenStorage implements TokenStorage {
-  final _storage = const FlutterSecureStorage(
-    webOptions: WebOptions(
-      dbName: 'medapp_storage',
-      publicKey: 'medapp_key',
-    ),
+  // 앱 전역 단일 인스턴스 (SecureDataManager와 공유)
+  static const _storage = FlutterSecureStorage(
+    webOptions: WebOptions(dbName: 'medapp_storage', publicKey: 'medapp_key'),
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
+
+  // 외부에서도 접근 가능하도록 노출 (SecureDataManager 통합)
+  static Future<String?> readKey(String key) => _storage.read(key: key);
+  static Future<void> writeKey(String key, String value) =>
+      _storage.write(key: key, value: value);
+  static Future<void> deleteKey(String key) => _storage.delete(key: key);
 
   @override
   Future<String?> getAccessToken() => _storage.read(key: 'access_token');
-
   @override
   Future<String?> getRefreshToken() => _storage.read(key: 'refresh_token');
-
   @override
   Future<void> saveAccessToken(String token) =>
       _storage.write(key: 'access_token', value: token);
-
   @override
   Future<void> saveRefreshToken(String token) =>
       _storage.write(key: 'refresh_token', value: token);
-
   @override
   Future<void> saveUserId(String id) =>
       _storage.write(key: 'user_id', value: id);
-
   @override
   Future<void> saveUserEmail(String email) =>
       _storage.write(key: 'user_email', value: email);
 
   @override
-  Future<void> deleteAll() => _storage.deleteAll();
+  Future<void> deleteAll() async {
+    // 웹 호환성: 개별 삭제 + 로그아웃 플래그
+    await Future.wait([
+      _storage.delete(key: 'access_token'),
+      _storage.delete(key: 'refresh_token'),
+      _storage.delete(key: 'user_id'),
+      _storage.delete(key: 'user_email'),
+      _storage.delete(key: 'consent_terms'),
+      _storage.delete(key: 'consent_privacy'),
+      _storage.delete(key: 'consent_sensitive_medical'),
+      _storage.delete(key: 'consent_marketing'),
+      _storage.write(key: 'is_logged_out', value: 'true'),
+    ]);
+  }
+
+  @override
+  Future<void> markLoggedIn() =>
+      _storage.write(key: 'is_logged_out', value: 'false');
+
+  @override
+  Future<bool> isExplicitlyLoggedOut() async {
+    final v = await _storage.read(key: 'is_logged_out');
+    return v == 'true';
+  }
 }
 
 enum OcrStatus { idle, uploading, processing, done, confirmed, error }
@@ -144,9 +167,10 @@ class _OcrPageState extends State<OcrPage> {
 
     _setStatus(OcrStatus.uploading, '문서 업로드 중...');
 
+    File? tempFile;
     try {
       final bytes = await picked.readAsBytes();
-      final tempFile = await _writeTempFile(picked.name, bytes);
+      tempFile = await _writeTempFile(picked.name, bytes);
 
       _documentId = await _ocrService.uploadDocument(tempFile, 'prescription');
       _setStatus(OcrStatus.processing, 'OCR 처리 중...');
@@ -169,6 +193,9 @@ class _OcrPageState extends State<OcrPage> {
       _setStatus(OcrStatus.error, '네트워크 오류: ${e.message}');
     } catch (_) {
       _setStatus(OcrStatus.error, '알 수 없는 오류가 발생했습니다.');
+    } finally {
+      // P1: 의료 이미지 임시 파일 반드시 삭제 (민감정보 잔류 방지)
+      try { await tempFile?.delete(); } catch (_) {}
     }
   }
 

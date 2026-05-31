@@ -135,6 +135,7 @@ class AuthService {
     try {
       await _tokenStorage.saveAccessToken(accessToken);
       await _tokenStorage.saveRefreshToken(refreshToken);
+      await _tokenStorage.markLoggedIn(); // 로그아웃 플래그 해제
       final user = json['user'] as Map<String, dynamic>?;
       if (user != null) {
         final userModel = UserModel.fromJson(user);
@@ -164,6 +165,35 @@ class AuthService {
     await _tokenStorage.deleteAll();
   }
 
+  // REQ-USER-008: 회원탈퇴 — 의료 데이터 즉시 삭제, 계정 30일 후 영구 삭제
+  Future<void> withdraw({String? reason}) async {
+    _assertNotDisposed();
+    final token = await _tokenStorage.getAccessToken();
+    if (token == null) throw const AuthException('로그인이 필요합니다.');
+
+    late http.Response response;
+    try {
+      response = await _client.delete(
+        Uri.parse('${OcrConfig.baseUrl}/v1/users/me'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(OcrConfig.timeoutDuration);
+    } catch (_) {
+      throw const AuthException('회원탈퇴 중 네트워크 오류가 발생했습니다.');
+    }
+
+    // P1: 서버 탈퇴 성공 여부 반드시 검증 후 로컬 토큰 삭제
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      final json = _parseBody(response.body);
+      final msg = (json['detail'] as String?) ?? '회원탈퇴에 실패했습니다. (${response.statusCode})';
+      throw AuthException(msg);
+    }
+
+    await _tokenStorage.deleteAll();
+  }
+
   Future<bool> isLoggedIn() async {
     final token = await _tokenStorage.getAccessToken();
     if (token == null || token.isEmpty) return false;
@@ -179,6 +209,8 @@ class AuthService {
     return true;
   }
 
+  // P2: ApiClient와 갱신 로직 공유 — 단일 진입점
+  // (ApiClient._refreshIfNeeded와 중복 방지를 위해 isLoggedIn에서만 사용)
   Future<void> _tryRefreshToken() async {
     final refreshToken = await _tokenStorage.getRefreshToken();
     if (refreshToken == null) throw const AuthException('리프레시 토큰 없음');

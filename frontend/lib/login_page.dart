@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'services/auth_service.dart';
 import 'services/google_auth_service.dart';
@@ -79,6 +80,10 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _googleLogin() async {
+    if (kIsWeb) {
+      setState(() => _errorMessage = '웹에서는 구글 로그인을 지원하지 않습니다. 앱에서 이용해 주세요.');
+      return;
+    }
     setState(() { _isGoogleLoading = true; _errorMessage = ''; });
     try {
       final result = await GoogleAuthService.signIn();

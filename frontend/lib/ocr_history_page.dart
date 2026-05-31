@@ -420,12 +420,212 @@ class _OcrHistoryPageState extends State<OcrHistoryPage> {
               ],
             ),
           ),
-          IconButton(
-            icon: Icon(Icons.delete_outline,
-                color: Colors.grey.shade400, size: 20),
-            onPressed: () => _deleteDocument(id),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!isConfirmed && status == 'done')
+                TextButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => OcrConfirmPage(doc: doc, onConfirmed: _loadDocuments),
+                    ),
+                  ),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    foregroundColor: const Color(0xFFFF8C00),
+                  ),
+                  child: const Text('검토하기', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                ),
+              IconButton(
+                icon: Icon(Icons.delete_outline, color: Colors.grey.shade400, size: 20),
+                onPressed: () => _deleteDocument(id),
+              ),
+            ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── OCR 결과 검토·수정·확정 (REQ-OCR-004) ─────────────────
+class OcrConfirmPage extends StatefulWidget {
+  final Map<String, dynamic> doc;
+  final VoidCallback onConfirmed;
+
+  const OcrConfirmPage({super.key, required this.doc, required this.onConfirmed});
+
+  @override
+  State<OcrConfirmPage> createState() => _OcrConfirmPageState();
+}
+
+class _OcrConfirmPageState extends State<OcrConfirmPage> {
+  final _client = http.Client();
+  bool _saving = false;
+  late Map<String, dynamic> _extracted;
+  final Map<String, TextEditingController> _controllers = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _extracted = Map<String, dynamic>.from(
+      (widget.doc['extracted_data'] as Map<String, dynamic>?) ?? {},
+    );
+    _extracted.forEach((k, v) {
+      _controllers[k] = TextEditingController(text: v?.toString() ?? '');
+    });
+    // 기본 필드가 없으면 추가
+    for (final field in ['진단명', '의료기관', '진료일자', '처방 약품', '메모']) {
+      _controllers.putIfAbsent(field, () => TextEditingController());
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final c in _controllers.values) { c.dispose(); }
+    _client.close();
+    super.dispose();
+  }
+
+  Future<void> _confirmAndSave() async {
+    setState(() => _saving = true);
+    try {
+      final token = await SecureTokenStorage().getAccessToken();
+      if (token == null) return;
+      final id = widget.doc['id'] as int;
+      final response = await _client.put(
+        Uri.parse('${OcrConfig.baseUrl}/v1/medical-documents/$id/confirm'),
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+        body: jsonEncode({
+          'extracted_data': {for (final e in _controllers.entries) e.key: e.value.text},
+        }),
+      ).timeout(OcrConfig.timeoutDuration);
+      if (!mounted) return;
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ OCR 결과가 확정됐습니다.'), backgroundColor: Colors.green),
+        );
+        widget.onConfirmed();
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('확정에 실패했습니다.')),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('오류가 발생했습니다.')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filename = widget.doc['original_filename'] as String? ?? '문서';
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F8F8),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        foregroundColor: Colors.black87,
+        title: const Text('OCR 결과 검토', style: TextStyle(fontWeight: FontWeight.bold)),
+        actions: [
+          TextButton(
+            onPressed: _saving ? null : _confirmAndSave,
+            child: Text(
+              _saving ? '저장 중...' : '확정',
+              style: const TextStyle(color: Color(0xFFFF8C00), fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 안내
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF3E0),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFFFCC80)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, color: Color(0xFFFF8C00), size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('파일: ', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                        Text(filename, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 4),
+                        const Text(
+                          '잘못 인식된 항목을 수정 후 확정하세요.\n저장 전 데이터는 임시 상태입니다.',
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            // 추출 필드들
+            ..._controllers.entries.map((entry) => Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(entry.key, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: entry.value,
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.white,
+                      hintText: '${entry.key} 입력',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey.shade200),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.grey.shade200),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    ),
+                    maxLines: entry.key == '처방 약품' || entry.key == '메모' ? 3 : 1,
+                  ),
+                ],
+              ),
+            )),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _saving ? null : _confirmAndSave,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF8C00),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: Text(
+                  _saving ? '저장 중...' : '✅ 확정하고 저장',
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import '../services/notification_service.dart';
-import '../services/ocr_service.dart';
 import 'services/notification_service.dart';
 import 'services/ocr_service.dart';
 
@@ -208,8 +206,6 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
 
   // ── 색상 상수 ──
   static const _green = Color(0xFF2ECC71);
-  static const _greenLight = Color(0xFFE8F8F0);
-  static const _greenBorder = Color(0xFFB7EACF);
   static const _bg = Color(0xFFF8FAF8);
   static const _cardBg = Colors.white;
   static const _textPrimary = Color(0xFF1A1A1A);

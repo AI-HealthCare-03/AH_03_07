@@ -1,13 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'services/ocr_service.dart';
 import 'services/auth_service.dart';
 import 'main.dart';
 import 'login_page.dart';
 import 'onboarding_page.dart';
 import 'home_page.dart';
+import 'widgets/helcy_widget.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -66,20 +67,29 @@ class _SplashScreenState extends State<SplashScreen>
           await storage.read(key: 'onboarding_done').then((v) => v == 'true');
       _hasSeenOnboarding = onboardingDone;
 
-      // 토큰 존재 여부 먼저 확인
-      final accessToken = await _tokenStorage.getAccessToken();
-      if (accessToken == null || accessToken.isEmpty) {
+      // 명시적 로그아웃 플래그 확인 — 로그아웃 버튼을 눌렀으면 항상 로그인 화면
+      final explicitlyLoggedOut = await _tokenStorage.isExplicitlyLoggedOut();
+      if (explicitlyLoggedOut) {
         _isLoggedIn = false;
       } else {
-        // 실제 API 호출로 토큰 유효성 검증
-        try {
-          final isLoggedIn = await _authService.isLoggedIn()
-              .timeout(const Duration(seconds: 5));
-          _isLoggedIn = isLoggedIn;
-        } catch (_) {
-          // 네트워크 오류 or 토큰 만료 → 토큰 삭제 후 로그인으로
-          await _tokenStorage.deleteAll();
+        final accessToken = await _tokenStorage.getAccessToken();
+        if (accessToken == null || accessToken.isEmpty) {
           _isLoggedIn = false;
+        } else {
+          // P2: 로컬 만료 우선 체크
+          final isLocallyExpired = _isTokenLocallyExpired(accessToken);
+          try {
+            _isLoggedIn = await _authService.isLoggedIn()
+                .timeout(const Duration(seconds: 3));
+          } catch (_) {
+            // 네트워크 오류: 만료된 토큰이면 재로그인, 유효하면 유지
+            if (isLocallyExpired) {
+              await _tokenStorage.deleteAll();
+              _isLoggedIn = false;
+            } else {
+              _isLoggedIn = true;
+            }
+          }
         }
       }
     } catch (_) {
@@ -88,6 +98,19 @@ class _SplashScreenState extends State<SplashScreen>
     } finally {
       _authCheckDone = true;
       _tryNavigate();
+    }
+  }
+
+  bool _isTokenLocallyExpired(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return true;
+      final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+      final exp = (jsonDecode(payload) as Map)['exp'] as int?;
+      if (exp == null) return true;
+      return DateTime.now().millisecondsSinceEpoch ~/ 1000 >= exp;
+    } catch (_) {
+      return true;
     }
   }
 
@@ -155,20 +178,8 @@ class _SplashScreenState extends State<SplashScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFF8C00),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: const Icon(
-                  Icons.medical_services_outlined,
-                  color: Colors.white,
-                  size: 64,
-                ),
-              ),
-              const SizedBox(height: 24),
+              const HelcyWidget(level: 3, mood: HelcyMood.waving, size: 140),
+              const SizedBox(height: 16),
               const Text(
                 'MediGuide',
                 style: TextStyle(
@@ -181,6 +192,11 @@ class _SplashScreenState extends State<SplashScreen>
               const Text(
                 '복약을 한눈에',
                 style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                '헬씨와 함께 건강을 관리해요! 👋',
+                style: TextStyle(fontSize: 13, color: Color(0xFFFF8C00)),
               ),
             ],
           ),

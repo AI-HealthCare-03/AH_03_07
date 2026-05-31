@@ -9,6 +9,9 @@ import 'chat_page.dart';
 import 'ocr_history_page.dart';
 import 'search_page.dart';
 import 'home_page.dart';
+import 'guides_page.dart';
+import 'core/api/api_client.dart';
+import 'features/emergency/pages/emergency_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -165,6 +168,8 @@ class _DashboardPageState extends State<DashboardPage> {
                         _buildRecentGuidesCard(),
                         const SizedBox(height: 16),
                         _buildPendingOcrCard(),
+                        const SizedBox(height: 16),
+                        _buildEmergencyCard(),
                         const SizedBox(height: 32),
                       ],
                     ),
@@ -380,7 +385,9 @@ class _DashboardPageState extends State<DashboardPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle('최근 안내문', Icons.article_outlined),
+          _buildSectionTitle('최근 안내문', Icons.article_outlined, onMore: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const GuidesPage()));
+          }),
           const SizedBox(height: 12),
           if (guides.isEmpty)
             const Text('최근 안내문이 없습니다.', style: TextStyle(color: Colors.grey, fontSize: 14))
@@ -456,6 +463,54 @@ class _DashboardPageState extends State<DashboardPage> {
           else
             ...jobs.map((j) => _buildOcrJobItem(j)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEmergencyCard() {
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => EmergencyPage(
+            apiClient: ApiClient(storage: SecureTokenStorage()),
+          ),
+        ),
+      ),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFF0F0),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFFFCDD2)),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.emergency, color: Colors.red, size: 28),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '응급 SOS',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: Colors.red,
+                    ),
+                  ),
+                  Text(
+                    '보호자 연락처 관리 및 긴급 알림',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: Colors.red),
+          ],
+        ),
       ),
     );
   }

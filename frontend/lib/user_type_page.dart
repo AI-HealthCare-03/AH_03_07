@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'main.dart';
-import 'login_page.dart';
 import 'home_page.dart';
 
 class UserTypePage extends StatefulWidget {

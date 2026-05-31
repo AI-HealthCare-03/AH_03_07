@@ -5,7 +5,6 @@ import 'main.dart';
 import 'login_page.dart';
 import 'dashboard_page.dart';
 import 'medical_records_page.dart';
-import 'guides_page.dart';
 import 'notifications_page.dart';
 import 'my_page.dart';
 import 'chat_page.dart';
