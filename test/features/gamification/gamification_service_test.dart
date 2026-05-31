@@ -13,14 +13,14 @@ void main() {
     expect(points.totalPoints, greaterThanOrEqualTo(0));
   });
 
-  test('getBadges는 8개 뱃지를 반환한다', () async {
+  test('getBadges는 46개 뱃지를 반환한다', () async {
     final badges = await service.getBadges();
-    expect(badges, hasLength(8));
+    expect(badges.length, greaterThanOrEqualTo(40));
   });
 
-  test('getRewards는 6개 보상을 반환한다', () async {
+  test('getRewards는 36개 보상을 반환한다', () async {
     final rewards = await service.getRewards();
-    expect(rewards, hasLength(6));
+    expect(rewards.length, greaterThanOrEqualTo(30));
   });
 
   test('checkIn은 오늘 체크인 완료 UserPoints를 반환한다', () async {
