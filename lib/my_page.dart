@@ -680,7 +680,11 @@ class MemoryGamePage extends StatefulWidget {
 }
 
 class _MemoryGamePageState extends State<MemoryGamePage> {
-  static const _emojis = ['💊', '🏥', '🩺', '💉', '🩹', '🧬'];
+  static const _allEmojis = [
+    '💊','🏥','🩺','💉','🩹','🧬','🦠','🧪','🫀','🫁',
+    '🧠','🦷','🦴','👁️','👂','🩻','🩸','💪','🌡️','⚕️',
+  ];
+  late List<String> _emojis;
   late List<String> _cards;
   late List<bool> _flipped;
   late List<bool> _matched;
@@ -694,6 +698,9 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
   void initState() { super.initState(); _initGame(); }
 
   void _initGame() {
+    // 매 게임마다 20개 중 6개 랜덤 선택
+    final pool = List.of(_allEmojis)..shuffle(Random());
+    _emojis = pool.take(6).toList();
     final pairs = [..._emojis, ..._emojis]..shuffle(Random());
     _cards = pairs;
     _flipped = List.filled(12, false);
@@ -1056,18 +1063,45 @@ class OxQuizPage extends StatefulWidget {
 }
 
 class _OxQuizPageState extends State<OxQuizPage> {
-  static const _questions = [
+  static const _allQuestions = [
+    // 자가면역
     (q: '류마티스 관절염은 노인에게만 발생한다.', answer: false, desc: '청년층에도 발생하며 30~50대에 많습니다.'),
-    (q: '혈압 정상 범위는 수축기 120mmHg 미만입니다.', answer: true, desc: '정상 혈압은 120/80mmHg 미만입니다.'),
     (q: '루푸스(SLE)는 남성에게 더 흔한 질환이다.', answer: false, desc: '루푸스는 여성 환자가 약 9배 더 많습니다.'),
+    (q: '자가면역 질환은 면역계가 자기 몸을 공격하는 질환이다.', answer: true, desc: '면역계 오작동으로 자신의 조직을 공격합니다.'),
+    (q: '류마티스 관절염은 완치가 가능한 질환이다.', answer: false, desc: '완치는 어렵지만 적절한 치료로 증상을 관리할 수 있습니다.'),
+    (q: '루푸스 환자는 햇빛을 피하는 것이 좋다.', answer: true, desc: '자외선이 루푸스 증상을 악화시킬 수 있습니다.'),
+    // 혈압·혈당
+    (q: '혈압 정상 범위는 수축기 120mmHg 미만입니다.', answer: true, desc: '정상 혈압은 120/80mmHg 미만입니다.'),
     (q: '공복 혈당 정상치는 100mg/dL 미만이다.', answer: true, desc: '100 이상이면 당뇨 전단계로 봅니다.'),
+    (q: '혈압이 높으면 증상이 항상 나타난다.', answer: false, desc: '고혈압은 증상이 없어 \'침묵의 살인자\'라 불립니다.'),
+    (q: '당뇨 환자는 과일을 전혀 먹으면 안 된다.', answer: false, desc: '적정량의 과일은 섭취 가능하며 혈당 관리가 중요합니다.'),
+    // 복약
     (q: '복약은 식사와 상관없이 아무 때나 먹어도 된다.', answer: false, desc: '약에 따라 식전/식후/공복 복용 지침이 다릅니다.'),
+    (q: '항생제는 바이러스 감염에 효과적이다.', answer: false, desc: '항생제는 세균에만 효과적이며 바이러스에는 무효합니다.'),
+    (q: '약을 먹다가 증상이 나아지면 바로 중단해도 된다.', answer: false, desc: '임의 중단 시 내성이 생기거나 재발할 수 있습니다.'),
+    (q: '두 가지 이상의 약을 함께 먹으면 항상 위험하다.', answer: false, desc: '병용 가능한 약도 많지만 의사·약사와 상담이 필요합니다.'),
+    // 운동·생활
     (q: '관절염 환자는 운동을 완전히 피해야 한다.', answer: false, desc: '적절한 저강도 운동은 관절 기능 유지에 도움이 됩니다.'),
     (q: 'BMI 25 이상은 과체중으로 분류된다.', answer: true, desc: 'WHO 기준 BMI 25~29.9는 과체중입니다.'),
-    (q: '자가면역 질환은 면역계가 자기 몸을 공격하는 질환이다.', answer: true, desc: '면역계 오작동으로 자신의 조직을 공격합니다.'),
-    (q: '항생제는 바이러스 감염에 효과적이다.', answer: false, desc: '항생제는 세균에만 효과적이며 바이러스에는 무효합니다.'),
+    (q: '하루 물 권장 섭취량은 약 2리터이다.', answer: true, desc: '성인 기준 하루 1.5~2리터 섭취를 권장합니다.'),
+    (q: '스트레스는 면역계에 영향을 미친다.', answer: true, desc: '만성 스트레스는 면역 기능을 저하시킬 수 있습니다.'),
+    // 기초 건강
     (q: '정상 체온은 약 36.5°C입니다.', answer: true, desc: '36~37.5°C가 정상 체온 범위입니다.'),
+    (q: '성인의 정상 심박수는 분당 60~100회이다.', answer: true, desc: '60 미만이면 서맥, 100 이상이면 빈맥입니다.'),
+    (q: '수면 중에는 면역 기능이 저하된다.', answer: false, desc: '수면 중 면역 세포가 활성화되어 회복을 돕습니다.'),
+    (q: '흡연은 류마티스 관절염 위험을 높인다.', answer: true, desc: '흡연은 류마티스 관절염의 주요 위험 인자입니다.'),
+    (q: '칼슘 섭취는 뼈 건강에만 중요하다.', answer: false, desc: '칼슘은 근육 수축, 신경 전달 등 다양한 역할을 합니다.'),
+    (q: '비타민 D는 햇빛을 통해 체내에서 합성된다.', answer: true, desc: '피부가 자외선에 노출되면 비타민 D가 합성됩니다.'),
+    (q: '오메가-3 지방산은 염증을 줄이는 데 도움이 된다.', answer: true, desc: '항염증 효과가 있어 자가면역 질환에도 도움됩니다.'),
+    (q: '고혈압 치료제는 평생 먹어야 한다.', answer: false, desc: '생활 습관 개선으로 감량·중단이 가능한 경우도 있습니다.'),
   ];
+  late List<({String q, bool answer, String desc})> _questions;
+
+  @override
+  void initState() {
+    super.initState();
+    _questions = (List.of(_allQuestions)..shuffle(Random())).take(10).toList();
+  }
 
   int _index = 0;
   int _correct = 0;
@@ -1211,7 +1245,7 @@ class WordGuessPage extends StatefulWidget {
 }
 
 class _WordGuessPageState extends State<WordGuessPage> {
-  static const _words = [
+  static const _allWords = [
     (word: '류마티스', hint: 'ㄹㅁㅌㅅ', desc: '관절에 염증이 생기는 자가면역 질환'),
     (word: '혈압', hint: 'ㅎㅇ', desc: '혈관 벽에 가해지는 혈액의 압력'),
     (word: '항생제', hint: 'ㅎㅅㅈ', desc: '세균 감염을 치료하는 약물'),
@@ -1220,13 +1254,32 @@ class _WordGuessPageState extends State<WordGuessPage> {
     (word: '혈당', hint: 'ㅎㄷ', desc: '혈액 속 포도당 농도'),
     (word: '면역', hint: 'ㅁㅇ', desc: '외부 병원체로부터 몸을 보호하는 시스템'),
     (word: '염증', hint: 'ㅇㅈ', desc: '조직 손상 시 나타나는 발적·부종·통증 반응'),
+    (word: '고혈압', hint: 'ㄱㅎㅇ', desc: '혈압이 지속적으로 높은 상태'),
+    (word: '당뇨', hint: 'ㄷㄴ', desc: '인슐린 이상으로 혈당 조절이 안 되는 질환'),
+    (word: '골다공증', hint: 'ㄱㄷㄱㅈ', desc: '뼈 밀도가 감소하여 골절 위험이 높아지는 질환'),
+    (word: '빈혈', hint: 'ㅂㅎ', desc: '혈액 내 적혈구나 헤모글로빈이 부족한 상태'),
+    (word: '갑상선', hint: 'ㄱㅅㅅ', desc: '목 앞에 위치한 나비 모양의 내분비 기관'),
+    (word: '인슐린', hint: 'ㅇㅅㄹ', desc: '혈당을 낮추는 췌장 호르몬'),
+    (word: '백신', hint: 'ㅂㅅ', desc: '감염병 예방을 위해 투여하는 항원 물질'),
+    (word: '항체', hint: 'ㅎㅊ', desc: '면역계가 생산하는 방어 단백질'),
+    (word: '처방전', hint: 'ㅊㅂㅈ', desc: '의사가 약 종류·용량을 적어주는 문서'),
+    (word: '부작용', hint: 'ㅂㅈㅇ', desc: '약물 투여 시 나타나는 의도치 않은 효과'),
+    (word: '소염제', hint: 'ㅅㅇㅈ', desc: '염증과 통증을 완화하는 약물'),
+    (word: '스테로이드', hint: 'ㅅㅌㄹㅇㄷ', desc: '강력한 항염증 효과를 가진 약물 또는 호르몬'),
   ];
+  late List<({String word, String hint, String desc})> _words;
 
   int _index = 0;
   int _correct = 0;
   final _ctrl = TextEditingController();
   bool? _result;
   bool _done = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _words = (List.of(_allWords)..shuffle(Random())).take(8).toList();
+  }
 
   @override
   void dispose() { _ctrl.dispose(); super.dispose(); }
@@ -1376,7 +1429,11 @@ class TimerChallengeGame extends StatefulWidget {
 }
 
 class _TimerChallengeGameState extends State<TimerChallengeGame> {
-  static const _emojis = ['💊', '🏥', '🩺', '💉', '🩹', '🧬', '🦠', '🧪'];
+  static const _allEmojis = [
+    '💊','🏥','🩺','💉','🩹','🧬','🦠','🧪','🫀','🫁',
+    '🧠','🦷','🦴','👁️','👂','🩻','🩸','💪','🌡️','⚕️',
+  ];
+  late List<String> _emojis;
   static const _totalTime = 30; // 초
 
   late List<String> _cards;
@@ -1393,6 +1450,8 @@ class _TimerChallengeGameState extends State<TimerChallengeGame> {
   void initState() { super.initState(); _initGame(); }
 
   void _initGame() {
+    final pool = List.of(_allEmojis)..shuffle(Random());
+    _emojis = pool.take(8).toList();
     final pairs = [..._emojis, ..._emojis]..shuffle(Random());
     _cards = pairs;
     _flipped = List.filled(16, false);
@@ -1486,50 +1545,62 @@ class _TimerChallengeGameState extends State<TimerChallengeGame> {
         actions: [Center(child: Padding(padding: const EdgeInsets.only(right: 16),
             child: Text('⏱️ $_timeLeft초', style: TextStyle(color: timerColor, fontWeight: FontWeight.bold, fontSize: 18))))],
       ),
-      body: LayoutBuilder(builder: (context, constraints) {
-        final cardSize = (constraints.maxWidth - 24 - 8 * 3) / 4;
-        final fontSize = cardSize * 0.42;
-        return Column(children: [
-          LinearProgressIndicator(value: _timeLeft / _totalTime, color: timerColor, backgroundColor: Colors.grey.shade200, minHeight: 6),
-          const SizedBox(height: 8),
-          if (!_started)
-            Text('카드를 탭하면 타이머 시작!', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
-          Text('$_matchedPairs/${_emojis.length} 매칭 완료', style: const TextStyle(color: Colors.grey, fontSize: 14)),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: GridView.builder(
-              shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4, crossAxisSpacing: 6, mainAxisSpacing: 6),
-              itemCount: 16,
-              itemBuilder: (_, i) => GestureDetector(
-                onTap: () => _onCardTap(i),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  decoration: BoxDecoration(
-                    color: _matched[i] ? Colors.green.withValues(alpha: 0.15) : _flipped[i] ? Colors.white : Colors.red,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 4)],
+      body: SafeArea(
+        child: LayoutBuilder(builder: (context, constraints) {
+          // 상단 UI 높이(진행바+텍스트+버튼) 제외하고 그리드에 남은 공간 할당
+          const topH = 6 + 8 + 20 + 8 + 10 + 44 + 12.0;
+          final gridH = constraints.maxHeight - topH;
+          final cardSize = ((gridH - 6 * 3) / 4).clamp(0.0, (constraints.maxWidth - 24 - 6 * 3) / 4);
+          final fontSize = cardSize * 0.42;
+          return Column(children: [
+            LinearProgressIndicator(value: _timeLeft / _totalTime, color: timerColor, backgroundColor: Colors.grey.shade200, minHeight: 6),
+            const SizedBox(height: 8),
+            Text(
+              !_started ? '카드를 탭하면 타이머 시작!' : '$_matchedPairs/${_emojis.length} 매칭 완료',
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 4,
+                      crossAxisSpacing: 6,
+                      mainAxisSpacing: 6,
+                      childAspectRatio: cardSize / cardSize),
+                  itemCount: 16,
+                  itemBuilder: (_, i) => GestureDetector(
+                    onTap: () => _onCardTap(i),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      decoration: BoxDecoration(
+                        color: _matched[i] ? Colors.green.withValues(alpha: 0.15) : _flipped[i] ? Colors.white : Colors.red,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 4)],
+                      ),
+                      child: Center(child: Text(
+                        _flipped[i] || _matched[i] ? _cards[i] : '?',
+                        style: TextStyle(fontSize: fontSize, color: _flipped[i] || _matched[i] ? null : Colors.white),
+                      )),
+                    ),
                   ),
-                  child: Center(child: Text(
-                    _flipped[i] || _matched[i] ? _cards[i] : '?',
-                    style: TextStyle(fontSize: fontSize, color: _flipped[i] || _matched[i] ? null : Colors.white),
-                  )),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 10),
-          ElevatedButton.icon(
-            onPressed: () => setState(() => _initGame()),
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            label: const Text('초기화', style: TextStyle(color: Colors.white)),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.grey,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-          ),
-        ]);
-      }),
+            const SizedBox(height: 10),
+            ElevatedButton.icon(
+              onPressed: () => setState(() => _initGame()),
+              icon: const Icon(Icons.refresh, color: Colors.white),
+              label: const Text('초기화', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.grey,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+            ),
+            const SizedBox(height: 12),
+          ]);
+        }),
+      ),
     );
   }
 }
@@ -1545,13 +1616,21 @@ class HealthRangeQuizPage extends StatefulWidget {
 }
 
 class _HealthRangeQuizPageState extends State<HealthRangeQuizPage> {
-  static const _quizzes = [
+  static const _allQuizzes = [
     (q: '정상 수축기 혈압 (mmHg)', min: 60.0, max: 200.0, answerMin: 90.0, answerMax: 120.0, unit: 'mmHg'),
     (q: '공복 혈당 정상 범위 (mg/dL)', min: 50.0, max: 300.0, answerMin: 70.0, answerMax: 100.0, unit: 'mg/dL'),
     (q: '정상 체온 범위 (°C)', min: 35.0, max: 42.0, answerMin: 36.1, answerMax: 37.2, unit: '°C'),
     (q: '정상 심박수 범위 (bpm)', min: 30.0, max: 150.0, answerMin: 60.0, answerMax: 100.0, unit: 'bpm'),
     (q: '정상 BMI 범위', min: 10.0, max: 50.0, answerMin: 18.5, answerMax: 24.9, unit: ''),
+    (q: '정상 이완기 혈압 (mmHg)', min: 40.0, max: 130.0, answerMin: 60.0, answerMax: 80.0, unit: 'mmHg'),
+    (q: '성인 정상 ESR 범위 (mm/h)', min: 0.0, max: 100.0, answerMin: 0.0, answerMax: 20.0, unit: 'mm/h'),
+    (q: '정상 CRP 수치 (mg/L)', min: 0.0, max: 50.0, answerMin: 0.0, answerMax: 5.0, unit: 'mg/L'),
+    (q: '성인 정상 호흡수 (회/분)', min: 5.0, max: 40.0, answerMin: 12.0, answerMax: 20.0, unit: '회/분'),
+    (q: '정상 산소포화도 (%)', min: 80.0, max: 100.0, answerMin: 95.0, answerMax: 100.0, unit: '%'),
+    (q: '성인 정상 체중 BMI 범위', min: 10.0, max: 50.0, answerMin: 18.5, answerMax: 24.9, unit: ''),
+    (q: '정상 공복 인슐린 범위 (μU/mL)', min: 0.0, max: 50.0, answerMin: 2.0, answerMax: 20.0, unit: 'μU/mL'),
   ];
+  late List<({String q, double min, double max, double answerMin, double answerMax, String unit})> _quizzes;
 
   int _index = 0;
   int _totalScore = 0;
@@ -1560,7 +1639,11 @@ class _HealthRangeQuizPageState extends State<HealthRangeQuizPage> {
   bool _submitted = false;
 
   @override
-  void initState() { super.initState(); _initQuestion(); }
+  void initState() {
+    super.initState();
+    _quizzes = (List.of(_allQuizzes)..shuffle(Random())).take(5).toList();
+    _initQuestion();
+  }
 
   void _initQuestion() {
     final q = _quizzes[_index];
