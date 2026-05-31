@@ -170,8 +170,10 @@ class AuthService {
     _assertNotDisposed();
     final token = await _tokenStorage.getAccessToken();
     if (token == null) throw const AuthException('로그인이 필요합니다.');
+
+    late http.Response response;
     try {
-      await _client.delete(
+      response = await _client.delete(
         Uri.parse('${OcrConfig.baseUrl}/v1/users/me'),
         headers: {
           'Content-Type': 'application/json',
@@ -179,8 +181,16 @@ class AuthService {
         },
       ).timeout(OcrConfig.timeoutDuration);
     } catch (_) {
-      throw const AuthException('회원탈퇴 중 오류가 발생했습니다.');
+      throw const AuthException('회원탈퇴 중 네트워크 오류가 발생했습니다.');
     }
+
+    // P1: 서버 탈퇴 성공 여부 반드시 검증 후 로컬 토큰 삭제
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      final json = _parseBody(response.body);
+      final msg = (json['detail'] as String?) ?? '회원탈퇴에 실패했습니다. (${response.statusCode})';
+      throw AuthException(msg);
+    }
+
     await _tokenStorage.deleteAll();
   }
 

@@ -161,9 +161,10 @@ class _OcrPageState extends State<OcrPage> {
 
     _setStatus(OcrStatus.uploading, '문서 업로드 중...');
 
+    File? tempFile;
     try {
       final bytes = await picked.readAsBytes();
-      final tempFile = await _writeTempFile(picked.name, bytes);
+      tempFile = await _writeTempFile(picked.name, bytes);
 
       _documentId = await _ocrService.uploadDocument(tempFile, 'prescription');
       _setStatus(OcrStatus.processing, 'OCR 처리 중...');
@@ -186,6 +187,9 @@ class _OcrPageState extends State<OcrPage> {
       _setStatus(OcrStatus.error, '네트워크 오류: ${e.message}');
     } catch (_) {
       _setStatus(OcrStatus.error, '알 수 없는 오류가 발생했습니다.');
+    } finally {
+      // P1: 의료 이미지 임시 파일 반드시 삭제 (민감정보 잔류 방지)
+      try { await tempFile?.delete(); } catch (_) {}
     }
   }
 

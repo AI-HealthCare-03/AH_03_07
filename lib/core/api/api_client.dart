@@ -1,5 +1,6 @@
 // NFR-SCAL-001: 도메인 모듈 구조 기반 중앙 API 클라이언트
 // NFR-SEC-001: JWT 자동 갱신 인터셉터 포함
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/api_response.dart';
@@ -8,7 +9,8 @@ import '../../services/ocr_service.dart';
 class ApiClient {
   final http.Client _client;
   final TokenStorage _storage;
-  bool _isRefreshing = false;
+  // P1: bool 플래그 대신 Completer로 동시 갱신 요청 직렬화
+  Completer<void>? _refreshCompleter;
 
   ApiClient({required TokenStorage storage, http.Client? client})
       : _storage = storage,
@@ -36,28 +38,40 @@ class ApiClient {
   }
 
   Future<void> _refreshIfNeeded() async {
-    if (_isRefreshing) return;
+    // 이미 갱신 중이면 완료될 때까지 대기 (Completer 직렬화)
+    if (_refreshCompleter != null) {
+      return _refreshCompleter!.future;
+    }
+
     final token = await _storage.getAccessToken();
     if (token == null || !_isExpired(token)) return;
 
-    _isRefreshing = true;
+    _refreshCompleter = Completer<void>();
     try {
       final refresh = await _storage.getRefreshToken();
-      if (refresh == null) throw const AuthException('리프레시 토큰 없음');
+      if (refresh == null) {
+        await _storage.deleteAll();
+        throw const AuthException('세션이 만료됐습니다. 다시 로그인하세요.');
+      }
       final res = await _client.post(
         Uri.parse('${OcrConfig.baseUrl}/v1/auth/refresh'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'refresh_token': refresh}),
       ).timeout(OcrConfig.timeoutDuration);
       if (res.statusCode == 200) {
-        final newToken = (jsonDecode(res.body) as Map)['access_token'] as String?;
+        final body = jsonDecode(res.body) as Map;
+        final newToken = body['access_token'] as String?;
         if (newToken != null) await _storage.saveAccessToken(newToken);
       } else {
         await _storage.deleteAll();
         throw const AuthException('세션이 만료됐습니다. 다시 로그인하세요.');
       }
+      _refreshCompleter!.complete();
+    } catch (e) {
+      _refreshCompleter!.completeError(e);
+      rethrow;
     } finally {
-      _isRefreshing = false;
+      _refreshCompleter = null;
     }
   }
 

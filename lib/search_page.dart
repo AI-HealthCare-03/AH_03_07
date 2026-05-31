@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'medical_records_page.dart';
 import 'guides_page.dart';
+import 'core/logging/app_logger.dart';
 
 // ════════════════════════════════════════════════════════════
 // 검색 화면
@@ -60,7 +61,7 @@ class _SearchPageState extends State<SearchPage> {
     });
     _searchController.text = q;
     _focusNode.unfocus();
-    debugPrint('Search: $q');
+    logger.debug(LogCategory.userAction, 'Search', {'query': q});
   }
 
   void _removeRecent(String query) {
@@ -78,7 +79,7 @@ class _SearchPageState extends State<SearchPage> {
             MaterialPageRoute(builder: (_) => const GuidesPage()));
         break;
       default:
-        debugPrint('Navigate to: $route');
+        logger.debug(LogCategory.userAction, 'Navigate', {'route': route});
     }
   }
 

@@ -36,12 +36,23 @@ class AuthException implements Exception {
 class OcrConfig {
   static const baseUrl = String.fromEnvironment(
     'BASE_URL',
-    defaultValue: 'http://localhost/api',
+    defaultValue: 'http://localhost/api', // 반드시 --dart-define=BASE_URL=https://... 으로 빌드
   );
+
+  // P0: 프로덕션 빌드 시 HTTPS 강제 검증
+  static void assertHttpsInProduction() {
+    if (!baseUrl.startsWith('https://') && !baseUrl.contains('localhost')) {
+      throw StateError(
+        '보안 오류: BASE_URL이 HTTPS가 아닙니다. 의료 데이터는 반드시 HTTPS로 전송해야 합니다. '
+        '빌드 시 --dart-define=BASE_URL=https://your-server.com/api 를 지정하세요.',
+      );
+    }
+  }
+
   static const allowedExtensions = ['jpg', 'jpeg', 'png'];
+  static const allowedMimeTypes = ['image/jpeg', 'image/png'];
   static const maxFileSizeBytes = 5 * 1024 * 1024;
   static const timeoutDuration = Duration(seconds: 30);
-  static const maxRetries = 3;
 }
 
 // ════════════════════════════════════════════════════════════
@@ -173,7 +184,7 @@ class OcrService {
       on NetworkException { rethrow; }
       catch (e) {
         attempt++;
-        if (attempt >= OcrConfig.maxRetries) {
+        if (attempt >= 3) {
           throw NetworkException('네트워크 오류가 반복됩니다: $e');
         }
         await Future.delayed(Duration(seconds: attempt * 2));

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
-// ignore: avoid_web_libraries_in_flutter
-import 'dart:js' as js;
+import 'services/card_sound.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'services/user_service.dart';
@@ -418,7 +417,7 @@ class _MyPageState extends State<MyPage> {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const GamePage()));
       return;
     }
-    debugPrint('Navigate to: $route');
+    logger.debug(LogCategory.userAction, 'Navigate: $route');
   }
 
   void _confirmWithdraw() {
@@ -802,9 +801,7 @@ class _GamePageState extends State<GamePage> {
 
 // ── 메모리 카드 효과음 (web/index.html에 정의된 함수 호출) ─
 class _CardSound {
-  static void _call(String fn) {
-    try { js.context.callMethod(fn, []); } catch (_) {}
-  }
+  static void _call(String fn) => CardSoundImpl.call(fn);
 
   static void flip()     => _call('cardFlip');
   static void match()    => _call('cardMatch');

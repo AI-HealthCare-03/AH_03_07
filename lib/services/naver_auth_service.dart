@@ -6,7 +6,11 @@ import 'ocr_service.dart';
 
 class NaverAuthService {
   static const String _clientId = 'MHBLv1HklEH4MDoNoHYF';
-  static const String _redirectUri = 'http://localhost:8080/naver-callback';
+  // P1: 빌드 시 --dart-define=NAVER_REDIRECT_URI=https://your-domain.com/naver-callback 지정
+  static const String _redirectUri = String.fromEnvironment(
+    'NAVER_REDIRECT_URI',
+    defaultValue: 'http://localhost:8080/naver-callback',
+  );
 
   static String _generateState() {
     final random = Random.secure();
