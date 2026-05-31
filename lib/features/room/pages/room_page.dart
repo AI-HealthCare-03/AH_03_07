@@ -25,10 +25,14 @@ class _RoomPageState extends State<RoomPage> with TickerProviderStateMixin {
   late Animation<double> _helcyBounce; // 위아래
   late Animation<double> _helcySway;  // 좌우
 
-  // 펫 이동
+  // 펫 자유 이동
   late AnimationController _petController;
   double _petX = 0.25;
-  bool _petGoingRight = true;
+  double _petY = 0.0; // 바닥 위 추가 오프셋 (0~0.15)
+  double _petDx = 0.0015;
+  double _petDy = 0.0008;
+  int _petStepCount = 0;
+  final _rng = math.Random();
 
   @override
   void initState() {
@@ -66,13 +70,18 @@ class _RoomPageState extends State<RoomPage> with TickerProviderStateMixin {
   void _movePet() {
     if (!mounted) return;
     setState(() {
-      if (_petGoingRight) {
-        _petX += 0.002;
-        if (_petX > 0.72) _petGoingRight = false;
-      } else {
-        _petX -= 0.002;
-        if (_petX < 0.08) _petGoingRight = true;
+      _petStepCount++;
+      // 50~120스텝마다 방향 랜덤 변경
+      if (_petStepCount > 50 + _rng.nextInt(70)) {
+        _petDx = (_rng.nextDouble() * 0.004 - 0.002); // -0.002 ~ +0.002
+        _petDy = (_rng.nextDouble() * 0.003 - 0.0015);
+        _petStepCount = 0;
       }
+      _petX = (_petX + _petDx).clamp(0.05, 0.80);
+      _petY = (_petY + _petDy).clamp(0.0, 0.12);
+      // 벽에 닿으면 반사
+      if (_petX <= 0.05 || _petX >= 0.80) _petDx = -_petDx;
+      if (_petY <= 0.0  || _petY >= 0.12) _petDy = -_petDy;
     });
   }
 
@@ -286,14 +295,14 @@ class _RoomPageState extends State<RoomPage> with TickerProviderStateMixin {
               ),
             ),
           ),
-          // 움직이는 펫 — RoomItemWidget으로 렌더링 (이모지 흑백 방지)
+          // 움직이는 펫 — 절반 크기 + 자유 이동
           if (_hasPet)
             Positioned(
-              left: (_petX * W).clamp(0.0, W - helcySize * 0.8),
-              bottom: floorH.clamp(0.0, H - helcySize),
+              left: (_petX * W).clamp(0.0, W - helcySize * 0.4),
+              bottom: (floorH + _petY * H).clamp(0.0, H - helcySize * 0.4),
               child: Transform.scale(
-                scaleX: _petGoingRight ? 1 : -1,
-                child: RoomItemWidget(itemId: _petId, size: helcySize * 0.8),
+                scaleX: _petDx >= 0 ? 1 : -1,
+                child: RoomItemWidget(itemId: _petId, size: helcySize * 0.4),
               ),
             ),
         ],
