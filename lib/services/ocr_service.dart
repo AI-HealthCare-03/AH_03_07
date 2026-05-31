@@ -56,6 +56,8 @@ abstract class TokenStorage {
   Future<void> saveUserId(String id);
   Future<void> saveUserEmail(String email);
   Future<void> deleteAll();
+  Future<void> markLoggedIn();
+  Future<bool> isExplicitlyLoggedOut();
 }
 
 // ════════════════════════════════════════════════════════════

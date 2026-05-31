@@ -65,19 +65,22 @@ class _SplashScreenState extends State<SplashScreen>
           await storage.read(key: 'onboarding_done').then((v) => v == 'true');
       _hasSeenOnboarding = onboardingDone;
 
-      // 로컬 토큰 존재 여부로 먼저 판단 (네트워크 오류 시에도 로그인 유지)
-      final accessToken = await _tokenStorage.getAccessToken();
-      if (accessToken == null || accessToken.isEmpty) {
+      // 명시적 로그아웃 플래그 확인 — 로그아웃 버튼을 눌렀으면 항상 로그인 화면
+      final explicitlyLoggedOut = await _tokenStorage.isExplicitlyLoggedOut();
+      if (explicitlyLoggedOut) {
         _isLoggedIn = false;
       } else {
-        // 서버 검증은 선택적으로 시도 — 실패해도 토큰 삭제 안 함
-        try {
-          final isLoggedIn = await _authService.isLoggedIn()
-              .timeout(const Duration(seconds: 3));
-          _isLoggedIn = isLoggedIn;
-        } catch (_) {
-          // 네트워크 오류: 토큰이 있으면 일단 로그인 상태 유지
-          _isLoggedIn = true;
+        final accessToken = await _tokenStorage.getAccessToken();
+        if (accessToken == null || accessToken.isEmpty) {
+          _isLoggedIn = false;
+        } else {
+          // 서버 검증 선택적 시도 — 네트워크 오류 시 토큰 유지
+          try {
+            _isLoggedIn = await _authService.isLoggedIn()
+                .timeout(const Duration(seconds: 3));
+          } catch (_) {
+            _isLoggedIn = true;
+          }
         }
       }
     } catch (_) {

@@ -135,6 +135,7 @@ class AuthService {
     try {
       await _tokenStorage.saveAccessToken(accessToken);
       await _tokenStorage.saveRefreshToken(refreshToken);
+      await _tokenStorage.markLoggedIn(); // 로그아웃 플래그 해제
       final user = json['user'] as Map<String, dynamic>?;
       if (user != null) {
         final userModel = UserModel.fromJson(user);

@@ -39,7 +39,26 @@ class SecureTokenStorage implements TokenStorage {
       _storage.write(key: 'user_email', value: email);
 
   @override
-  Future<void> deleteAll() => _storage.deleteAll();
+  Future<void> deleteAll() async {
+    // 웹에서 deleteAll()이 불완전할 수 있어 개별 삭제 + 로그아웃 플래그 기록
+    await Future.wait([
+      _storage.delete(key: 'access_token'),
+      _storage.delete(key: 'refresh_token'),
+      _storage.delete(key: 'user_id'),
+      _storage.delete(key: 'user_email'),
+      _storage.write(key: 'is_logged_out', value: 'true'),
+    ]);
+  }
+
+  @override
+  Future<void> markLoggedIn() =>
+      _storage.write(key: 'is_logged_out', value: 'false');
+
+  @override
+  Future<bool> isExplicitlyLoggedOut() async {
+    final v = await _storage.read(key: 'is_logged_out');
+    return v == 'true';
+  }
 }
 
 enum OcrStatus { idle, uploading, processing, done, confirmed, error }
