@@ -305,17 +305,48 @@ class _GuideDetailPageState extends State<GuideDetailPage> {
   }
 
   Future<void> _regenerateGuide() async {
+    // REQ-GUIDE-005: 재생성 사유 선택 (선택사항)
+    final reasons = ['내용이 부족함', '이해하기 어려움', '정보가 부정확함', '기타'];
+    String? selectedReason;
+
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('안내문 재생성', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: const Text('안내문을 다시 생성하시겠습니까?\n최신 진료기록을 반영하여 새 버전이 생성됩니다.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('취소')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('재생성', style: TextStyle(color: Color(0xFFFF8C00)))),
-        ],
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialog) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('안내문 재생성', style: TextStyle(fontWeight: FontWeight.bold)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('안내문을 다시 생성합니다.\n(일 최대 5회 제한)'),
+              const SizedBox(height: 16),
+              const Text('재생성 사유 (선택)',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+              const SizedBox(height: 4),
+              ...reasons.map((r) => RadioListTile<String>(
+                    dense: true,
+                    value: r,
+                    groupValue: selectedReason,
+                    onChanged: (v) => setDialog(() => selectedReason = v),
+                    title: Text(r, style: const TextStyle(fontSize: 13)),
+                    contentPadding: EdgeInsets.zero,
+                    activeColor: const Color(0xFFFF8C00),
+                  )),
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('취소')),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF8C00)),
+              child: const Text('재생성', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
       ),
     );
     if (confirm != true) return;
@@ -326,6 +357,9 @@ class _GuideDetailPageState extends State<GuideDetailPage> {
       final response = await _client.post(
         Uri.parse('${OcrConfig.baseUrl}/v1/guides/${widget.guideId}/regenerate'),
         headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+        body: selectedReason != null
+            ? '{"reason":"$selectedReason"}'
+            : null,
       ).timeout(const Duration(seconds: 60));
       if (!mounted) return;
       if (response.statusCode == 200 || response.statusCode == 201) {
