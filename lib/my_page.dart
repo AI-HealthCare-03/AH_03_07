@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
+// ignore: avoid_web_libraries_in_flutter
+import 'dart:js' as js;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'services/user_service.dart';
@@ -611,6 +613,71 @@ class _GamePageState extends State<GamePage> {
   }
 }
 
+// ── 메모리 카드 효과음 (Web Audio API) ───────────────────
+class _CardSound {
+  static void _play(String script) {
+    try { js.context.callMethod('eval', [script]); } catch (_) {}
+  }
+
+  // 카드 뒤집기: 짧은 클릭음
+  static void flip() => _play('''
+    (function(){
+      var c=new(window.AudioContext||window.webkitAudioContext)();
+      var o=c.createOscillator(),g=c.createGain();
+      o.connect(g);g.connect(c.destination);
+      o.frequency.value=600;o.type='sine';
+      g.gain.setValueAtTime(0.2,c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.08);
+      o.start(c.currentTime);o.stop(c.currentTime+0.08);
+    })();
+  ''');
+
+  // 매칭 성공: 상승 두 음
+  static void match() => _play('''
+    (function(){
+      var c=new(window.AudioContext||window.webkitAudioContext)();
+      [523,784].forEach(function(f,i){
+        var o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.frequency.value=f;o.type='sine';
+        var t=c.currentTime+i*0.12;
+        g.gain.setValueAtTime(0.25,t);
+        g.gain.exponentialRampToValueAtTime(0.001,t+0.15);
+        o.start(t);o.stop(t+0.15);
+      });
+    })();
+  ''');
+
+  // 매칭 실패: 낮은 버즈음
+  static void mismatch() => _play('''
+    (function(){
+      var c=new(window.AudioContext||window.webkitAudioContext)();
+      var o=c.createOscillator(),g=c.createGain();
+      o.connect(g);g.connect(c.destination);
+      o.frequency.value=180;o.type='sawtooth';
+      g.gain.setValueAtTime(0.15,c.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.2);
+      o.start(c.currentTime);o.stop(c.currentTime+0.2);
+    })();
+  ''');
+
+  // 게임 완료: 승리 멜로디
+  static void complete() => _play('''
+    (function(){
+      var c=new(window.AudioContext||window.webkitAudioContext)();
+      [523,659,784,1047].forEach(function(f,i){
+        var o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.frequency.value=f;o.type='sine';
+        var t=c.currentTime+i*0.15;
+        g.gain.setValueAtTime(0.3,t);
+        g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
+        o.start(t);o.stop(t+0.2);
+      });
+    })();
+  ''');
+}
+
 // ── 메모리 카드 매칭 ──────────────────────────────────────
 class MemoryGamePage extends StatefulWidget {
   final void Function(int score) onGameEnd;
@@ -646,6 +713,7 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
 
   void _onCardTap(int index) {
     if (_isChecking || _flipped[index] || _matched[index]) return;
+    _CardSound.flip();
     setState(() => _flipped[index] = true);
     if (_firstIndex == null) { _firstIndex = index; return; }
     _isChecking = true;
@@ -653,13 +721,18 @@ class _MemoryGamePageState extends State<MemoryGamePage> {
     _firstIndex = null;
     _moves++;
     if (_cards[first] == _cards[index]) {
+      _CardSound.match();
       setState(() { _matched[first] = true; _matched[index] = true; _matchedPairs++; _isChecking = false; });
       if (_matchedPairs == _emojis.length) {
         final score = max(0, 100 - (_moves - _emojis.length) * 5);
+        _CardSound.complete();
         widget.onGameEnd(score);
         _showGameOverDialog(score);
       }
     } else {
+      Future.delayed(const Duration(milliseconds: 400), () {
+        _CardSound.mismatch();
+      });
       Future.delayed(const Duration(milliseconds: 800), () {
         if (!mounted) return;
         setState(() { _flipped[first] = false; _flipped[index] = false; _isChecking = false; });
