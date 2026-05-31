@@ -259,6 +259,8 @@ class _RoomPageState extends State<RoomPage> with TickerProviderStateMixin {
               y: placed.y * H,
               maxW: W,
               maxH: H,
+              bgColor: Color(def.category.bgColor),
+              borderColor: Color(def.category.borderColor),
               onMove: (nx, ny) {
                 setState(() { placed.x = nx / W; placed.y = ny / H; });
                 _roomService.save(_state);
@@ -491,6 +493,8 @@ class _DraggableItem extends StatefulWidget {
   final double maxH;
   final void Function(double, double) onMove;
   final VoidCallback onDelete;
+  final Color bgColor;
+  final Color borderColor;
 
   const _DraggableItem({
     super.key,
@@ -502,6 +506,8 @@ class _DraggableItem extends StatefulWidget {
     required this.maxH,
     required this.onMove,
     required this.onDelete,
+    required this.bgColor,
+    required this.borderColor,
   });
 
   @override
@@ -540,8 +546,20 @@ class _DraggableItemState extends State<_DraggableItem> {
           width: widget.size,
           height: widget.size,
           child: Center(
-            child: Text(widget.emoji,
-                style: TextStyle(fontSize: widget.size * 0.75)),
+            child: Container(
+              width: widget.size,
+              height: widget.size,
+              decoration: BoxDecoration(
+                color: widget.bgColor,
+                shape: BoxShape.circle,
+                border: Border.all(color: widget.borderColor, width: 2),
+                boxShadow: [BoxShadow(color: widget.borderColor.withValues(alpha: 0.4), blurRadius: 6, offset: const Offset(0, 3))],
+              ),
+              child: Center(
+                child: Text(widget.emoji,
+                    style: TextStyle(fontSize: widget.size * 0.55)),
+              ),
+            ),
           ),
         ),
       ),

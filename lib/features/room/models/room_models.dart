@@ -5,17 +5,17 @@ enum RoomItemCategory { furniture, plant, pet, prop }
 extension RoomItemCategoryColor on RoomItemCategory {
   // 배경색
   int get bgColor => switch (this) {
-    RoomItemCategory.furniture => 0xFFFFF3E0, // 연주황
-    RoomItemCategory.plant     => 0xFFE8F5E9, // 연초록
-    RoomItemCategory.pet       => 0xFFFCE4EC, // 연핑크
-    RoomItemCategory.prop      => 0xFFE3F2FD, // 연파랑
+    RoomItemCategory.furniture => 0xFFFFE0B2, // 주황
+    RoomItemCategory.plant     => 0xFFC8E6C9, // 초록
+    RoomItemCategory.pet       => 0xFFF8BBD0, // 핑크
+    RoomItemCategory.prop      => 0xFFBBDEFB, // 파랑
   };
   // 테두리색
   int get borderColor => switch (this) {
-    RoomItemCategory.furniture => 0xFFFFCC80,
-    RoomItemCategory.plant     => 0xFFA5D6A7,
-    RoomItemCategory.pet       => 0xFFF48FB1,
-    RoomItemCategory.prop      => 0xFF90CAF9,
+    RoomItemCategory.furniture => 0xFFFF8C00,
+    RoomItemCategory.plant     => 0xFF43A047,
+    RoomItemCategory.pet       => 0xFFE91E63,
+    RoomItemCategory.prop      => 0xFF1976D2,
   };
 }
 
