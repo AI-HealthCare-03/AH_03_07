@@ -20,14 +20,18 @@ class LabResult {
   });
 
   factory LabResult.fromJson(Map<String, dynamic> json) => LabResult(
-        id: json['id'] as int,
-        testDate: DateTime.parse(json['test_date'] as String),
-        testItem: json['test_item'] as String,
-        value: json['value'] as String,
-        referenceRange: json['reference_range'] as String?,
-        note: json['note'] as String?,
-        createdAt: DateTime.parse(json['created_at'] as String),
+        id: (json['id'] as num?)?.toInt() ?? 0,
+        testDate: _parseDate(json['test_date']),
+        testItem: json['test_item']?.toString() ?? '',
+        value: json['value']?.toString() ?? '',
+        referenceRange: json['reference_range']?.toString(),
+        note: json['note']?.toString(),
+        createdAt: _parseDate(json['created_at']),
       );
+
+  static DateTime _parseDate(dynamic v) {
+    try { return DateTime.parse(v.toString()); } catch (_) { return DateTime.now(); }
+  }
 }
 
 class LabResultInput {
