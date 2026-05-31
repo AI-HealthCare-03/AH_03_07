@@ -9,6 +9,7 @@ import 'chat_page.dart';
 import 'ocr_history_page.dart';
 import 'search_page.dart';
 import 'home_page.dart';
+import 'guides_page.dart';
 import 'core/api/api_client.dart';
 import 'features/emergency/pages/emergency_page.dart';
 
@@ -384,7 +385,9 @@ class _DashboardPageState extends State<DashboardPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle('최근 안내문', Icons.article_outlined),
+          _buildSectionTitle('최근 안내문', Icons.article_outlined, onMore: () {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const GuidesPage()));
+          }),
           const SizedBox(height: 12),
           if (guides.isEmpty)
             const Text('최근 안내문이 없습니다.', style: TextStyle(color: Colors.grey, fontSize: 14))
