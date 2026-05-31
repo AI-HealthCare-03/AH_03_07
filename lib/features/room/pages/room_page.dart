@@ -346,9 +346,9 @@ class _RoomPageState extends State<RoomPage> with TickerProviderStateMixin {
                           width: 72,
                           margin: const EdgeInsets.only(right: 10),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFF8F0),
+                            color: Color(def.category.bgColor),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: const Color(0xFFFF8C00).withValues(alpha: 0.3)),
+                            border: Border.all(color: Color(def.category.borderColor), width: 1.5),
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -356,7 +356,7 @@ class _RoomPageState extends State<RoomPage> with TickerProviderStateMixin {
                               Text(def.emoji, style: const TextStyle(fontSize: 28)),
                               const SizedBox(height: 4),
                               Text(def.name,
-                                  style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
                                   textAlign: TextAlign.center),
                             ],
                           ),
@@ -627,18 +627,29 @@ class _ShopSheetState extends State<_ShopSheet> with SingleTickerProviderStateMi
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    color: owned ? Colors.green.shade50 : Colors.white,
+                    color: owned ? Color(def.category.bgColor) : Colors.white,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: owned ? Colors.green.shade200 : Colors.grey.shade200),
+                    border: Border.all(
+                      color: owned ? Color(def.category.borderColor) : Colors.grey.shade200,
+                      width: owned ? 2 : 1,
+                    ),
                     boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6)],
                   ),
                   child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text(def.emoji, style: const TextStyle(fontSize: 30)),
-                    const SizedBox(height: 4),
+                    Container(
+                      width: 50, height: 50,
+                      decoration: BoxDecoration(
+                        color: Color(def.category.bgColor),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Color(def.category.borderColor), width: 1.5),
+                      ),
+                      child: Center(child: Text(def.emoji, style: const TextStyle(fontSize: 26))),
+                    ),
+                    const SizedBox(height: 5),
                     Text(def.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600), textAlign: TextAlign.center),
                     const SizedBox(height: 2),
                     if (owned)
-                      const Text('탭해서 배치', style: TextStyle(fontSize: 11, color: Colors.green))
+                      Text('배치하기', style: TextStyle(fontSize: 11, color: Color(def.category.borderColor), fontWeight: FontWeight.bold))
                     else
                       Text('${def.cost} P',
                           style: TextStyle(fontSize: 11, color: canAfford ? const Color(0xFFFF8C00) : Colors.grey, fontWeight: FontWeight.bold)),

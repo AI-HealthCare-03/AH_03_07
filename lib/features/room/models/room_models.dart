@@ -2,6 +2,23 @@ import 'dart:convert';
 
 enum RoomItemCategory { furniture, plant, pet, prop }
 
+extension RoomItemCategoryColor on RoomItemCategory {
+  // 배경색
+  int get bgColor => switch (this) {
+    RoomItemCategory.furniture => 0xFFFFF3E0, // 연주황
+    RoomItemCategory.plant     => 0xFFE8F5E9, // 연초록
+    RoomItemCategory.pet       => 0xFFFCE4EC, // 연핑크
+    RoomItemCategory.prop      => 0xFFE3F2FD, // 연파랑
+  };
+  // 테두리색
+  int get borderColor => switch (this) {
+    RoomItemCategory.furniture => 0xFFFFCC80,
+    RoomItemCategory.plant     => 0xFFA5D6A7,
+    RoomItemCategory.pet       => 0xFFF48FB1,
+    RoomItemCategory.prop      => 0xFF90CAF9,
+  };
+}
+
 class RoomItemDef {
   final String id;
   final String emoji;
