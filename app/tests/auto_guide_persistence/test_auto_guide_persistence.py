@@ -13,7 +13,7 @@ from app.models.auto_guide import AutoGuide
 from app.models.users import User
 
 BASE_URL = "http://test"
-GENERATE_EP = "/api/v1/guide/generate"
+GENERATE_EP = "/api/v1/guides/generate"
 
 _FAKE_SOURCE = SourceItem(
     title="류마티스관절염 진료지침",

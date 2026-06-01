@@ -31,3 +31,25 @@ class OrchestratorResult(BaseModel):
     guide_id: int | None = None
     trigger_check: TriggerCheckResult | None = None
     evaluated_at: datetime
+
+
+class GuideSourceItem(BaseModel):
+    citation_order: int
+    source_title: str
+    source_org: str
+    source_page: int | None
+    used_for_section: str | None
+
+
+class GuideSectionType(str, Enum):
+    MEDICATION_GENERAL = "MEDICATION_GENERAL"
+    SIDE_EFFECT = "SIDE_EFFECT"
+    LIFESTYLE = "LIFESTYLE"
+    SYMPTOM_SUMMARY = "SYMPTOM_SUMMARY"
+
+
+class GuideSectionItem(BaseModel):
+    section_type: GuideSectionType
+    section_title: str
+    section_content: str
+    display_order: int
