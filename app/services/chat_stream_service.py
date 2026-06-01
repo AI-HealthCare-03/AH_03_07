@@ -12,7 +12,7 @@ from app.models.chat_session import ChatSession
 from app.models.health_guides import GuideStatus, HealthGuideContent
 from app.models.user_disease import UserDisease
 from app.models.users import User
-from app.services.chat_validation_service import ChatValidationService
+from app.services.chat_validation_service import BlockReason, ChatValidationService
 
 SESSION_EXPIRE_MINUTES = 30
 LLM_MODEL = "gpt-4o-mini"
@@ -96,14 +96,26 @@ class ChatStreamService:
             if delta:
                 full_response += delta
                 yield _sse({"type": "token", "content": delta})
-        # Step 5: Safety check (Task 5에서 구현)
-        msg_obj = await ChatMessage.create(
-            session=session,
-            role=MessageRole.ASSISTANT,
-            content=full_response,
-            rag_sources=[],
-            blocked_by_filter=False,
-        )
+        # Step 5: 응답 안전 표현 검사
+        if self._validation.check_safety_expressions(full_response) is not None:
+            safe_msg = self._validation.get_refusal_message(BlockReason.SAFETY_FILTER)
+            yield _sse({"type": "safety_filter", "message": safe_msg})
+            msg_obj = await ChatMessage.create(
+                session=session,
+                role=MessageRole.ASSISTANT,
+                content=safe_msg,
+                rag_sources=[],
+                blocked_by_filter=True,
+                block_reason=str(BlockReason.SAFETY_FILTER),
+            )
+        else:
+            msg_obj = await ChatMessage.create(
+                session=session,
+                role=MessageRole.ASSISTANT,
+                content=full_response,
+                rag_sources=[],
+                blocked_by_filter=False,
+            )
         yield _sse({
             "type": "done",
             "message_id": msg_obj.id,

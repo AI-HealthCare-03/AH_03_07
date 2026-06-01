@@ -149,3 +149,27 @@ class TestChatStreamApis(TestCase):
         assert len(events) == 1
         assert events[0]["type"] == "emergency"
         assert "message" in events[0]
+
+    async def test_stream_safety_filter_event(self):
+        # "처방해드릴게요" 포함 → FORBIDDEN_TERMS 매칭 → safety_filter 이벤트
+        dangerous_tokens = ["제가 ", "처방해드릴게요."]
+        async with AsyncClient(transport=ASGITransport(app=app), base_url=BASE_URL) as client:
+            token = await _signup_and_login(client, "str6@example.com", "01099990006")
+            headers = {"Authorization": f"Bearer {token}"}
+            session_resp = await client.post(SESSIONS_EP, headers=headers)
+            session_id = session_resp.json()["session_id"]
+            with patch(STREAM_PATCH, return_value=make_openai_mock(dangerous_tokens)):
+                resp = await client.post(
+                    STREAM_EP.format(session_id=session_id),
+                    json={"message": "약 정보 알려줘"},
+                    headers=headers,
+                )
+        assert resp.status_code == status.HTTP_200_OK
+        events = parse_sse(resp.text)
+        event_types = [e["type"] for e in events]
+        assert "safety_filter" in event_types
+        assert "done" in event_types
+        # safety_filter가 done보다 먼저 와야 함
+        assert event_types.index("safety_filter") < event_types.index("done")
+        sf_event = next(e for e in events if e["type"] == "safety_filter")
+        assert "message" in sf_event
