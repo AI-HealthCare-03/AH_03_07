@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
+import app.services.chat_guardrail_enhanced  # noqa: F401 — REQ-CHAT-004 pre_save signal 등록
 import app.services.content_advertisement_filter  # noqa: F401 — NFR-COMPLI-003 pre_save signal 등록
 import app.services.knowledge_source_validator  # noqa: F401 — NFR-SAFE-002 pre_save signal 등록
 from app.apis.v1 import v1_routers
