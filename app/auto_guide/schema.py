@@ -28,5 +28,6 @@ class OrchestratorResult(BaseModel):
     orchestrator_status: OrchestratorStatus
     trigger_emergency_modal: bool = False
     guide: HealthGuideOutput | None = None
+    guide_id: int | None = None
     trigger_check: TriggerCheckResult | None = None
     evaluated_at: datetime
