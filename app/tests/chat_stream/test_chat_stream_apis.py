@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 from httpx import ASGITransport, AsyncClient
 from starlette import status
@@ -109,6 +109,29 @@ class TestChatStreamApis(TestCase):
         assert events[0]["type"] == "guardrail"
         assert "category" in events[0]
         assert "message" in events[0]
+
+    async def test_stream_normal_message(self):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url=BASE_URL) as client:
+            token = await _signup_and_login(client, "str5@example.com", "01099990005")
+            headers = {"Authorization": f"Bearer {token}"}
+            session_resp = await client.post(SESSIONS_EP, headers=headers)
+            session_id = session_resp.json()["session_id"]
+            with patch(STREAM_PATCH, return_value=make_openai_mock(["루푸스는 ", "자가면역 질환입니다."])):
+                resp = await client.post(
+                    STREAM_EP.format(session_id=session_id),
+                    json={"message": "루푸스가 뭔가요?"},
+                    headers=headers,
+                )
+        assert resp.status_code == status.HTTP_200_OK
+        events = parse_sse(resp.text)
+        token_events = [e for e in events if e["type"] == "token"]
+        done_events = [e for e in events if e["type"] == "done"]
+        assert len(token_events) == 2
+        assert token_events[0]["content"] == "루푸스는 "
+        assert token_events[1]["content"] == "자가면역 질환입니다."
+        assert len(done_events) == 1
+        assert done_events[0]["message_id"] > 0
+        assert "created_at" in done_events[0]
 
     async def test_stream_emergency_event(self):
         async with AsyncClient(transport=ASGITransport(app=app), base_url=BASE_URL) as client:

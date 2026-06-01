@@ -4,6 +4,9 @@ import json
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime, timedelta
 
+from openai import AsyncOpenAI
+
+from app.core import config
 from app.models.chat_message import ChatMessage, MessageRole
 from app.models.chat_session import ChatSession
 from app.models.health_guides import GuideStatus, HealthGuideContent
@@ -72,8 +75,40 @@ class ChatStreamService:
                 block_reason=category,
             )
             return
-        # Step 3~5: OpenAI 스트리밍 (Task 4~5에서 구현)
-        yield _sse({"type": "done", "message_id": 0, "created_at": ""})
+        # Step 3: 컨텍스트 빌드
+        system_prompt, history = await self._build_context(session, user)
+        # Step 4: OpenAI 스트리밍
+        client = AsyncOpenAI(api_key=config.OPENAI_API_KEY)
+        messages = [
+            {"role": "system", "content": system_prompt},
+            *history,
+            {"role": "user", "content": user_message},
+        ]
+        full_response = ""
+        stream = await client.chat.completions.create(
+            model=LLM_MODEL,
+            messages=messages,
+            temperature=LLM_TEMPERATURE,
+            stream=True,
+        )
+        async for chunk in stream:
+            delta = chunk.choices[0].delta.content if chunk.choices else None
+            if delta:
+                full_response += delta
+                yield _sse({"type": "token", "content": delta})
+        # Step 5: Safety check (Task 5에서 구현)
+        msg_obj = await ChatMessage.create(
+            session=session,
+            role=MessageRole.ASSISTANT,
+            content=full_response,
+            rag_sources=[],
+            blocked_by_filter=False,
+        )
+        yield _sse({
+            "type": "done",
+            "message_id": msg_obj.id,
+            "created_at": msg_obj.created_at.isoformat(),
+        })
 
     def _make_block_event(self, category: str) -> tuple[dict, str]:
         if category in _EMERGENCY_CATEGORIES:
