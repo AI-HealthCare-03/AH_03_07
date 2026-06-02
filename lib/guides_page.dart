@@ -118,10 +118,10 @@ class _GuidesPageState extends State<GuidesPage> {
         centerTitle: false,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF8C00)))
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF22C55E)))
           : _hasError ? _buildError()
           : RefreshIndicator(
-              onRefresh: _loadGuides, color: const Color(0xFFFF8C00),
+              onRefresh: _loadGuides, color: const Color(0xFF22C55E),
               child: _guides.isEmpty ? _buildEmpty()
                   : ListView.builder(
                       padding: const EdgeInsets.all(16),
@@ -140,7 +140,7 @@ class _GuidesPageState extends State<GuidesPage> {
       ElevatedButton(
         onPressed: _loadGuides,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFFF8C00),
+          backgroundColor: const Color(0xFF22C55E),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
         child: const Text('다시 시도', style: TextStyle(color: Colors.white))),
     ]));
@@ -335,7 +335,7 @@ class _GuideDetailPageState extends State<GuideDetailPage> {
                     onChanged: (v) => setDialog(() => selectedReason = v),
                     title: Text(r, style: const TextStyle(fontSize: 13)),
                     contentPadding: EdgeInsets.zero,
-                    activeColor: const Color(0xFFFF8C00),
+                    activeColor: const Color(0xFF22C55E),
                   )),
             ],
           ),
@@ -346,7 +346,7 @@ class _GuideDetailPageState extends State<GuideDetailPage> {
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx, true),
               style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF8C00)),
+                  backgroundColor: const Color(0xFF22C55E)),
               child: const Text('재생성', style: TextStyle(color: Colors.white)),
             ),
           ],
@@ -408,7 +408,7 @@ class _GuideDetailPageState extends State<GuideDetailPage> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: Icon(selectedRating >= star ? Icons.star : Icons.star_border,
-                        color: const Color(0xFFFF8C00), size: 40)));
+                        color: const Color(0xFF22C55E), size: 40)));
               }),
             ),
             const SizedBox(height: 16),
@@ -422,7 +422,7 @@ class _GuideDetailPageState extends State<GuideDetailPage> {
                 enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(color: Colors.grey.shade300)),
                 focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFFF8C00))),
+                    borderSide: const BorderSide(color: Color(0xFF22C55E))),
                 contentPadding: const EdgeInsets.all(16),
               ),
             ),
@@ -433,7 +433,7 @@ class _GuideDetailPageState extends State<GuideDetailPage> {
                 _submitFeedback(selectedRating, commentController.text.trim());
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF8C00),
+                backgroundColor: const Color(0xFF22C55E),
                 disabledBackgroundColor: Colors.grey.shade300,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -486,18 +486,18 @@ class _GuideDetailPageState extends State<GuideDetailPage> {
             IconButton(
               icon: _isRegenerating
                   ? const SizedBox(width: 20, height: 20,
-                      child: CircularProgressIndicator(color: Color(0xFFFF8C00), strokeWidth: 2))
-                  : const Icon(Icons.refresh, color: Color(0xFFFF8C00)),
+                      child: CircularProgressIndicator(color: Color(0xFF22C55E), strokeWidth: 2))
+                  : const Icon(Icons.refresh, color: Color(0xFF22C55E)),
               tooltip: '재생성',
               onPressed: _isRegenerating ? null : _regenerateGuide),
             IconButton(
-              icon: const Icon(Icons.star_outline, color: Color(0xFFFF8C00)),
+              icon: const Icon(Icons.star_outline, color: Color(0xFF22C55E)),
               tooltip: '평가', onPressed: _showFeedbackDialog),
           ],
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF8C00)))
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF22C55E)))
           : _hasError
               ? Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
                   const Icon(Icons.error_outline, size: 64, color: Colors.grey),
@@ -507,7 +507,7 @@ class _GuideDetailPageState extends State<GuideDetailPage> {
                   ElevatedButton(
                     onPressed: _loadGuide,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF8C00),
+                      backgroundColor: const Color(0xFF22C55E),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                     child: const Text('다시 시도', style: TextStyle(color: Colors.white))),
                 ]))
@@ -521,12 +521,12 @@ class _GuideDetailPageState extends State<GuideDetailPage> {
                         onPressed: _isRegenerating ? null : _regenerateGuide,
                         icon: _isRegenerating
                             ? const SizedBox(width: 16, height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFFF8C00)))
-                            : const Icon(Icons.refresh, size: 18, color: Color(0xFFFF8C00)),
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF22C55E)))
+                            : const Icon(Icons.refresh, size: 18, color: Color(0xFF22C55E)),
                         label: Text(_isRegenerating ? '재생성 중...' : '재생성',
-                            style: const TextStyle(color: Color(0xFFFF8C00))),
+                            style: const TextStyle(color: Color(0xFF22C55E))),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Color(0xFFFF8C00)),
+                          side: const BorderSide(color: Color(0xFF22C55E)),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           padding: const EdgeInsets.symmetric(vertical: 12)))),
                       const SizedBox(width: 12),
@@ -535,14 +535,14 @@ class _GuideDetailPageState extends State<GuideDetailPage> {
                         icon: const Icon(Icons.star_outline, size: 18, color: Colors.white),
                         label: const Text('평가하기', style: TextStyle(color: Colors.white)),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF8C00), elevation: 0,
+                          backgroundColor: const Color(0xFF22C55E), elevation: 0,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           padding: const EdgeInsets.symmetric(vertical: 12)))),
                     ]),
                     const SizedBox(height: 16),
                     if (_guide?['medication_guide'] != null)
                       _buildSection('복약 안내', Icons.medication_outlined,
-                          _guide!['medication_guide'] as String, const Color(0xFFFF8C00)),
+                          _guide!['medication_guide'] as String, const Color(0xFF22C55E)),
                     if (_guide?['lifestyle_guide'] != null) ...[
                       const SizedBox(height: 16),
                       _buildSection('생활 습관', Icons.directions_run_outlined,
