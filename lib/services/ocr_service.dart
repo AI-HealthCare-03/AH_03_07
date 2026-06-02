@@ -40,11 +40,16 @@ class OcrConfig {
   );
 
   // P0: 프로덕션 빌드 시 HTTPS 강제 검증
+  // 상대경로('/api')는 HTTPS 페이지와 같은 origin이므로 허용
+  // (Netlify rewrite 프록시가 EC2로 중계 → 브라우저는 HTTPS끼리 통신, Mixed Content 회피)
   static void assertHttpsInProduction() {
-    if (!baseUrl.startsWith('https://') && !baseUrl.contains('localhost')) {
+    final isRelative = baseUrl.startsWith('/');
+    if (!isRelative &&
+        !baseUrl.startsWith('https://') &&
+        !baseUrl.contains('localhost')) {
       throw StateError(
         '보안 오류: BASE_URL이 HTTPS가 아닙니다. 의료 데이터는 반드시 HTTPS로 전송해야 합니다. '
-        '빌드 시 --dart-define=BASE_URL=https://your-server.com/api 를 지정하세요.',
+        '빌드 시 --dart-define=BASE_URL=https://your-server.com/api (또는 프록시용 /api) 를 지정하세요.',
       );
     }
   }

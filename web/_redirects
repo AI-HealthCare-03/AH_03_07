@@ -1,0 +1,4 @@
+# API 프록시: 브라우저는 HTTPS(Netlify)로만 통신, Netlify가 EC2(HTTP)로 중계 → Mixed Content 회피
+/api/*  http://54.180.83.249/api/:splat  200
+# SPA 라우팅 fallback
+/*      /index.html                       200
