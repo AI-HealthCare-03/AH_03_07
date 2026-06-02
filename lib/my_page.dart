@@ -5,6 +5,8 @@ import 'services/user_service.dart';
 import 'services/ocr_service.dart';
 import 'services/auth_service.dart';
 import 'features/consent/pages/consent_page.dart';
+import 'features/guardian/pages/guardian_sharing_page.dart';
+import 'features/medication/pages/medication_add_page.dart';
 import 'core/logging/app_logger.dart';
 import 'core/api/api_client.dart';
 import 'features/room/pages/room_page.dart';
@@ -315,6 +317,7 @@ class _MyPageState extends State<MyPage> {
         _MenuItem(icon: Icons.videogame_asset_outlined, label: '오늘의 활동', route: 'game'),
         _MenuItem(icon: Icons.notifications_none_outlined, label: '알림 설정', route: 'notification_settings'),
         _MenuItem(icon: Icons.swap_horiz_outlined, label: '모드 전환', route: 'mode_switch'),
+        _MenuItem(icon: Icons.people_outline, label: '보호자 공유', route: 'guardian_sharing'),
         _MenuItem(icon: Icons.policy_outlined, label: '동의 관리', route: 'consent'),
         _MenuItem(icon: Icons.settings_outlined, label: '설정', route: 'settings'),
       ];
@@ -412,6 +415,14 @@ class _MyPageState extends State<MyPage> {
     }
     if (route == 'game') {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const GamePage()));
+      return;
+    }
+    if (route == 'guardian_sharing') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const GuardianSharingPage()));
+      return;
+    }
+    if (route == 'medication_add') {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => const MedicationAddPage()));
       return;
     }
     logger.debug(LogCategory.userAction, 'Navigate: $route');

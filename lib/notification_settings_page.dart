@@ -205,7 +205,7 @@ class _NotificationSettingsPageState extends State<NotificationSettingsPage> {
   }
 
   // ── 색상 상수 ──
-  static const _green = Color(0xFF2ECC71);
+  static const _green = Color(0xFF22C55E);
   static const _bg = Color(0xFFF8FAF8);
   static const _cardBg = Colors.white;
   static const _textPrimary = Color(0xFF1A1A1A);

@@ -3,6 +3,53 @@ import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'home_page.dart';
 
+// ── 사람+플러스 아이콘 CustomPainter ─────────────────────
+class _PersonPlusPainter extends CustomPainter {
+  final Color color;
+  const _PersonPlusPainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color..style = PaintingStyle.fill;
+    final s = size.width;
+
+    // 머리
+    canvas.drawCircle(Offset(s * 0.42, s * 0.28), s * 0.18, paint);
+    // 몸
+    final bodyPath = Path()
+      ..moveTo(s * 0.12, s * 0.82)
+      ..arcToPoint(Offset(s * 0.72, s * 0.82),
+          radius: Radius.elliptical(s * 0.45, s * 0.38),
+          clockwise: false)
+      ..close();
+    canvas.drawPath(bodyPath, paint);
+
+    // 플러스 뱃지 배경 (흰 원)
+    final bgPaint = Paint()..color = Colors.white;
+    canvas.drawCircle(Offset(s * 0.78, s * 0.72), s * 0.22, bgPaint);
+    // 플러스 뱃지 테두리 원
+    final borderPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = s * 0.04;
+    canvas.drawCircle(Offset(s * 0.78, s * 0.72), s * 0.20, borderPaint);
+
+    // + 기호
+    final plusPaint = Paint()
+      ..color = color
+      ..strokeWidth = s * 0.07
+      ..strokeCap = StrokeCap.round;
+    final cx = s * 0.78;
+    final cy = s * 0.72;
+    final r = s * 0.11;
+    canvas.drawLine(Offset(cx - r, cy), Offset(cx + r, cy), plusPaint);
+    canvas.drawLine(Offset(cx, cy - r), Offset(cx, cy + r), plusPaint);
+  }
+
+  @override
+  bool shouldRepaint(_PersonPlusPainter old) => old.color != color;
+}
+
 class UserTypePage extends StatefulWidget {
   const UserTypePage({super.key});
 
@@ -94,7 +141,6 @@ class _UserTypePageState extends State<UserTypePage> {
                 title: '일반 환자',
                 lines: ['복약 관리', '일반 의료 정보'],
                 color: _green,
-                emoji: '🟢',
               ),
               const SizedBox(height: 16),
 
@@ -104,7 +150,6 @@ class _UserTypePageState extends State<UserTypePage> {
                 title: '자가면역환자',
                 lines: ['활성도 추적', '면역약물 특화 정보'],
                 color: _purple,
-                emoji: '🟣',
               ),
 
               const Spacer(),
@@ -171,7 +216,6 @@ class _UserTypePageState extends State<UserTypePage> {
     required String title,
     required List<String> lines,
     required Color color,
-    required String emoji,
   }) {
     final isSelected = _selectedType == key;
     return Semantics(
@@ -195,17 +239,11 @@ class _UserTypePageState extends State<UserTypePage> {
           ),
           child: Row(
             children: [
-              Container(
+              SizedBox(
                 width: 52,
                 height: 52,
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? color.withOpacity(0.12)
-                      : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(26),
-                ),
-                child: Center(
-                  child: Text(emoji, style: const TextStyle(fontSize: 24)),
+                child: CustomPaint(
+                  painter: _PersonPlusPainter(color),
                 ),
               ),
               const SizedBox(width: 16),
