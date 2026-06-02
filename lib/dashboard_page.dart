@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'services/ocr_service.dart';
 import 'main.dart';
 import 'login_page.dart';
@@ -12,6 +13,7 @@ import 'home_page.dart';
 import 'guides_page.dart';
 import 'core/api/api_client.dart';
 import 'features/emergency/pages/emergency_page.dart';
+import 'features/medication/pages/medication_checklist_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -21,15 +23,38 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
+  static const _green = Color(0xFF22C55E);
+
   bool _isLoading = true;
   bool _hasError = false;
   Map<String, dynamic>? _data;
   final _client = http.Client();
+  String? _userName;
+  String? _userType; // 'general' | 'autoimmune'
+
+  // 복약 체크 상태 (mock)
+  final _medicationStatus = [
+    {'label': '아침약 (오전 9시)', 'done': true},
+    {'label': '점심약 (오후 1시)', 'done': false},
+    {'label': '저녁약 (오후 7시)', 'done': false},
+  ];
+
+  // 오늘의 건강 팁
+  static const _healthTips = ['💧 수분 충분히 섭취하기', '🚶 30분 가벼운 산책', '😴 7시간 이상 수면'];
+
+  final _secureStorage = const FlutterSecureStorage();
 
   @override
   void initState() {
     super.initState();
     _loadDashboard();
+    _loadUserInfo();
+  }
+
+  Future<void> _loadUserInfo() async {
+    final name = await _secureStorage.read(key: 'user_name');
+    final type = await _secureStorage.read(key: 'user_type');
+    if (mounted) setState(() { _userName = name; _userType = type; });
   }
 
   @override
@@ -159,6 +184,12 @@ class _DashboardPageState extends State<DashboardPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        _buildGreeting(),
+                        const SizedBox(height: 16),
+                        _buildTodayMedCard(),
+                        const SizedBox(height: 16),
+                        _buildHealthTipsCard(),
+                        const SizedBox(height: 16),
                         _buildChatBanner(),
                         const SizedBox(height: 16),
                         _buildMedicationCard(),
@@ -175,6 +206,158 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ),
                 ),
+    );
+  }
+
+  // ── 인사말 ──────────────────────────────────────────
+  Widget _buildGreeting() {
+    final name = _userName ?? 'OOO';
+    final typeLabel = _userType == 'autoimmune' ? '자가면역 환자' : '일반 환자';
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(color: Colors.black87),
+        children: [
+          const TextSpan(
+            text: '안녕하세요!\n',
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+          ),
+          TextSpan(
+            text: '$name님 ',
+            style: const TextStyle(
+                fontSize: 28, fontWeight: FontWeight.bold),
+          ),
+          TextSpan(
+            text: typeLabel,
+            style: const TextStyle(
+                fontSize: 16,
+                color: _green,
+                fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── 오늘 복약 카드 ──────────────────────────────────
+  Widget _buildTodayMedCard() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('오늘 복약',
+              style: TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          ..._medicationStatus.map((m) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(children: [
+                  m['done'] == true
+                      ? const Icon(Icons.check,
+                          color: _green, size: 18)
+                      : Container(
+                          width: 18,
+                          height: 18,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                                color: Colors.grey.shade300, width: 1.5),
+                          ),
+                        ),
+                  const SizedBox(width: 10),
+                  Text(
+                    m['label'] as String,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: m['done'] == true
+                          ? Colors.black87
+                          : Colors.grey.shade500,
+                    ),
+                  ),
+                ]),
+              )),
+          const SizedBox(height: 4),
+          GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const MedicationChecklistPage()),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                const Text('전체 보기',
+                    style:
+                        TextStyle(color: _green, fontSize: 13)),
+                const Icon(Icons.arrow_forward,
+                    color: _green, size: 14),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── 오늘의 건강 팁 카드 ─────────────────────────────
+  Widget _buildHealthTipsCard() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('오늘의 건강 팁',
+              style: TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          ..._healthTips.map((tip) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Text(tip,
+                    style: const TextStyle(
+                        fontSize: 14, color: Colors.black87)),
+              )),
+          const SizedBox(height: 4),
+          GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const GuidesPage()),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                const Text('전체 보기',
+                    style:
+                        TextStyle(color: _green, fontSize: 13)),
+                const Icon(Icons.arrow_forward,
+                    color: _green, size: 14),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

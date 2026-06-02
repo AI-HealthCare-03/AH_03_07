@@ -158,88 +158,129 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
-  IconData _getNotificationIcon(String? type) {
-    switch (type) {
-      case 'medication':
-        return Icons.medication_outlined;
-      case 'guide':
-        return Icons.article_outlined;
-      case 'schedule':
-        return Icons.event_outlined;
-      case 'risk':
-        return Icons.warning_amber_outlined;
-      default:
-        return Icons.notifications_outlined;
-    }
-  }
-
-  Color _getNotificationColor(String? type) {
-    switch (type) {
-      case 'medication':
-        return const Color(0xFF22C55E);
-      case 'guide':
-        return Colors.blue;
-      case 'schedule':
-        return Colors.green;
-      case 'risk':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
   int get _unreadCount =>
       _notifications.where((n) => n['is_read'] == false).length;
 
+  // 오늘/어제/이전 그룹 분류 (내부 사용 예약)
+  // ignore: unused_element
+  Map<String, List<Map<String, dynamic>>> get _grouped {
+    final now = DateTime.now();
+    final todayKey = '오늘';
+    final yesterdayKey = '어제';
+    final olderKey = '이전';
+    final result = <String, List<Map<String, dynamic>>>{};
+
+    for (final n in _notifications) {
+      final createdAt = n['created_at'] as String?;
+      String group = olderKey;
+      if (createdAt != null) {
+        try {
+          final date = DateTime.parse(createdAt).toLocal();
+          final diff = now.difference(date);
+          if (diff.inDays == 0) { group = todayKey; }
+          else if (diff.inDays == 1) { group = yesterdayKey; }
+        } catch (_) {}
+      }
+      result.putIfAbsent(group, () => []).add(n);
+    }
+    return result;
+  }
+
+  // mock 데이터 없을 때 UI 테스트용
+  List<Map<String, dynamic>> get _displayNotifications =>
+      _notifications.isNotEmpty
+          ? _notifications
+          : [
+              {
+                'id': 1,
+                'title': '복약 시간',
+                'body': '아침약을 복용해주세요',
+                'notification_type': 'medication',
+                'is_read': false,
+                'created_at': DateTime.now()
+                    .subtract(const Duration(hours: 1))
+                    .toIso8601String(),
+                'time_label': '09:00',
+              },
+              {
+                'id': 2,
+                'title': '의료진 확인 신호',
+                'body': '통증 점수 패턴 감지',
+                'notification_type': 'risk',
+                'is_read': false,
+                'created_at': DateTime.now()
+                    .subtract(const Duration(hours: 3))
+                    .toIso8601String(),
+                'time_label': '07:00',
+              },
+              {
+                'id': 3,
+                'title': '활성도 기록',
+                'body': '오늘 컨디션을 기록해주세요',
+                'notification_type': 'activity',
+                'is_read': true,
+                'created_at': DateTime.now()
+                    .subtract(const Duration(days: 1, hours: 3))
+                    .toIso8601String(),
+                'time_label': '21:00',
+              },
+              {
+                'id': 4,
+                'title': '약 복용 완료',
+                'body': '저녁약 복용 완료',
+                'notification_type': 'done',
+                'is_read': true,
+                'created_at': DateTime.now()
+                    .subtract(const Duration(days: 1, hours: 4, minutes: 30))
+                    .toIso8601String(),
+                'time_label': '19:30',
+              },
+            ];
+
   @override
   Widget build(BuildContext context) {
+    final source = _isLoading ? <Map<String, dynamic>>[] : _displayNotifications;
+
+    // 그룹 분류
+    final now = DateTime.now();
+    final todayItems = <Map<String, dynamic>>[];
+    final yesterdayItems = <Map<String, dynamic>>[];
+    final olderItems = <Map<String, dynamic>>[];
+
+    for (final n in source) {
+      final createdAt = n['created_at'] as String?;
+      int daysDiff = 99;
+      if (createdAt != null) {
+        try {
+          final date = DateTime.parse(createdAt).toLocal();
+          daysDiff = now.difference(date).inDays;
+        } catch (_) {}
+      }
+      if (daysDiff == 0) {
+        todayItems.add(n);
+      } else if (daysDiff == 1) {
+        yesterdayItems.add(n);
+      } else {
+        olderItems.add(n);
+      }
+    }
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F8F8),
+      backgroundColor: const Color(0xFFF4F9F4),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF4F9F4),
         elevation: 0,
-        title: Row(
-          children: [
-            const Text(
-              '알림',
-              style: TextStyle(
-                color: Colors.black87,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-            if (_unreadCount > 0) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF22C55E),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '$_unreadCount',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ],
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios,
+              color: Colors.black87, size: 20),
+          onPressed: () => Navigator.maybePop(context),
         ),
         actions: [
           if (_unreadCount > 0)
             TextButton(
               onPressed: _markAllAsRead,
-              child: const Text(
-                '모두 읽음',
-                style: TextStyle(
-                  color: Color(0xFF22C55E),
-                  fontSize: 13,
-                ),
-              ),
+              child: const Text('모두 읽음',
+                  style: TextStyle(color: Color(0xFF22C55E), fontSize: 13)),
             ),
         ],
       ),
@@ -251,16 +292,161 @@ class _NotificationsPageState extends State<NotificationsPage> {
               : RefreshIndicator(
                   onRefresh: _loadNotifications,
                   color: const Color(0xFF22C55E),
-                  child: _notifications.isEmpty
-                      ? _buildEmpty()
-                      : ListView.builder(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          itemCount: _notifications.length,
-                          itemBuilder: (_, i) =>
-                              _buildNotificationItem(_notifications[i], i),
-                        ),
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+                    children: [
+                      // 큰 타이틀
+                      const Text('알림',
+                          style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87)),
+                      const SizedBox(height: 20),
+
+                      if (todayItems.isEmpty && yesterdayItems.isEmpty && olderItems.isEmpty)
+                        _buildEmpty()
+                      else ...[
+                        if (todayItems.isNotEmpty) ...[
+                          _groupHeader('오늘'),
+                          const SizedBox(height: 8),
+                          ...todayItems.asMap().entries.map(
+                              (e) => Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: _buildCard(e.value, _notifications.indexOf(e.value)),
+                              )),
+                        ],
+                        if (yesterdayItems.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          _groupHeader('어제'),
+                          const SizedBox(height: 8),
+                          ...yesterdayItems.asMap().entries.map(
+                              (e) => Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: _buildCard(e.value, _notifications.indexOf(e.value)),
+                              )),
+                        ],
+                        if (olderItems.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          _groupHeader('이전'),
+                          const SizedBox(height: 8),
+                          ...olderItems.asMap().entries.map(
+                              (e) => Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: _buildCard(e.value, _notifications.indexOf(e.value)),
+                              )),
+                        ],
+                      ],
+                    ],
+                  ),
                 ),
     );
+  }
+
+  Widget _groupHeader(String label) => Text(label,
+      style: const TextStyle(
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          color: Colors.black87));
+
+  Widget _buildCard(Map<String, dynamic> n, int index) {
+    final id = n['id'] as int? ?? 0;
+    final title = n['title'] as String? ?? '';
+    final body = n['body'] as String? ?? '';
+    final type = n['notification_type'] as String?;
+    final isRead = n['is_read'] as bool? ?? true;
+    final createdAt = n['created_at'] as String?;
+    final timeLabel = n['time_label'] as String? ?? _formatDate(createdAt);
+
+    final isRisk = type == 'risk';
+    final isDone = type == 'done';
+
+    return GestureDetector(
+      onTap: () {
+        if (!isRead && index >= 0 && index < _notifications.length) {
+          _markAsRead(id, index);
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: isRisk
+              ? Border.all(color: const Color(0xFFF59E0B), width: 1.5)
+              : Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              // 아이콘
+              SizedBox(
+                width: 36,
+                child: Text(
+                  _getNotificationEmoji(type),
+                  style: const TextStyle(fontSize: 24),
+                ),
+              ),
+              const SizedBox(width: 10),
+              // 내용
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,
+                        style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: isRead
+                                ? FontWeight.normal
+                                : FontWeight.bold,
+                            color: Colors.black87)),
+                    if (body.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(body,
+                          style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade600)),
+                    ],
+                  ],
+                ),
+              ),
+              // 읽지 않음 빨간 점
+              if (!isRead)
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFEF4444),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              if (isDone)
+                const Icon(Icons.check, color: Color(0xFF22C55E), size: 20),
+            ]),
+            // 시간 오른쪽 정렬
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Text(
+                timeLabel,
+                style: TextStyle(
+                    fontSize: 12, color: Colors.grey.shade400),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getNotificationEmoji(String? type) {
+    switch (type) {
+      case 'medication': return '💊';
+      case 'risk': return '⚠️';
+      case 'activity': return '📊';
+      case 'done': return '✅';
+      case 'guide': return '📋';
+      default: return '🔔';
+    }
   }
 
   Widget _buildError() {
@@ -303,107 +489,4 @@ class _NotificationsPageState extends State<NotificationsPage> {
     );
   }
 
-  Widget _buildNotificationItem(Map<String, dynamic> notification, int index) {
-    final id = notification['id'] as int? ?? 0;
-    final title = notification['title'] as String? ?? '';
-    final body = notification['body'] as String? ?? '';
-    final type = notification['notification_type'] as String?;
-    final isRead = notification['is_read'] as bool? ?? false;
-    final createdAt = notification['created_at'] as String?;
-
-    final color = _getNotificationColor(type);
-    final icon = _getNotificationIcon(type);
-
-    return Semantics(
-      label: '$title 알림${isRead ? '' : ' (읽지 않음)'}',
-      child: GestureDetector(
-        onTap: () => !isRead ? _markAsRead(id, index) : null,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: isRead ? Colors.white : const Color(0xFFFFF8F0),
-            borderRadius: BorderRadius.circular(16),
-            border: isRead
-                ? null
-                : Border.all(
-                    color: const Color(0xFF22C55E).withOpacity(0.3),
-                    width: 1,
-                  ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: color, size: 22),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            title,
-                            style: TextStyle(
-                              fontWeight: isRead
-                                  ? FontWeight.normal
-                                  : FontWeight.bold,
-                              fontSize: 14,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          _formatDate(createdAt),
-                          style: const TextStyle(
-                              color: Colors.grey, fontSize: 11),
-                        ),
-                      ],
-                    ),
-                    if (body.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        body,
-                        style: const TextStyle(
-                            color: Colors.grey, fontSize: 13),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              if (!isRead)
-                Container(
-                  width: 8,
-                  height: 8,
-                  margin: const EdgeInsets.only(left: 8, top: 4),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF22C55E),
-                    shape: BoxShape.circle,
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

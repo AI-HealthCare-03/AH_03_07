@@ -7,6 +7,7 @@ import 'services/auth_service.dart';
 import 'features/consent/pages/consent_page.dart';
 import 'features/guardian/pages/guardian_sharing_page.dart';
 import 'features/medication/pages/medication_add_page.dart';
+import 'settings_page.dart';
 import 'core/logging/app_logger.dart';
 import 'core/api/api_client.dart';
 import 'features/room/pages/room_page.dart';
@@ -423,6 +424,12 @@ class _MyPageState extends State<MyPage> {
     }
     if (route == 'medication_add') {
       Navigator.push(context, MaterialPageRoute(builder: (_) => const MedicationAddPage()));
+      return;
+    }
+    if (route == 'settings') {
+      Navigator.push(context, MaterialPageRoute(
+        builder: (_) => SettingsPage(onLogout: widget.onLogout),
+      ));
       return;
     }
     logger.debug(LogCategory.userAction, 'Navigate: $route');
