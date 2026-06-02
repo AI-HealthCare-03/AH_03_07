@@ -81,9 +81,9 @@ class _GuidesPageState extends State<GuidesPage> {
   }
 
   void _openDetail(Map<String, dynamic> guide) {
-    // id 타입 유연하게 처리: auto_guides.id(BigInt/int) 또는 health_guide_contents.id(UUID/String)
-    final dynamic rawId = guide['id'];
-    final dynamic guideId = rawId is int ? rawId : rawId?.toString() ?? '';
+    // 정본 = auto_guides → id는 정수(BigInt). int로 통일.
+    final rawId = guide['id'];
+    final int guideId = rawId is int ? rawId : int.tryParse('$rawId') ?? 0;
     Navigator.push(context, MaterialPageRoute(
         builder: (_) => GuideDetailPage(guideId: guideId),
     )).then((_) => _loadGuides());
@@ -157,11 +157,11 @@ class _GuidesPageState extends State<GuidesPage> {
   }
 
   Widget _buildGuideCard(Map<String, dynamic> guide) {
-    final diagnosis = guide['diagnosis'] as String? ?? '';
-    final summary = guide['summary'] as String? ?? '';
+    // 정본 = auto_guides 컬럼명 그대로 파싱
+    const title = '맞춤 건강 안내문';
+    final summary = guide['symptom_summary'] as String? ?? '';
     final status = guide['status'] as String?;
     final createdAt = guide['created_at'] as String?;
-    final version = guide['version'] as int? ?? 1;
 
     String formattedDate = '';
     try {
@@ -173,7 +173,7 @@ class _GuidesPageState extends State<GuidesPage> {
     final statusText = _getStatusText(status);
 
     return Semantics(
-      label: '$diagnosis 안내문',
+      label: '$title 안내문',
       child: GestureDetector(
         onTap: () => _openDetail(guide),
         child: Container(
@@ -186,8 +186,8 @@ class _GuidesPageState extends State<GuidesPage> {
           ),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Row(children: [
-              Expanded(child: Text(diagnosis,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87))),
+              const Expanded(child: Text(title,
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black87))),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -205,7 +205,7 @@ class _GuidesPageState extends State<GuidesPage> {
             Row(children: [
               const Icon(Icons.history, size: 14, color: Colors.grey),
               const SizedBox(width: 4),
-              Text('v$version · $formattedDate', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              Text(formattedDate, style: const TextStyle(color: Colors.grey, fontSize: 12)),
             ]),
           ]),
         ),
@@ -216,8 +216,8 @@ class _GuidesPageState extends State<GuidesPage> {
 
 // ── 안내문 상세 ───────────────────────────────────────────
 class GuideDetailPage extends StatefulWidget {
-  // dynamic: auto_guides.id(int/BigInt) 또는 health_guide_contents.id(UUID String) 둘 다 지원
-  final dynamic guideId;
+  // 정본 = auto_guides → id는 정수(BigInt)
+  final int guideId;
   const GuideDetailPage({super.key, required this.guideId});
 
   @override
@@ -236,6 +236,22 @@ class _GuideDetailPageState extends State<GuideDetailPage> {
 
   @override
   void dispose() { _client.close(); super.dispose(); }
+
+  // auto_guides 텍스트 컬럼 안전 추출
+  String _textOf(String key) {
+    final v = _guide?[key];
+    return v is String ? v : '';
+  }
+
+  // side_effect_monitoring(JSON 리스트)를 줄바꿈 텍스트로 변환
+  String _sideEffectText() {
+    final v = _guide?['side_effect_monitoring'];
+    if (v is List) {
+      return v.map((e) => '• ${e.toString()}').join('\n');
+    }
+    if (v is String) return v;
+    return '';
+  }
 
   Future<void> _loadGuide() async {
     if (!mounted) return;
@@ -540,23 +556,24 @@ class _GuideDetailPageState extends State<GuideDetailPage> {
                           padding: const EdgeInsets.symmetric(vertical: 12)))),
                     ]),
                     const SizedBox(height: 16),
-                    if (_guide?['medication_guide'] != null)
+                    // auto_guides 컬럼 매핑
+                    if (_textOf('medication_general').isNotEmpty)
                       _buildSection('복약 안내', Icons.medication_outlined,
-                          _guide!['medication_guide'] as String, const Color(0xFF22C55E)),
-                    if (_guide?['lifestyle_guide'] != null) ...[
+                          _textOf('medication_general'), const Color(0xFF22C55E)),
+                    if (_textOf('symptom_summary').isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      _buildSection('증상 요약', Icons.assignment_outlined,
+                          _textOf('symptom_summary'), Colors.teal),
+                    ],
+                    if (_textOf('lifestyle_info').isNotEmpty) ...[
                       const SizedBox(height: 16),
                       _buildSection('생활 습관', Icons.directions_run_outlined,
-                          _guide!['lifestyle_guide'] as String, Colors.green),
+                          _textOf('lifestyle_info'), Colors.green),
                     ],
-                    if (_guide?['precautions'] != null) ...[
+                    if (_sideEffectText().isNotEmpty) ...[
                       const SizedBox(height: 16),
-                      _buildSection('주의사항', Icons.warning_amber_outlined,
-                          _guide!['precautions'] as String, Colors.red),
-                    ],
-                    if (_guide?['recommended_checkups'] != null) ...[
-                      const SizedBox(height: 16),
-                      _buildSection('권장 검사', Icons.medical_services_outlined,
-                          _guide!['recommended_checkups'] as String, Colors.blue),
+                      _buildSection('부작용 모니터링', Icons.warning_amber_outlined,
+                          _sideEffectText(), Colors.red),
                     ],
                     // ✅ NFR-SAFE-001: 면책 조항 항상 표시
                     const SizedBox(height: 16),
