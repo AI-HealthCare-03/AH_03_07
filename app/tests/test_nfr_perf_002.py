@@ -128,3 +128,28 @@ def test_all_tasks_retry_backoff() -> None:
     ]:
         assert task.retry_backoff is True
         assert task.retry_backoff_max == 300
+
+
+# ── worker_queues entry point ─────────────────────────────────
+
+
+def test_worker_queues_registers_queues_to_celery_app() -> None:
+    import ai_worker.worker_queues  # noqa: F401
+
+    from ai_worker.core.celery_app import celery_app
+    from ai_worker.core.queue_config import QUEUE_NAMES
+
+    configured_names = {q.name for q in (celery_app.conf.task_queues or [])}
+    for name in QUEUE_NAMES:
+        assert name in configured_names
+
+
+def test_worker_queues_registers_task_routes() -> None:
+    import ai_worker.worker_queues  # noqa: F401
+
+    from ai_worker.core.celery_app import celery_app
+    from ai_worker.core.queue_config import TASK_ROUTES
+
+    routes = celery_app.conf.task_routes or {}
+    for key in TASK_ROUTES:
+        assert key in routes
