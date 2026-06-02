@@ -182,9 +182,9 @@ class _PillRecognizePageState extends State<PillRecognizePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F8F8),
+      backgroundColor: const Color(0xFFF4F9F4),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF4F9F4),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios,
@@ -192,7 +192,7 @@ class _PillRecognizePageState extends State<PillRecognizePage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          '약품 이미지 인식',
+          '약품 카메라 인식',
           style: TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.bold,
@@ -216,28 +216,34 @@ class _PillRecognizePageState extends State<PillRecognizePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // 안내 문구
+            // 안내 배너 (초록)
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF22C55E).withOpacity(0.05),
-                borderRadius: BorderRadius.circular(12),
+                color: const Color(0xFFDCFCE7),
+                borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                    color: const Color(0xFF22C55E).withOpacity(0.2)),
+                    color: const Color(0xFF22C55E).withOpacity(0.4)),
               ),
               child: const Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.info_outline,
-                      color: Color(0xFF22C55E), size: 18),
-                  SizedBox(width: 8),
+                  Icon(Icons.camera_alt_outlined,
+                      color: Color(0xFF22C55E), size: 26),
+                  SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      '약품 이미지를 촬영하거나 선택하면 후보 약품을 제시합니다. 최종 확정은 사용자가 직접 해주세요.',
-                      style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                          height: 1.5),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('약품을 촬영해주세요',
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87)),
+                        SizedBox(height: 2),
+                        Text('인식 후보 중 직접 선택하세요',
+                            style: TextStyle(
+                                fontSize: 12, color: Colors.grey)),
+                      ],
                     ),
                   ),
                 ],
@@ -245,43 +251,38 @@ class _PillRecognizePageState extends State<PillRecognizePage> {
             ),
             const SizedBox(height: 20),
 
-            // 이미지 선택 영역
+            // 카메라 프레임 영역 (어두운 배경 + 점선 가이드)
             GestureDetector(
               onTap: _showImageSourceDialog,
               child: Container(
-                height: 200,
+                height: 280,
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: _selectedImage != null
-                        ? const Color(0xFF22C55E)
-                        : Colors.grey.shade300,
-                    width: _selectedImage != null ? 2 : 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+                  color: const Color(0xFF2A2D34),
+                  borderRadius: BorderRadius.circular(20),
                 ),
                 child: _selectedImage == null
                     ? Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.add_photo_alternate_outlined,
-                              size: 48,
-                              color: Colors.grey.shade400),
-                          const SizedBox(height: 12),
-                          const Text('탭하여 약품 이미지 선택',
+                          CustomPaint(
+                            size: const Size(180, 110),
+                            painter: _DashedGuidePainter(),
+                            child: const SizedBox(
+                              width: 180,
+                              height: 110,
+                              child: Icon(Icons.medication_outlined,
+                                  size: 48, color: Color(0xFFAAAAAA)),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          const Text('알약을 가이드 안에 맞춰주세요',
                               style: TextStyle(
-                                  color: Colors.grey, fontSize: 14)),
+                                  color: Color(0xFFBBBBBB),
+                                  fontSize: 14)),
                         ],
                       )
                     : ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(18),
                         child: FutureBuilder<Uint8List>(
                           future: _selectedImage!.readAsBytes(),
                           builder: (context, snapshot) {
@@ -290,6 +291,7 @@ class _PillRecognizePageState extends State<PillRecognizePage> {
                                 snapshot.data!,
                                 fit: BoxFit.cover,
                                 width: double.infinity,
+                                height: 280,
                               );
                             }
                             return const Center(
@@ -303,49 +305,73 @@ class _PillRecognizePageState extends State<PillRecognizePage> {
             ),
             const SizedBox(height: 16),
 
-            // 인식 버튼
-            SizedBox(
-              height: 52,
-              child: ElevatedButton.icon(
-                onPressed: (_selectedImage == null || _isUploading)
-                    ? null
-                    : _recognizePill,
-                icon: _isUploading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                            color: Colors.white, strokeWidth: 2),
-                      )
-                    : const Icon(Icons.search, color: Colors.white),
-                label: Text(
-                  _isUploading ? '인식 중...' : '약품 인식 시작',
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF22C55E),
-                  disabledBackgroundColor: Colors.grey.shade300,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  elevation: 0,
+            // 둥근 카메라 버튼 (중앙)
+            Center(
+              child: GestureDetector(
+                onTap: _showImageSourceDialog,
+                child: Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF22C55E),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF22C55E).withOpacity(0.4),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.camera_alt,
+                      color: Colors.white, size: 30),
                 ),
               ),
             ),
+            const SizedBox(height: 16),
+
+            // 인식 버튼 (이미지 선택 후에만 표시)
+            if (_selectedImage != null)
+              SizedBox(
+                height: 52,
+                child: ElevatedButton.icon(
+                  onPressed: _isUploading ? null : _recognizePill,
+                  icon: _isUploading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Icon(Icons.search, color: Colors.white),
+                  label: Text(
+                    _isUploading ? '인식 중...' : '약품 인식 시작',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF22C55E),
+                    disabledBackgroundColor: Colors.grey.shade300,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                ),
+              ),
 
             // 인식 결과
             if (_showResult) ...[
               const SizedBox(height: 24),
               const Text(
-                '인식 결과',
+                '인식 결과(후보)',
                 style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               if (_candidates.isEmpty)
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -359,29 +385,44 @@ class _PillRecognizePageState extends State<PillRecognizePage> {
               else
                 ...(_candidates.map((c) => _buildCandidateCard(c))),
               const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: Colors.orange.withOpacity(0.2)),
+
+              // 찾는 약품이 없어요 · 직접 검색
+              GestureDetector(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const PillHistoryPage()),
                 ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.warning_amber_outlined,
-                        color: Colors.orange, size: 16),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        '위 결과는 참고용입니다. 반드시 직접 확인 후 사용하세요.',
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.orange,
-                            height: 1.4),
-                      ),
-                    ),
-                  ],
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.search,
+                          color: Colors.grey.shade500, size: 18),
+                      const SizedBox(width: 8),
+                      Text('찾는 약품이 없어요 · 직접 검색',
+                          style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600)),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // 하단 안내 문구
+              Center(
+                child: Text(
+                  'AI 인식 결과는 참고용입니다\n정확한 약품은 직접 확인 후 선택하세요',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 12, color: Colors.grey.shade500, height: 1.5),
                 ),
               ),
             ],
@@ -396,33 +437,47 @@ class _PillRecognizePageState extends State<PillRecognizePage> {
     final confidence = (candidate['confidence'] as num?)?.toDouble() ?? 0.0;
     final confidencePercent = (confidence * 100).toStringAsFixed(1);
 
+    final isHigh = confidence >= 0.9;
+    // 성분·분류 정보 (있으면 표시)
+    final ingredient = candidate['ingredient'] as String? ??
+        candidate['component'] as String? ?? '';
+    final category = candidate['category'] as String? ??
+        candidate['drug_class'] as String? ?? '';
+    final sub = [ingredient, category].where((s) => s.isNotEmpty).join(' · ');
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Row(
         children: [
+          // 알약 아이콘 (높은 신뢰도는 초록 배경)
           Container(
-            width: 40,
-            height: 40,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFF22C55E).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
+              color: isHigh
+                  ? const Color(0xFFDCFCE7)
+                  : Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.medication_outlined,
-                color: Color(0xFF22C55E), size: 20),
+            child: Icon(Icons.medication_outlined,
+                color: isHigh
+                    ? const Color(0xFF22C55E)
+                    : Colors.grey.shade500,
+                size: 24),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -430,47 +485,36 @@ class _PillRecognizePageState extends State<PillRecognizePage> {
                 Text(drugName,
                     style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: 16,
                         color: Colors.black87)),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Text('일치도: ',
-                        style:
-                            TextStyle(color: Colors.grey, fontSize: 12)),
-                    Text(
-                      '$confidencePercent%',
+                if (sub.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(sub,
                       style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: confidence >= 0.8
-                            ? Colors.green
-                            : confidence >= 0.6
-                                ? Colors.orange
-                                : Colors.red,
-                      ),
-                    ),
-                  ],
-                ),
+                          fontSize: 13, color: Colors.grey.shade600)),
+                ],
               ],
             ),
           ),
-          // 일치도 바
-          SizedBox(
-            width: 60,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: confidence,
-                backgroundColor: Colors.grey.shade200,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  confidence >= 0.8
-                      ? Colors.green
-                      : confidence >= 0.6
-                          ? Colors.orange
-                          : Colors.red,
-                ),
-                minHeight: 6,
+          const SizedBox(width: 8),
+          // 신뢰도 % 배지
+          Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: isHigh
+                  ? const Color(0xFFDCFCE7)
+                  : const Color(0xFFFDEBD0),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              '${confidencePercent.replaceAll('.0', '')}%',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: isHigh
+                    ? const Color(0xFF16A34A)
+                    : const Color(0xFFB45309),
               ),
             ),
           ),
@@ -478,6 +522,42 @@ class _PillRecognizePageState extends State<PillRecognizePage> {
       ),
     );
   }
+}
+
+// ── 점선 가이드 박스 페인터 ──────────────────────────────
+class _DashedGuidePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF888888)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+
+    const radius = 16.0;
+    const dashWidth = 8.0;
+    const dashSpace = 6.0;
+    final rrect = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      const Radius.circular(radius),
+    );
+    final path = Path()..addRRect(rrect);
+
+    // 점선으로 path 그리기
+    for (final metric in path.computeMetrics()) {
+      double dist = 0;
+      while (dist < metric.length) {
+        final len = dashWidth;
+        canvas.drawPath(
+          metric.extractPath(dist, dist + len),
+          paint,
+        );
+        dist += dashWidth + dashSpace;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedGuidePainter oldDelegate) => false;
 }
 
 // ── 약품 인식 내역 (REQ-PILL-004) ─────────────────────────
