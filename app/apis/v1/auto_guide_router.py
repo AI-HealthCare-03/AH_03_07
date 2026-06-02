@@ -164,3 +164,49 @@ async def get_guide_sections(
             display_order=4,
         ),
     ]
+
+
+def _serialize_guide(guide: AutoGuide) -> dict:
+    """auto_guides 레코드를 응답 JSON으로 직렬화 (REQ-GUIDE-003/004).
+
+    필드명은 auto_guides 컬럼명을 그대로 사용한다(프론트도 동일 키로 파싱).
+    id는 정수(BigInt)로 내려간다.
+    """
+    return {
+        "id": guide.id,
+        "status": str(guide.status),
+        "created_at": guide.created_at.isoformat() if guide.created_at else None,
+        "medication_general": guide.medication_general,
+        "side_effect_monitoring": guide.side_effect_monitoring,
+        "lifestyle_info": guide.lifestyle_info,
+        "symptom_summary": guide.symptom_summary,
+        "sources": guide.sources,
+        "disclaimer": guide.disclaimer,
+    }
+
+
+@auto_guide_router.get("")
+async def list_my_guides(
+    current_user: User = Depends(get_request_user),
+) -> dict:
+    """내 안내문 목록 조회 (REQ-GUIDE-003).
+
+    auto_guides 테이블에서 본인 것만 최신순으로 반환한다.
+    """
+    guides = await AutoGuide.filter(user_id=current_user.id).order_by("-created_at").all()
+    return {"items": [_serialize_guide(g) for g in guides]}
+
+
+@auto_guide_router.get("/{guide_id}")
+async def get_guide_detail(
+    guide_id: int,
+    current_user: User = Depends(get_request_user),
+) -> dict:
+    """안내문 상세 조회 (REQ-GUIDE-004).
+
+    guide_id는 정수(BigInt). 본인 소유가 아니면 404.
+    """
+    guide = await AutoGuide.get_or_none(id=guide_id, user_id=current_user.id)
+    if guide is None:
+        raise HTTPException(status_code=404, detail="Guide not found")
+    return _serialize_guide(guide)
