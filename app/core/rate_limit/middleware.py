@@ -29,7 +29,7 @@ def _extract_user_id(authorization: str | None) -> str | None:
         payload = jwt.decode(token, options={"verify_signature": False}, algorithms=["HS256"])
         user_id = payload.get("user_id")
         return str(user_id) if user_id is not None else None
-    except Exception:
+    except jwt.exceptions.PyJWTError:
         return None
 
 

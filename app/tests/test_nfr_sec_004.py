@@ -88,7 +88,7 @@ async def test_allow_under_limit() -> None:
 
 async def test_block_over_limit() -> None:
     app = _make_app()
-    with patch("app.core.rate_limit.middleware.get_redis", return_value=_mock_redis(31)):
+    with patch("app.core.rate_limit.middleware.get_redis", return_value=_mock_redis(31)):  # llm limit=30 초과
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.post(
                 "/api/v1/chat/sessions/1/messages",

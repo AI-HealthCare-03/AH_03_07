@@ -12,6 +12,7 @@ class RateLimitTier:
 
 _DEFAULT_TIER = RateLimitTier("default", 100)
 
+# 구체적인 prefix를 앞에 두어야 한다 (예: /guide/generate가 /guide/보다 앞)
 TIERS: list[RateLimitTier] = [
     RateLimitTier(
         name="llm",
