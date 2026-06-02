@@ -135,7 +135,6 @@ def test_all_tasks_retry_backoff() -> None:
 
 def test_worker_queues_registers_queues_to_celery_app() -> None:
     import ai_worker.worker_queues  # noqa: F401
-
     from ai_worker.core.celery_app import celery_app
     from ai_worker.core.queue_config import QUEUE_NAMES
 
@@ -146,7 +145,6 @@ def test_worker_queues_registers_queues_to_celery_app() -> None:
 
 def test_worker_queues_registers_task_routes() -> None:
     import ai_worker.worker_queues  # noqa: F401
-
     from ai_worker.core.celery_app import celery_app
     from ai_worker.core.queue_config import TASK_ROUTES
 
