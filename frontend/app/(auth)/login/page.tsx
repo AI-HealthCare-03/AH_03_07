@@ -35,48 +35,53 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6">
-      <h1 className="text-3xl font-bold">반가워요!</h1>
-      <p className="mt-1 text-sm text-muted-foreground">로그인이 필요해요</p>
+    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 pb-8 pt-24">
+      <h1 className="text-4xl font-extrabold">반가워요!</h1>
+      <p className="mt-2 text-sm text-muted-foreground">로그인해주세요</p>
 
-      <form onSubmit={handleSubmit} className="mt-10 space-y-5">
-        <div className="space-y-2">
-          <Label htmlFor="email">이메일</Label>
-          <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="example@email.com"
-          />
+      <form onSubmit={handleSubmit} className="mt-12 flex flex-1 flex-col">
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="email">이메일</Label>
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="example@email.com"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">비밀번호</Label>
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="비밀번호 입력"
+            />
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">비밀번호</Label>
-          <Input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-          />
+
+        {/* 하단 고정 영역 */}
+        <div className="mt-auto">
+          <Button type="submit" className="w-full" size="lg" disabled={loading}>
+            {loading ? "로그인 중..." : "로그인"}
+          </Button>
+          <div className="mt-6 flex items-center justify-center gap-3 text-sm text-muted-foreground">
+            <span className="cursor-pointer hover:text-foreground">비밀번호 찾기</span>
+            <span className="text-border">|</span>
+            <Link href="/signup" className="hover:text-foreground">
+              회원가입
+            </Link>
+          </div>
         </div>
-
-        {error && <p className="text-sm text-destructive">{error}</p>}
-
-        <Button type="submit" className="w-full" size="lg" disabled={loading}>
-          {loading ? "로그인 중..." : "로그인"}
-        </Button>
       </form>
-
-      <div className="mt-6 flex items-center justify-center gap-3 text-sm text-muted-foreground">
-        <Link href="/signup" className="hover:text-foreground">
-          회원가입
-        </Link>
-      </div>
     </main>
   );
 }
