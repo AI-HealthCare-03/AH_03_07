@@ -28,4 +28,7 @@ export interface UserProfile {
   gender?: Gender;
   birth_date?: string;
   phone_number?: string;
+  height?: number;
+  weight?: number;
+  user_type?: "general" | "autoimmune";
 }
