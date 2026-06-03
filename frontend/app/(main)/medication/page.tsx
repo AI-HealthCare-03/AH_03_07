@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Pill } from "lucide-react";
+import Link from "next/link";
+import { Pill, Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { getMedications } from "@/features/medication/api";
 import type { Medication } from "@/features/medication/api";
@@ -20,7 +21,16 @@ export default function MedicationPage() {
 
   return (
     <main className="mx-auto w-full max-w-md px-5 pt-10">
-      <h1 className="text-2xl font-bold">내 약물 목록</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">내 약물 목록</h1>
+        <Link
+          href="/medication/new"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground"
+          aria-label="약 등록"
+        >
+          <Plus className="h-5 w-5" />
+        </Link>
+      </div>
       <p className="mt-1 text-sm text-muted-foreground">복용 중인 약 {meds.length}개</p>
 
       {loading ? (
@@ -35,18 +45,20 @@ export default function MedicationPage() {
       ) : (
         <div className="mt-6 space-y-3">
           {meds.map((m) => (
-            <Card key={m.id} className="flex items-center gap-3 p-4">
-              <Pill className="h-7 w-7 text-primary" />
-              <div className="flex-1">
-                <p className="font-semibold">{m.name}</p>
-                {m.frequency && (
-                  <p className="text-xs text-muted-foreground">{m.frequency}</p>
-                )}
-                {m.next_dose && (
-                  <p className="text-xs text-muted-foreground">다음 복용: {m.next_dose}</p>
-                )}
-              </div>
-            </Card>
+            <Link key={m.id} href={`/medication/${m.id}`}>
+              <Card className="flex items-center gap-3 p-4 hover:bg-accent">
+                <Pill className="h-7 w-7 text-primary" />
+                <div className="flex-1">
+                  <p className="font-semibold">{m.name}</p>
+                  {m.frequency && (
+                    <p className="text-xs text-muted-foreground">{m.frequency}</p>
+                  )}
+                  {m.next_dose && (
+                    <p className="text-xs text-muted-foreground">다음 복용: {m.next_dose}</p>
+                  )}
+                </div>
+              </Card>
+            </Link>
           ))}
         </div>
       )}

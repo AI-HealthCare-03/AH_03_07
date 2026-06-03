@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-// 진입점 → 로그인으로 (인증 후 /home)
+// 진입점 → 스플래시
 export default function RootPage() {
-  redirect("/login");
+  redirect("/splash");
 }

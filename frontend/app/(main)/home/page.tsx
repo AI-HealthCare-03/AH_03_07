@@ -54,7 +54,7 @@ export default function HomePage() {
           ))}
         </ul>
         <Link
-          href="/medication"
+          href="/medication/checklist"
           className="mt-3 flex items-center justify-end gap-1 text-sm text-primary"
         >
           전체 보기 <ArrowRight className="h-3.5 w-3.5" />
