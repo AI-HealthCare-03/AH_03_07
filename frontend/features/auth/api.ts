@@ -61,3 +61,10 @@ export async function logout(): Promise<void> {
 export async function getMe(): Promise<UserProfile> {
   return apiFetch<UserProfile>("/v1/users/me");
 }
+
+// REQ-USER-008: 회원탈퇴 (탈퇴 시 의료 데이터 즉시 삭제 — NFR-COMPLI-001)
+export async function withdraw(): Promise<void> {
+  await apiFetch("/v1/users/me", { method: "DELETE" });
+  setAccessToken(null);
+  logger.warn("auth", "회원탈퇴 완료");
+}
