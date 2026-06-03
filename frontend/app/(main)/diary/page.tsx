@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { NotebookPen, Smile, Meh, Frown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -19,8 +20,15 @@ const RECENT = [
 ];
 
 export default function DiaryPage() {
+  const router = useRouter();
   const [cond, setCond] = useState<Condition>("good");
   const [note, setNote] = useState("");
+  const [saved, setSaved] = useState(false);
+
+  function save() {
+    setSaved(true);
+    setTimeout(() => router.back(), 800);
+  }
 
   const firstWeekday = 5; // 2026-05-01 금
   const daysInMonth = 31;
@@ -113,7 +121,7 @@ export default function DiaryPage() {
       </Card>
 
       <div className="fixed inset-x-0 bottom-16 mx-auto max-w-md px-5">
-        <Button className="w-full" size="lg">저장하기</Button>
+        <Button className="w-full" size="lg" disabled={saved} onClick={save}>{saved ? "저장됨 ✓" : "저장하기"}</Button>
       </div>
     </main>
   );

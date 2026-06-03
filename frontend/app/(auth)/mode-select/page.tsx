@@ -18,7 +18,8 @@ export default function ModeSelectPage() {
     if (!selected) return;
     // 백엔드: PATCH /v1/users/me { user_type: selected } (현재는 로컬 저장)
     setMode(selected);
-    router.replace("/home");
+    // 자가면역: 동의 → 질환 등록 흐름 / 일반: 바로 홈
+    router.replace(selected === "autoimmune" ? "/mode-consent" : "/home");
   }
 
   function later() {
