@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Calendar, ArrowLeft, ArrowRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const PURPLE = "#7C5CCF";
@@ -20,8 +21,16 @@ export default function ActivityNewPage() {
 
   return (
     <main className="mx-auto w-full max-w-md px-5 py-8 pb-28">
-      <h1 className="text-2xl font-bold">활성도 기록</h1>
-      <p className="mt-1 text-sm text-muted-foreground">오늘 컨디션을 0~10으로 기록하세요</p>
+      <h1 className="text-3xl font-extrabold leading-tight">오늘 컨디션은<br />어떠셨나요?</h1>
+
+      {/* 날짜 네비 */}
+      <div className="mt-4 flex items-center justify-center gap-3 text-muted-foreground">
+        <button aria-label="이전"><ArrowLeft className="h-5 w-5" /></button>
+        <span className="flex items-center gap-1.5 font-bold text-foreground">
+          <Calendar className="h-4 w-4" /> 2024.05.17
+        </span>
+        <button aria-label="다음"><ArrowRight className="h-5 w-5" /></button>
+      </div>
 
       <div className="mt-6 space-y-4">
         {METRICS.map((m) => (

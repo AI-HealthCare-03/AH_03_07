@@ -2,219 +2,77 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { ChevronLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  sendEmailVerifyCode,
-  confirmEmailVerifyCode,
-  signup,
-} from "@/features/auth/api";
-import { ApiError } from "@/lib/api/client";
-import type { Gender } from "@/features/auth/types";
-
-type Step = "email" | "verify" | "info";
 
 export default function SignupPage() {
   const router = useRouter();
-  const [step, setStep] = useState<Step>("email");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [gender, setGender] = useState<Gender>("MALE");
-  const [birthDate, setBirthDate] = useState("");
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [agree, setAgree] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleError(err: unknown) {
-    if (err instanceof ApiError) setError(err.message);
-    else setError("네트워크 오류가 발생했습니다.");
-  }
-
-  async function handleSendCode(e: React.FormEvent) {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setLoading(true);
-    try {
-      await sendEmailVerifyCode(email);
-      setStep("verify");
-    } catch (err) {
-      handleError(err);
-    } finally {
-      setLoading(false);
+    if (password !== confirm) {
+      setError("비밀번호가 일치하지 않습니다.");
+      return;
     }
-  }
-
-  async function handleVerify(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      await confirmEmailVerifyCode(email, code);
-      setStep("info");
-    } catch (err) {
-      handleError(err);
-    } finally {
-      setLoading(false);
+    if (!agree) {
+      setError("이용약관에 동의해주세요.");
+      return;
     }
-  }
-
-  async function handleSignup(e: React.FormEvent) {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-    try {
-      await signup({
-        email,
-        password,
-        name,
-        gender,
-        birth_date: birthDate,
-        phone_number: phone,
-      });
-      router.replace("/login?signup=success");
-    } catch (err) {
-      handleError(err);
-    } finally {
-      setLoading(false);
-    }
+    // 이메일 인증 단계로 이동 (백엔드 email-verify)
+    router.push(`/signup/verify?email=${encodeURIComponent(email)}`);
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-10">
-      <h1 className="text-2xl font-bold">회원가입</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        {step === "email" && "이메일 인증부터 시작해요"}
-        {step === "verify" && "메일로 받은 인증코드를 입력하세요"}
-        {step === "info" && "마지막으로 정보를 입력해주세요"}
-      </p>
+    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 pb-8 pt-12">
+      <button onClick={() => router.back()} aria-label="뒤로" className="-ml-2 w-fit">
+        <ChevronLeft className="h-7 w-7" />
+      </button>
 
-      {step === "email" && (
-        <form onSubmit={handleSendCode} className="mt-8 space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="email">이메일</Label>
-            <Input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="example@email.com"
-            />
-          </div>
-          {error && <p className="text-sm text-destructive">{error}</p>}
-          <Button type="submit" className="w-full" size="lg" disabled={loading}>
-            {loading ? "발송 중..." : "인증코드 발송"}
-          </Button>
-        </form>
-      )}
+      <h1 className="mt-6 text-4xl font-extrabold">처음이시군요!</h1>
+      <p className="mt-2 text-sm text-muted-foreground">계정을 만들어주세요</p>
 
-      {step === "verify" && (
-        <form onSubmit={handleVerify} className="mt-8 space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="code">인증코드</Label>
-            <Input
-              id="code"
-              inputMode="numeric"
-              required
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="6자리 코드"
-            />
-          </div>
-          {error && <p className="text-sm text-destructive">{error}</p>}
-          <Button type="submit" className="w-full" size="lg" disabled={loading}>
-            {loading ? "확인 중..." : "인증 확인"}
-          </Button>
-          <button
-            type="button"
-            onClick={() => setStep("email")}
-            className="w-full text-sm text-muted-foreground hover:text-foreground"
-          >
-            이메일 다시 입력
-          </button>
-        </form>
-      )}
-
-      {step === "info" && (
-        <form onSubmit={handleSignup} className="mt-8 space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="password">비밀번호</Label>
-            <Input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="대/소문자·숫자·특수문자 포함 8자 이상"
-            />
-          </div>
+      <form onSubmit={handleSubmit} className="mt-10 flex flex-1 flex-col">
+        <div className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="name">이름</Label>
-            <Input
-              id="name"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+            <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="홍길동" />
           </div>
           <div className="space-y-2">
-            <Label>성별</Label>
-            <div className="flex gap-2">
-              {(["MALE", "FEMALE"] as Gender[]).map((g) => (
-                <button
-                  key={g}
-                  type="button"
-                  onClick={() => setGender(g)}
-                  className={
-                    "flex-1 rounded-md border py-2.5 text-sm font-medium transition-colors " +
-                    (gender === g
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-input bg-background text-foreground")
-                  }
-                >
-                  {g === "MALE" ? "남성" : "여성"}
-                </button>
-              ))}
-            </div>
+            <Label htmlFor="email">이메일</Label>
+            <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="example@email.com" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="birth">생년월일</Label>
-            <Input
-              id="birth"
-              type="date"
-              required
-              value={birthDate}
-              onChange={(e) => setBirthDate(e.target.value)}
-            />
+            <Label htmlFor="password">비밀번호</Label>
+            <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="비밀번호 입력" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="phone">전화번호</Label>
-            <Input
-              id="phone"
-              required
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="010-0000-0000"
-            />
+            <Label htmlFor="confirm">비밀번호 확인</Label>
+            <Input id="confirm" type="password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="다시 한번 입력" />
           </div>
-          {error && <p className="text-sm text-destructive">{error}</p>}
-          <Button type="submit" className="w-full" size="lg" disabled={loading}>
-            {loading ? "가입 중..." : "회원가입 완료"}
-          </Button>
-        </form>
-      )}
 
-      <div className="mt-6 text-center text-sm text-muted-foreground">
-        이미 계정이 있나요?{" "}
-        <Link href="/login" className="text-primary hover:underline">
-          로그인
-        </Link>
-      </div>
+          <button type="button" onClick={() => setAgree(!agree)} className="flex items-center gap-3 pt-2">
+            <span className={"flex h-5 w-5 items-center justify-center rounded " + (agree ? "bg-primary" : "border-2 border-border")}>
+              {agree && <Check className="h-3.5 w-3.5 text-white" />}
+            </span>
+            <span className="text-sm">이용약관에 동의합니다</span>
+          </button>
+
+          {error && <p className="text-sm text-destructive">{error}</p>}
+        </div>
+
+        <div className="mt-auto pt-8">
+          <Button type="submit" className="w-full" size="lg">회원가입</Button>
+        </div>
+      </form>
     </main>
   );
 }
