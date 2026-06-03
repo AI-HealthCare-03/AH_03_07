@@ -7,7 +7,7 @@ import {
   User, FileText, Pill, Activity, FolderOpen,
   Bell, Settings, HelpCircle, Megaphone, LogOut, ChevronRight,
   ShieldCheck, BarChart3, FlaskConical, CalendarDays, AlertTriangle,
-  NotebookPen, Store, Siren, IdCard, Users, ClipboardList, Gift,
+  NotebookPen, Store, Siren, IdCard, Users, ClipboardList, Gift, Home,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { getMe, logout } from "@/features/auth/api";
@@ -59,6 +59,7 @@ export default function MyPage() {
     { href: "/guardian", label: "보호자 공유", icon: Users },
     { href: "/report", label: "진료 전 요약", icon: ClipboardList },
     { href: "/rewards", label: "포인트 · 보상", icon: Gift },
+    { href: "/room", label: "방 꾸미기", icon: Home },
   ];
 
   const appMenus = [
