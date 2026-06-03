@@ -5,7 +5,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   User, FileText, Pill, Activity, FolderOpen,
-  Bell, RefreshCw, Settings, HelpCircle, Megaphone, LogOut, ChevronRight,
+  Bell, Settings, HelpCircle, Megaphone, LogOut, ChevronRight,
+  ShieldCheck, BarChart3, FlaskConical, CalendarDays, AlertTriangle,
+  NotebookPen, Store, Siren, IdCard, Users, ClipboardList, Gift,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { getMe, logout } from "@/features/auth/api";
@@ -32,21 +34,36 @@ export default function MyPage() {
   // 모드별 건강정보 메뉴
   const healthMenus = isAuto
     ? [
-        { href: "/records", label: "질환 정보", icon: FileText },
+        { href: "/disease/new", label: "질환 정보", icon: FileText },
         { href: "/medication", label: "약물 목록", icon: Pill },
-        { href: "/lab", label: "위험요인 프로필", icon: Activity },
+        { href: "/risk-profile", label: "위험요인 프로필", icon: ShieldCheck },
+        { href: "/activity-trend", label: "활성도 추이", icon: BarChart3 },
+        { href: "/lab", label: "검사 결과", icon: FlaskConical },
+        { href: "/schedule", label: "검사·진료 일정", icon: CalendarDays },
+        { href: "/risk-flags", label: "의료진 확인 신호", icon: AlertTriangle },
         { href: "/documents", label: "문서 보관함", icon: FolderOpen },
       ]
     : [
         { href: "/records", label: "진료 기록", icon: FileText },
         { href: "/medication", label: "약물 목록", icon: Pill },
         { href: "/health-metrics", label: "건강 수치 기록", icon: Activity },
+        { href: "/diary", label: "건강 일기", icon: NotebookPen },
         { href: "/documents", label: "문서 보관함", icon: FolderOpen },
       ];
 
+  // 편의 기능 (공통)
+  const convMenus = [
+    { href: "/pharmacy", label: "약국 찾기", icon: Store },
+    { href: "/emergency", label: "응급 SOS", icon: Siren },
+    { href: "/emergency/card", label: "응급 카드 설정", icon: IdCard },
+    { href: "/guardian", label: "보호자 공유", icon: Users },
+    { href: "/report", label: "진료 전 요약", icon: ClipboardList },
+    { href: "/rewards", label: "포인트 · 보상", icon: Gift },
+  ];
+
   const appMenus = [
     { href: "/notifications", label: "알림 설정", icon: Bell },
-    { href: "/home", label: "모드 전환", icon: RefreshCw },
+    { href: "/consent", label: "동의 관리", icon: ShieldCheck },
     { href: "/settings", label: "설정", icon: Settings },
   ];
 
@@ -88,6 +105,7 @@ export default function MyPage() {
       </span>
 
       <Section title="내 건강 정보" menus={healthMenus} />
+      <Section title="편의 기능" menus={convMenus} />
       <Section title="앱 설정" menus={appMenus} />
 
       {/* 지원 */}
