@@ -73,6 +73,15 @@ export default function LoginPage() {
           <Button type="submit" className="w-full" size="lg" disabled={loading}>
             {loading ? "로그인 중..." : "로그인"}
           </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-3 w-full"
+            size="lg"
+            onClick={() => router.replace("/home")}
+          >
+            로그인 없이 둘러보기 (체험)
+          </Button>
           <div className="mt-6 flex items-center justify-center gap-3 text-sm text-muted-foreground">
             <span className="cursor-pointer hover:text-foreground">비밀번호 찾기</span>
             <span className="text-border">|</span>
