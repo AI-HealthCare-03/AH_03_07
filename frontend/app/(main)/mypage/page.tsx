@@ -122,9 +122,9 @@ function Section({ title, menus }: { title: string; menus: { href: string; label
       <div className="mt-2 overflow-hidden rounded-2xl border border-border">
         {menus.map(({ href, label, icon: Icon }, i) => (
           <Link key={href + label} href={href} className={"flex items-center gap-3 bg-card px-4 py-3.5 hover:bg-accent " + (i > 0 ? "border-t border-border" : "")}>
-            <Icon className="h-5 w-5 text-muted-foreground" />
-            <span className="flex-1 text-sm font-medium">{label}</span>
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            <Icon className="h-5 w-5 text-muted-foreground" strokeWidth={1.5} />
+            <span className="flex-1 text-sm font-normal text-foreground">{label}</span>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
           </Link>
         ))}
       </div>
@@ -135,9 +135,9 @@ function Section({ title, menus }: { title: string; menus: { href: string; label
 function Row({ icon: Icon, label, onClick, danger, border }: { icon: typeof FileText; label: string; onClick: () => void; danger?: boolean; border?: boolean }) {
   return (
     <button onClick={onClick} className={"flex w-full items-center gap-3 bg-card px-4 py-3.5 hover:bg-accent " + (border ? "border-t border-border " : "")}>
-      <Icon className={"h-5 w-5 " + (danger ? "text-destructive" : "text-muted-foreground")} />
-      <span className={"flex-1 text-left text-sm font-medium " + (danger ? "text-destructive" : "")}>{label}</span>
-      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      <Icon className={"h-5 w-5 " + (danger ? "text-destructive" : "text-muted-foreground")} strokeWidth={1.5} />
+      <span className={"flex-1 text-left text-sm font-normal " + (danger ? "text-destructive" : "text-foreground")}>{label}</span>
+      <ChevronRight className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
     </button>
   );
 }
