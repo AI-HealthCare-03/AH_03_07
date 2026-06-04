@@ -13,11 +13,11 @@ function PersonPlusIcon({ color, id }: { color: string; id: string }) {
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <radialGradient id={`bg-${id}`} cx="38%" cy="28%" r="65%">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.55" />
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.25" />
           <stop offset="100%" stopColor={color} stopOpacity="1" />
         </radialGradient>
-        <radialGradient id={`shine-${id}`} cx="40%" cy="25%" r="55%">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.7" />
+        <radialGradient id={`shine-${id}`} cx="38%" cy="22%" r="40%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.4" />
           <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
         </radialGradient>
         <filter id={`shadow-${id}`} x="-20%" y="-20%" width="140%" height="140%">
