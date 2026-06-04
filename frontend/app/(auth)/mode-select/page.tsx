@@ -17,9 +17,9 @@ export default function ModeSelectPage() {
     router.replace(mode === "autoimmune" ? "/mode-consent" : "/home");
   }
 
-  const cards: { key: Mode; title: string; lines: string[]; color: string }[] = [
-    { key: "general", title: "일반 환자", lines: ["복약 관리", "일반 의료 정보"], color: GREEN },
-    { key: "autoimmune", title: "자가면역환자", lines: ["활성도 추적", "면역약물 특화 정보"], color: PURPLE },
+  const cards: { key: Mode; title: string; lines: string[]; color: string; emoji: string }[] = [
+    { key: "autoimmune", title: "자가면역환자", lines: ["활성도 추적", "면역약물 특화 정보"], color: GREEN, emoji: "🟢" },
+    { key: "general", title: "일반 환자", lines: ["복약 관리", "일반 의료 정보"], color: PURPLE, emoji: "🟣" },
   ];
 
   return (
@@ -37,8 +37,11 @@ export default function ModeSelectPage() {
             className="flex w-full items-center gap-4 rounded-2xl border-2 bg-card p-5 text-left transition-all hover:scale-[1.02] active:scale-[0.98]"
             style={{ borderColor: c.color }}
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-full" style={{ background: c.color + "1f" }}>
-              <UserPlus className="h-6 w-6" style={{ color: c.color }} />
+            <div
+              className="flex h-16 w-16 items-center justify-center rounded-full text-4xl shadow-md"
+              style={{ background: `radial-gradient(circle at 35% 35%, ${c.color}cc, ${c.color})` }}
+            >
+              <UserPlus className="h-8 w-8 text-white drop-shadow" />
             </div>
             <div className="flex-1">
               <p className="text-lg font-bold" style={{ color: c.color }}>{c.title}</p>
