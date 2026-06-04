@@ -10,6 +10,13 @@ import { getDocuments, MedicalDocument } from "@/features/documents/api";
 type Filter = "전체" | "진료기록" | "검사결과" | "처방전";
 const FILTERS: Filter[] = ["전체", "진료기록", "검사결과", "처방전"];
 
+const FALLBACK_DOCS: MedicalDocument[] = [
+  { id: 1, document_type: "진료기록", file_name: "서울대학교병원 내과 · 위염", created_at: "2026-05-20" },
+  { id: 2, document_type: "검사결과", file_name: "서울대병원 류마티스 · CRP, ESR", created_at: "2026-05-12" },
+  { id: 3, document_type: "처방전", file_name: "서울가정의학과 · 아세트아미노펜", created_at: "2026-04-25" },
+  { id: 4, document_type: "진료기록", file_name: "서울대병원 류마티스 · 류마티스 관절염", created_at: "2026-04-10" },
+];
+
 const ICONS = { 진료기록: FileText, 검사결과: FlaskConical, 처방전: Pill } as const;
 const ICON_BG = {
   진료기록: "bg-secondary text-primary",
@@ -43,12 +50,15 @@ export default function DocumentsPage() {
   const [filter, setFilter] = useState<Filter>("전체");
   const [docs, setDocs] = useState<MedicalDocument[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [isFallback, setIsFallback] = useState(false);
 
   useEffect(() => {
     getDocuments()
       .then(setDocs)
-      .catch(() => setError("문서 목록을 불러오지 못했습니다."))
+      .catch(() => {
+        setDocs(FALLBACK_DOCS);
+        setIsFallback(true);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -86,12 +96,14 @@ export default function DocumentsPage() {
       {loading && (
         <p className="mt-10 text-center text-sm text-muted-foreground">불러오는 중...</p>
       )}
-      {error && (
-        <p className="mt-10 text-center text-sm text-destructive">{error}</p>
+      {isFallback && (
+        <p className="mt-3 text-center text-xs text-muted-foreground">
+          서버에 연결할 수 없어 임시 데이터를 표시합니다
+        </p>
       )}
 
       {/* 월별 그룹 */}
-      {!loading && !error && (
+      {!loading && (
         <div className="mt-6 space-y-6 pb-6">
           {months.length === 0 ? (
             <p className="mt-10 text-center text-sm text-muted-foreground">문서가 없습니다</p>
