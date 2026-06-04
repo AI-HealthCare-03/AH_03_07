@@ -8,35 +8,26 @@ const PURPLE = "#7C5CCF";
 
 type Mode = "general" | "autoimmune";
 
-function PersonPlusIcon({ color }: { color: string }) {
-  const light = color + "ff";
-  const dark = color;
-  const shadow = "#00000033";
-
+function PersonPlusIcon({ color, id }: { color: string; id: string }) {
   return (
     <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <radialGradient id={`bg-${color}`} cx="38%" cy="28%" r="65%">
+        <radialGradient id={`bg-${id}`} cx="38%" cy="28%" r="65%">
           <stop offset="0%" stopColor="#ffffff" stopOpacity="0.55" />
-          <stop offset="100%" stopColor={dark} stopOpacity="1" />
+          <stop offset="100%" stopColor={color} stopOpacity="1" />
         </radialGradient>
-        <radialGradient id={`shine-${color}`} cx="40%" cy="25%" r="55%">
+        <radialGradient id={`shine-${id}`} cx="40%" cy="25%" r="55%">
           <stop offset="0%" stopColor="#ffffff" stopOpacity="0.7" />
           <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
         </radialGradient>
-        <filter id={`shadow-${color}`} x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor={shadow} />
+        <filter id={`shadow-${id}`} x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#00000033" />
         </filter>
       </defs>
-      {/* 배경 원 */}
-      <circle cx="32" cy="32" r="30" fill={`url(#bg-${color})`} filter={`url(#shadow-${color})`} />
-      {/* 빛 반사 */}
-      <ellipse cx="26" cy="20" rx="13" ry="8" fill={`url(#shine-${color})`} />
-      {/* 사람 머리 */}
+      <circle cx="32" cy="32" r="30" fill={`url(#bg-${id})`} filter={`url(#shadow-${id})`} />
+      <ellipse cx="26" cy="20" rx="13" ry="8" fill={`url(#shine-${id})`} />
       <circle cx="28" cy="22" r="8" fill="white" fillOpacity="0.92" />
-      {/* 사람 몸 */}
       <path d="M12 46c0-8.8 7.2-16 16-16h0c8.8 0 16 7.2 16 16" fill="white" fillOpacity="0.92" />
-      {/* + 아이콘 원 */}
       <circle cx="46" cy="44" r="10" fill="white" />
       <rect x="44.5" y="38" width="3" height="12" rx="1.5" fill={color} />
       <rect x="40" y="42.5" width="12" height="3" rx="1.5" fill={color} />
@@ -52,9 +43,9 @@ export default function ModeSelectPage() {
     router.replace(mode === "autoimmune" ? "/mode-consent" : "/home");
   }
 
-  const cards: { key: Mode; title: string; lines: string[]; color: string }[] = [
-    { key: "autoimmune", title: "자가면역환자", lines: ["활성도 추적", "면역약물 특화 정보"], color: PURPLE },
-    { key: "general", title: "일반 환자", lines: ["복약 관리", "일반 의료 정보"], color: GREEN },
+  const cards: { key: Mode; title: string; lines: string[]; color: string; id: string }[] = [
+    { key: "autoimmune", title: "자가면역환자", lines: ["활성도 추적", "면역약물 특화 정보"], color: PURPLE, id: "auto" },
+    { key: "general", title: "일반 환자", lines: ["복약 관리", "일반 의료 정보"], color: GREEN, id: "gen" },
   ];
 
   return (
@@ -72,7 +63,7 @@ export default function ModeSelectPage() {
             className="flex w-full items-center gap-4 rounded-2xl border-2 bg-card p-5 text-left transition-all hover:scale-[1.02] active:scale-[0.98]"
             style={{ borderColor: c.color, boxShadow: `inset 0 0 0 1px ${c.color}40` }}
           >
-            <PersonPlusIcon color={c.color} />
+            <PersonPlusIcon color={c.color} id={c.id} />
             <div className="flex-1">
               <p className="text-lg font-bold" style={{ color: c.color }}>{c.title}</p>
               {c.lines.map((l) => (
