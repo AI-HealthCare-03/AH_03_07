@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { withdraw } from "@/features/auth/api";
@@ -42,8 +43,13 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-md px-5 py-8">
-      <h1 className="text-2xl font-bold">설정</h1>
+    <main className="mx-auto w-full max-w-md px-5 py-6 pb-24">
+      <div className="flex items-center gap-2">
+        <button onClick={() => router.back()} className="p-1 text-foreground">
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+        <h1 className="text-2xl font-bold">설정</h1>
+      </div>
 
       {/* 알림 설정 */}
       <p className="mt-6 text-sm font-semibold text-muted-foreground">알림 설정</p>
