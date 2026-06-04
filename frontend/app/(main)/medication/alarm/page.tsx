@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Pill, Check, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -21,10 +22,17 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
 }
 
 export default function MedicationAlarmPage() {
+  const router = useRouter();
   const [enabled, setEnabled] = useState(true);
   const [preAlert, setPreAlert] = useState(true);
   const [reAlert, setReAlert] = useState(true);
   const [channels, setChannels] = useState({ push: true, kakao: true, email: false });
+  const [saved, setSaved] = useState(false);
+
+  function save() {
+    setSaved(true);
+    setTimeout(() => router.back(), 800);
+  }
 
   return (
     <main className="mx-auto w-full max-w-md px-5 py-8 pb-28">
@@ -105,7 +113,7 @@ export default function MedicationAlarmPage() {
       </Card>
 
       <div className="fixed inset-x-0 bottom-16 mx-auto max-w-md px-5">
-        <Button className="w-full" size="lg">저장하기</Button>
+        <Button className="w-full" size="lg" disabled={saved} onClick={save}>{saved ? "저장됨 ✓" : "저장하기"}</Button>
       </div>
     </main>
   );

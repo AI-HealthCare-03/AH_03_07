@@ -22,7 +22,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login({ email, password });
-      router.replace("/home");
+      router.replace("/mode-select");
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);
@@ -72,6 +72,15 @@ export default function LoginPage() {
         <div className="mt-auto">
           <Button type="submit" className="w-full" size="lg" disabled={loading}>
             {loading ? "로그인 중..." : "로그인"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-3 w-full"
+            size="lg"
+            onClick={() => router.replace("/mode-select")}
+          >
+            로그인 없이 둘러보기 (체험)
           </Button>
           <div className="mt-6 flex items-center justify-center gap-3 text-sm text-muted-foreground">
             <span className="cursor-pointer hover:text-foreground">비밀번호 찾기</span>

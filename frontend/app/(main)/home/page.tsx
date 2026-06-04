@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, Circle, AlertTriangle } from "lucide-react";
+import { ArrowRight, Check, Circle, AlertTriangle, ClipboardCheck } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { getDashboard } from "@/features/dashboard/api";
 import { getMe } from "@/features/auth/api";
+import { getMode } from "@/features/auth/mode";
 import type { DashboardData } from "@/features/dashboard/api";
 
 const PURPLE = "#7C5CCF";
@@ -22,6 +23,8 @@ export default function HomePage() {
   const [userType, setUserType] = useState<"general" | "autoimmune">("general");
 
   useEffect(() => {
+    // 로컬에 저장된 모드 선택을 우선 반영 (백엔드 없이도 동작)
+    setUserType(getMode());
     getMe()
       .then((u) => {
         setName(u.name);
@@ -104,17 +107,29 @@ export default function HomePage() {
 
       {/* 일반: 건강 팁 / 자가면역: 위험신호 배너 */}
       {isAuto ? (
-        <Link
-          href="/risk-flags"
-          className="mt-4 flex items-center justify-between rounded-2xl border-2 px-4 py-3.5"
-          style={{ borderColor: "#F5C518", background: "#FEF9E7" }}
-        >
-          <span className="flex items-center gap-2 text-sm font-semibold">
-            <AlertTriangle className="h-4 w-4" style={{ color: "#B7950B" }} />
-            의료진 확인 필요 신호 1건
-          </span>
-          <ArrowRight className="h-4 w-4 text-muted-foreground" />
-        </Link>
+        <div className="mt-4 space-y-2">
+          <Link
+            href="/risk-flags"
+            className="flex items-center justify-between rounded-2xl border-2 px-4 py-3.5"
+            style={{ borderColor: "#F5C518", background: "#FEF9E7" }}
+          >
+            <span className="flex items-center gap-2 text-sm font-semibold">
+              <AlertTriangle className="h-4 w-4" style={{ color: "#B7950B" }} />
+              의료진 확인 필요 신호 1건
+            </span>
+            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+          </Link>
+          <Link
+            href="/symptom-check"
+            className="flex items-center justify-between rounded-2xl border border-border bg-card px-4 py-3.5"
+          >
+            <span className="flex items-center gap-2 text-sm font-semibold">
+              <ClipboardCheck className="h-4 w-4 text-destructive" />
+              주의 증상 체크하기
+            </span>
+            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+          </Link>
+        </div>
       ) : (
         <Card className="mt-4 p-5">
           <h2 className="text-base font-bold">오늘의 건강 팁</h2>
