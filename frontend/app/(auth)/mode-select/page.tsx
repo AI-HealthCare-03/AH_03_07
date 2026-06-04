@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, UserPlus } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 import { setMode } from "@/features/auth/mode";
 
-const GREEN = "hsl(142 71% 45%)";
-const PURPLE = "#7C5CCF";
+const GREEN = "#03C85F";
+const PURPLE = "#A83AC1";
 
 type Mode = "general" | "autoimmune";
 
@@ -27,9 +28,9 @@ export default function ModeSelectPage() {
     router.replace("/home");
   }
 
-  const cards: { key: Mode; title: string; lines: string[]; color: string }[] = [
-    { key: "general", title: "일반 환자", lines: ["복약 관리", "일반 의료 정보"], color: GREEN },
-    { key: "autoimmune", title: "자가면역환자", lines: ["활성도 추적", "면역약물 특화 정보"], color: PURPLE },
+  const cards: { key: Mode; title: string; lines: string[]; color: string; image: string }[] = [
+    { key: "general", title: "일반 환자", lines: ["복약 관리", "일반 의료 정보"], color: GREEN, image: "/mode-select/person-general.png" },
+    { key: "autoimmune", title: "자가면역환자", lines: ["활성도 추적", "면역약물 특화 정보"], color: PURPLE, image: "/mode-select/person-auto.png" },
   ];
 
   return (
@@ -38,34 +39,31 @@ export default function ModeSelectPage() {
         <ChevronLeft className="h-7 w-7" />
       </button>
 
-      <h1 className="mt-6 text-3xl font-extrabold leading-tight">
+      <h1 className="mt-6 text-[32px] font-extrabold leading-tight">
         어떤 도움이<br />필요하신가요?
       </h1>
       <p className="mt-2 text-sm text-muted-foreground">맞춤 가이드를 제공해드릴게요</p>
 
-      <div className="mt-12 space-y-4">
-        {cards.map((c) => {
-          const active = selected === c.key;
-          return (
-            <button
-              key={c.key}
-              onClick={() => setSelected(c.key)}
-              className="flex w-full items-center gap-4 rounded-2xl border-2 bg-card p-5 text-left transition-colors"
-              style={{ borderColor: active ? c.color : "hsl(var(--border))" }}
-            >
-              <div className="flex h-12 w-12 items-center justify-center rounded-full" style={{ background: c.color + "1f" }}>
-                <UserPlus className="h-6 w-6" style={{ color: c.color }} />
-              </div>
-              <div className="flex-1">
-                <p className="text-lg font-bold" style={{ color: active ? c.color : undefined }}>{c.title}</p>
-                {c.lines.map((l) => (
-                  <p key={l} className="text-sm text-muted-foreground">{l}</p>
-                ))}
-              </div>
-              <span className="text-muted-foreground">›</span>
-            </button>
-          );
-        })}
+      <div className="mt-12 flex flex-col gap-[18px]">
+        {cards.map((c) => (
+          <button
+            key={c.key}
+            onClick={() => setSelected(c.key)}
+            className="flex w-full items-center gap-4 rounded-2xl border-2 bg-card p-5 text-left transition-colors"
+            style={{ borderColor: c.color }}
+          >
+            <div className="flex h-12 w-12 items-center justify-center rounded-full" style={{ background: c.color + "1f" }}>
+              <Image src={c.image} alt={c.title} width={50} height={50} />
+            </div>
+            <div className="flex-1">
+              <p className="text-[22px] font-semibold" style={{ color: c.color }}>{c.title}</p>
+              {c.lines.map((l) => (
+                <p key={l} className="text-base font-normal text-muted-foreground">{l}</p>
+              ))}
+            </div>
+            <ChevronRight className="h-6 w-6 shrink-0" style={{ color: c.color }} />
+          </button>
+        ))}
       </div>
 
       <div className="mt-auto flex flex-col items-center gap-4">
