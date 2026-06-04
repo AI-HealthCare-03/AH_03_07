@@ -58,7 +58,7 @@ export default function NotificationsPage() {
         <button onClick={() => router.back()} className="p-1 text-foreground">
           <ChevronLeft className="h-6 w-6" />
         </button>
-        <h1 className="text-2xl font-bold">알림</h1>
+        <h1 className="text-3xl font-extrabold">알림</h1>
       </div>
 
       {isLoading ? (
@@ -84,7 +84,7 @@ export default function NotificationsPage() {
                       <span className="text-2xl">{emoji(n.notification_type)}</span>
                       <div className="flex-1">
                         <div className="flex items-center justify-between">
-                          <p className={"text-sm " + (n.is_read ? "font-normal" : "font-bold")}>{n.title}</p>
+                          <p className={"text-base " + (n.is_read ? "font-medium" : "font-bold")}>{n.title}</p>
                           {!n.is_read && <span className="ml-2 h-2.5 w-2.5 shrink-0 rounded-full bg-destructive" />}
                         </div>
                         {n.body && <p className="mt-0.5 text-sm text-muted-foreground">{n.body}</p>}
