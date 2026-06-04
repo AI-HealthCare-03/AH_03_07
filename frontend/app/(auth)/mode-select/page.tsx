@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
-import { setMode } from "@/features/auth/mode";
+import { useUpdateMode } from "@/features/auth/queries";
 
 const GREEN = "#03C85F";
 const PURPLE = "#A83AC1";
@@ -12,10 +12,16 @@ type Mode = "general" | "autoimmune";
 
 export default function ModeSelectPage() {
   const router = useRouter();
+  const updateModeMutation = useUpdateMode();
 
   function select(mode: Mode) {
-    setMode(mode);
-    router.replace(mode === "autoimmune" ? "/mode-consent" : "/home");
+    if (mode === "autoimmune") {
+      router.replace("/mode-consent");
+      return;
+    }
+    updateModeMutation.mutate("general", {
+      onSuccess: () => router.replace("/home"),
+    });
   }
 
   const cards: { key: Mode; title: string; lines: string[]; color: string; image: string }[] = [
