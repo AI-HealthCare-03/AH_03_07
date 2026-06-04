@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  User, FileText, Pill, Activity, FolderOpen,
+  User, FileText, Pill, Activity, Folder, FolderOpen,
   Bell, Settings, HelpCircle, Megaphone, LogOut, ChevronRight,
   ShieldCheck, BarChart3, FlaskConical, CalendarDays, AlertTriangle,
   RefreshCw, Gift, Home, Gamepad2,
@@ -43,13 +43,13 @@ export default function MyPage() {
         { href: "/lab", label: "검사 결과", icon: FlaskConical },
         { href: "/schedule", label: "검사·진료 일정", icon: CalendarDays },
         { href: "/risk-flags", label: "의료진 확인 신호", icon: AlertTriangle },
-        { href: "/documents", label: "문서 보관함", icon: FolderOpen },
+        { href: "/documents", label: "문서 보관함", icon: Folder },
       ]
     : [
         { href: "/records", label: "진료 기록", icon: FileText },
         { href: "/medication", label: "약물 목록", icon: Pill },
         { href: "/health-metrics", label: "건강 수치 기록", icon: Activity },
-        { href: "/documents", label: "문서 보관함", icon: FolderOpen },
+        { href: "/documents", label: "문서 보관함", icon: Folder },
       ];
 
   const benefitMenus = [
