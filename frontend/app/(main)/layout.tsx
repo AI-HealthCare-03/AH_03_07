@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, MessageCircle, Home, Bell, User } from "lucide-react";
+import { Activity, Search, Home, Bell, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const tabs = [
   { href: "/records", label: "기록", icon: Activity },
-  { href: "/chat", label: "챗봇", icon: MessageCircle },
+  { href: "/search", label: "검색", icon: Search },
   { href: "/home", label: "홈", icon: Home },
   { href: "/notifications", label: "알림", icon: Bell },
   { href: "/mypage", label: "마이", icon: User },

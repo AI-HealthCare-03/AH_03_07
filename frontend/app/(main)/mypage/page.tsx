@@ -61,6 +61,10 @@ export default function MyPage() {
     { href: "/emergency/card", label: "응급 카드 설정", icon: IdCard },
     { href: "/guardian", label: "보호자 공유", icon: Users },
     { href: "/report", label: "진료 전 요약", icon: ClipboardList },
+  ];
+
+  // 혜택 (포인트·보상, 방 꾸미기, 게임)
+  const benefitMenus = [
     { href: "/rewards", label: "포인트 · 보상", icon: Gift },
     { href: "/room", label: "방 꾸미기", icon: Home },
     { href: "/games", label: "건강 미니게임", icon: Gamepad2 },
@@ -112,13 +116,14 @@ export default function MyPage() {
 
       <Section title="내 건강 정보" menus={healthMenus} />
       <Section title="편의 기능" menus={convMenus} />
+      <Section title="혜택" menus={benefitMenus} />
       <Section title="앱 설정" menus={appMenus} />
 
       {/* 지원 */}
       <h2 className="mt-6 text-sm font-semibold text-muted-foreground">지원</h2>
       <div className="mt-2 overflow-hidden rounded-2xl border border-border">
         <Row icon={HelpCircle} label="도움말" onClick={() => alert("준비 중입니다.")} />
-        <Row icon={Megaphone} label="문의하기" onClick={() => alert("준비 중입니다.")} border />
+        <Row icon={Megaphone} label="문의하기" onClick={() => router.push("/chat")} border />
         <Row icon={LogOut} label="로그아웃" danger onClick={handleLogout} border />
       </div>
     </main>

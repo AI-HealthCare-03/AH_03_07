@@ -39,6 +39,7 @@ export default function SearchPage() {
         <div className="flex flex-1 items-center gap-2 rounded-full bg-muted px-4 py-2.5">
           <Search className="h-4 w-4 text-muted-foreground" />
           <input
+            autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && submit(query)}
