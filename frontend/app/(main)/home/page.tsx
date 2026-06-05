@@ -2,16 +2,18 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, Circle, AlertTriangle, ClipboardCheck, BookOpen, FileText, ScanLine } from "lucide-react";
+import { ArrowRight, Check, Circle, AlertTriangle, ClipboardCheck, FileText } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { getDashboard } from "@/features/dashboard/api";
 import { getMe } from "@/features/auth/api";
 import { getMode } from "@/features/auth/mode";
 import { getGuides } from "@/features/guides/api";
 import { getRecords } from "@/features/medical-records/api";
+import { getDocuments } from "@/features/documents/api";
 import type { DashboardData } from "@/features/dashboard/api";
 import type { Guide } from "@/features/guides/api";
 import type { MedicalRecord } from "@/features/medical-records/api";
+import type { MedicalDocument } from "@/features/documents/api";
 
 const PURPLE = "#7C5CCF";
 const ACTIVITY = [
@@ -21,12 +23,25 @@ const ACTIVITY = [
   { label: "불편도", value: 7 },
 ];
 
+function formatDate(dateStr?: string) {
+  if (!dateStr) return "";
+  return dateStr.replace(/-/g, ".").slice(0, 10);
+}
+
+function isLatest(dateStr?: string) {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  const now = new Date();
+  return (now.getTime() - d.getTime()) < 7 * 24 * 60 * 60 * 1000;
+}
+
 export default function HomePage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [name, setName] = useState<string>("");
   const [userType, setUserType] = useState<"general" | "autoimmune">("general");
   const [guides, setGuides] = useState<Guide[]>([]);
   const [records, setRecords] = useState<MedicalRecord[]>([]);
+  const [ocrDocs, setOcrDocs] = useState<MedicalDocument[]>([]);
 
   useEffect(() => {
     setUserType(getMode());
@@ -38,6 +53,7 @@ export default function HomePage() {
       .catch(() => setData(fallback));
     getGuides().then((g) => setGuides(g.slice(0, 3))).catch(() => {});
     getRecords().then((r) => setRecords(r.slice(0, 3))).catch(() => {});
+    getDocuments().then((docs) => setOcrDocs(docs.filter((d) => d.status === "processing" || d.status === "pending"))).catch(() => {});
   }, []);
 
   const meds = data?.medications ?? fallback.medications!;
@@ -81,59 +97,87 @@ export default function HomePage() {
           {meds.map((m, i) => (
             <li key={i} className="flex items-center gap-2.5 text-sm">
               {m.done ? <Check className="h-4 w-4 text-primary" /> : <Circle className="h-4 w-4 text-muted-foreground/40" />}
-              <span className={m.done ? "text-foreground" : "text-muted-foreground"}>{m.label}</span>
+              <span className={m.done ? "font-semibold text-foreground" : "text-muted-foreground"}>{m.label}</span>
             </li>
           ))}
         </ul>
-        <Link href="/medication/checklist" className="mt-3 flex items-center justify-end gap-1 text-sm text-primary">
+        <Link href="/medication/checklist" className="mt-3 flex items-center justify-end gap-1 text-sm font-semibold text-primary">
           전체 보기 <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </Card>
 
+      {/* 진행 중인 OCR 처리 작업 */}
+      {ocrDocs.length > 0 && (
+        <Card className="mt-4 p-5">
+          <h2 className="text-base font-bold">진행 중인 OCR 처리 작업</h2>
+          <div className="mt-3 space-y-3">
+            {ocrDocs.map((doc) => (
+              <div key={doc.id} className="flex items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-50">
+                  <FileText className="h-5 w-5 text-amber-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-foreground">{doc.file_name ?? `문서 #${doc.id}`}</p>
+                  <p className="text-xs text-muted-foreground">OCR 텍스트 추출중...</p>
+                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                    <div className="h-full w-3/4 rounded-full bg-amber-500 animate-pulse" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
       {/* 최근 가이드 (최대 3개) */}
       {guides.length > 0 && (
-        <Card className="mt-4 p-5">
-          <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-1.5 text-base font-bold">
-              <BookOpen className="h-4 w-4 text-primary" /> 최근 가이드
-            </h2>
-            <Link href="/guides" className="text-xs text-primary">전체 보기</Link>
+        <Card className="mt-4 divide-y divide-border p-0 overflow-hidden">
+          {guides.map((g, i) => {
+            const title = g.symptom_summary ?? g.medication_general ?? `가이드 #${g.id}`;
+            const date = formatDate(g.created_at);
+            const latest = isLatest(g.created_at);
+            return (
+              <Link key={g.id} href={`/guides/${g.id}`} className="flex items-center gap-3 px-4 py-3.5 hover:bg-accent">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                  <FileText className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-foreground">{title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {date}{latest && <span className="ml-1 text-muted-foreground">· 최신</span>}
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
+          <div className="px-4 py-2.5 text-right">
+            <Link href="/guides" className="text-sm font-semibold text-primary">
+              전체 보기 →
+            </Link>
           </div>
-          <ul className="mt-3 space-y-2">
-            {guides.map((g) => (
-              <li key={g.id}>
-                <Link href={`/guides/${g.id}`} className="flex items-center justify-between text-sm hover:text-primary">
-                  <span className="line-clamp-1 flex-1 text-foreground">
-                    {g.symptom_summary ?? g.medication_general ?? `가이드 #${g.id}`}
-                  </span>
-                  <ArrowRight className="ml-2 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                </Link>
-              </li>
-            ))}
-          </ul>
         </Card>
       )}
 
       {/* 최근 진료 기록 (최대 3개) */}
       {records.length > 0 && (
-        <Card className="mt-4 p-5">
-          <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-1.5 text-base font-bold">
-              <FileText className="h-4 w-4 text-primary" /> 최근 진료 기록
-            </h2>
-            <Link href="/records" className="text-xs text-primary">전체 보기</Link>
-          </div>
-          <ul className="mt-3 space-y-2">
-            {records.map((r) => (
-              <li key={r.id} className="flex items-center justify-between text-sm">
+        <Card className="mt-4 divide-y divide-border p-0 overflow-hidden">
+          {records.map((r) => {
+            const date = r.visit_date ? r.visit_date.slice(5).replace("-", ".") : "";
+            return (
+              <div key={r.id} className="flex items-center justify-between px-4 py-3.5">
                 <div className="flex-1">
-                  <p className="font-medium text-foreground">{r.hospital_name ?? "병원명 없음"}</p>
-                  <p className="text-xs text-muted-foreground">{r.visit_date} {r.diagnosis && `· ${r.diagnosis}`}</p>
+                  <p className="text-sm font-semibold text-foreground">{r.hospital_name ?? "병원명 없음"}</p>
+                  {r.diagnosis && <p className="text-xs text-muted-foreground">{r.diagnosis}</p>}
                 </div>
-                <ArrowRight className="ml-2 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              </li>
-            ))}
-          </ul>
+                <span className="ml-3 shrink-0 text-xs text-muted-foreground">{date}</span>
+              </div>
+            );
+          })}
+          <div className="px-4 py-2.5 text-right">
+            <Link href="/records" className="text-sm font-semibold text-primary">
+              전체 보기 →
+            </Link>
+          </div>
         </Card>
       )}
 
@@ -159,9 +203,9 @@ export default function HomePage() {
         <Card className="mt-4 p-5">
           <h2 className="text-base font-bold">오늘의 건강 팁</h2>
           <ul className="mt-3 space-y-2 text-sm">
-            {tips.map((t, i) => <li key={i}>{t}</li>)}
+            {tips.map((t, i) => <li key={i} className="font-medium text-foreground">{t}</li>)}
           </ul>
-          <Link href="/guides" className="mt-3 flex items-center justify-end gap-1 text-sm text-primary">
+          <Link href="/guides" className="mt-3 flex items-center justify-end gap-1 text-sm font-semibold text-primary">
             전체 보기 <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </Card>
