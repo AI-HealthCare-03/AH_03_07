@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Check, Circle, AlertTriangle, ClipboardCheck, FileText } from "lucide-react";
+import { ArrowRight, Check, Circle, AlertTriangle, ClipboardCheck, FileText, User } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { getDashboard } from "@/features/dashboard/api";
 import { getMe } from "@/features/auth/api";
@@ -25,14 +25,17 @@ const ACTIVITY = [
 
 function formatDate(dateStr?: string) {
   if (!dateStr) return "";
-  return dateStr.replace(/-/g, ".").slice(0, 10);
+  return dateStr.slice(0, 10).replace(/-/g, ".");
+}
+
+function shortDate(dateStr?: string) {
+  if (!dateStr) return "";
+  return dateStr.slice(5, 10).replace("-", ".");
 }
 
 function isLatest(dateStr?: string) {
   if (!dateStr) return false;
-  const d = new Date(dateStr);
-  const now = new Date();
-  return (now.getTime() - d.getTime()) < 7 * 24 * 60 * 60 * 1000;
+  return (Date.now() - new Date(dateStr).getTime()) < 7 * 24 * 60 * 60 * 1000;
 }
 
 export default function HomePage() {
@@ -45,12 +48,8 @@ export default function HomePage() {
 
   useEffect(() => {
     setUserType(getMode());
-    getMe()
-      .then((u) => { setName(u.name); if (u.user_type) setUserType(u.user_type); })
-      .catch(() => {});
-    getDashboard()
-      .then((d) => { setData(d); if (d.user_type) setUserType(d.user_type); })
-      .catch(() => setData(fallback));
+    getMe().then((u) => { setName(u.name); if (u.user_type) setUserType(u.user_type); }).catch(() => {});
+    getDashboard().then((d) => { setData(d); if (d.user_type) setUserType(d.user_type); }).catch(() => setData(fallback));
     getGuides().then((g) => setGuides(g.slice(0, 3))).catch(() => {});
     getRecords().then((r) => setRecords(r.slice(0, 3))).catch(() => {});
     getDocuments().then((docs) => setOcrDocs(docs.filter((d) => d.status === "processing" || d.status === "pending"))).catch(() => {});
@@ -93,10 +92,12 @@ export default function HomePage() {
       {/* 오늘 복약 */}
       <Card className="mt-6 p-5">
         <h2 className="text-base font-bold">오늘 복약</h2>
-        <ul className="mt-3 space-y-2">
+        <ul className="mt-3 space-y-2.5">
           {meds.map((m, i) => (
             <li key={i} className="flex items-center gap-2.5 text-sm">
-              {m.done ? <Check className="h-4 w-4 text-primary" /> : <Circle className="h-4 w-4 text-muted-foreground/40" />}
+              {m.done
+                ? <Check className="h-4 w-4 shrink-0 text-primary" />
+                : <Circle className="h-4 w-4 shrink-0 text-muted-foreground/40" />}
               <span className={m.done ? "font-semibold text-foreground" : "text-muted-foreground"}>{m.label}</span>
             </li>
           ))}
@@ -108,82 +109,84 @@ export default function HomePage() {
 
       {/* 진행 중인 OCR 처리 작업 */}
       {ocrDocs.length > 0 && (
-        <Card className="mt-4 p-5">
+        <div className="mt-6">
           <h2 className="text-base font-bold">진행 중인 OCR 처리 작업</h2>
           <div className="mt-3 space-y-3">
             {ocrDocs.map((doc) => (
-              <div key={doc.id} className="flex items-center gap-3">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-50">
+              <Card key={doc.id} className="flex items-center gap-3 p-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-100">
                   <FileText className="h-5 w-5 text-amber-600" />
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-foreground">{doc.file_name ?? `문서 #${doc.id}`}</p>
                   <p className="text-xs text-muted-foreground">OCR 텍스트 추출중...</p>
                   <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                    <div className="h-full w-3/4 rounded-full bg-amber-500 animate-pulse" />
+                    <div className="h-full w-3/4 rounded-full bg-amber-500" />
                   </div>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
-        </Card>
+        </div>
       )}
 
-      {/* 최근 가이드 (최대 3개) */}
-      {guides.length > 0 && (
-        <Card className="mt-4 divide-y divide-border p-0 overflow-hidden">
-          {guides.map((g, i) => {
-            const title = g.symptom_summary ?? g.medication_general ?? `가이드 #${g.id}`;
-            const date = formatDate(g.created_at);
-            const latest = isLatest(g.created_at);
-            return (
-              <Link key={g.id} href={`/guides/${g.id}`} className="flex items-center gap-3 px-4 py-3.5 hover:bg-accent">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                  <FileText className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-foreground">{title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {date}{latest && <span className="ml-1 text-muted-foreground">· 최신</span>}
-                  </p>
-                </div>
-              </Link>
-            );
-          })}
-          <div className="px-4 py-2.5 text-right">
-            <Link href="/guides" className="text-sm font-semibold text-primary">
-              전체 보기 →
-            </Link>
-          </div>
-        </Card>
-      )}
-
-      {/* 최근 진료 기록 (최대 3개) */}
+      {/* 최근 진료 기록 */}
       {records.length > 0 && (
-        <Card className="mt-4 divide-y divide-border p-0 overflow-hidden">
-          {records.map((r) => {
-            const date = r.visit_date ? r.visit_date.slice(5).replace("-", ".") : "";
-            return (
-              <div key={r.id} className="flex items-center justify-between px-4 py-3.5">
+        <div className="mt-6">
+          <h2 className="text-base font-bold">최근 진료 기록</h2>
+          <Card className="mt-3 divide-y divide-border overflow-hidden p-0">
+            {records.map((r) => (
+              <div key={r.id} className="flex items-center gap-3 px-4 py-3.5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-teal-50">
+                  <User className="h-5 w-5 text-teal-500" strokeWidth={1.5} />
+                </div>
                 <div className="flex-1">
                   <p className="text-sm font-semibold text-foreground">{r.hospital_name ?? "병원명 없음"}</p>
                   {r.diagnosis && <p className="text-xs text-muted-foreground">{r.diagnosis}</p>}
                 </div>
-                <span className="ml-3 shrink-0 text-xs text-muted-foreground">{date}</span>
+                <span className="shrink-0 text-xs text-muted-foreground">{shortDate(r.visit_date)}</span>
               </div>
-            );
-          })}
-          <div className="px-4 py-2.5 text-right">
-            <Link href="/records" className="text-sm font-semibold text-primary">
-              전체 보기 →
-            </Link>
-          </div>
-        </Card>
+            ))}
+            <div className="px-4 py-2.5 text-right">
+              <Link href="/records" className="text-sm font-semibold text-primary">전체 보기 →</Link>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* 최근 가이드 */}
+      {guides.length > 0 && (
+        <div className="mt-6">
+          <h2 className="text-base font-bold">최근 가이드</h2>
+          <Card className="mt-3 divide-y divide-border overflow-hidden p-0">
+            {guides.map((g) => {
+              const title = g.symptom_summary ?? g.medication_general ?? `가이드 #${g.id}`;
+              const date = formatDate(g.created_at);
+              const latest = isLatest(g.created_at);
+              return (
+                <Link key={g.id} href={`/guides/${g.id}`} className="flex items-center gap-3 px-4 py-3.5 hover:bg-accent">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                    <FileText className="h-5 w-5 text-primary" strokeWidth={1.5} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-foreground">{title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {date}{latest && <span> · 최신</span>}
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
+            <div className="px-4 py-2.5 text-right">
+              <Link href="/guides" className="text-sm font-semibold text-primary">전체 보기 →</Link>
+            </div>
+          </Card>
+        </div>
       )}
 
       {/* 위험신호 / 건강 팁 */}
       {isAuto ? (
-        <div className="mt-4 space-y-2">
+        <div className="mt-6 space-y-2">
           <Link href="/risk-flags" className="flex items-center justify-between rounded-2xl border-2 px-4 py-3.5" style={{ borderColor: "#F5C518", background: "#FEF9E7" }}>
             <span className="flex items-center gap-2 text-sm font-semibold">
               <AlertTriangle className="h-4 w-4" style={{ color: "#B7950B" }} />
@@ -200,7 +203,7 @@ export default function HomePage() {
           </Link>
         </div>
       ) : (
-        <Card className="mt-4 p-5">
+        <Card className="mt-6 p-5">
           <h2 className="text-base font-bold">오늘의 건강 팁</h2>
           <ul className="mt-3 space-y-2 text-sm">
             {tips.map((t, i) => <li key={i} className="font-medium text-foreground">{t}</li>)}
