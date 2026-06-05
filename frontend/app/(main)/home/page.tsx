@@ -50,12 +50,16 @@ export default function HomePage() {
     setUserType(getMode());
     getMe().then((u) => { setName(u.name); if (u.user_type) setUserType(u.user_type); }).catch(() => {});
     getDashboard().then((d) => { setData(d); if (d.user_type) setUserType(d.user_type); }).catch(() => setData(fallback));
-    getGuides().then((g) => setGuides(g.slice(0, 3))).catch(() => setGuides(fallbackGuides));
-    getRecords().then((r) => setRecords(r.slice(0, 3))).catch(() => setRecords(fallbackRecords));
+    getGuides().then((g) => setGuides(g.length > 0 ? g.slice(0, 3) : fallbackGuides)).catch(() => setGuides(fallbackGuides));
+    getRecords().then((r) => setRecords(r.length > 0 ? r.slice(0, 3) : fallbackRecords)).catch(() => setRecords(fallbackRecords));
     getDocuments().then((docs) => {
       const pending = docs.filter((d) => d.status === "processing" || d.status === "pending");
       setOcrDocs(pending.length > 0 ? pending : fallbackOcr);
     }).catch(() => setOcrDocs(fallbackOcr));
+    // 초기값도 fallback으로 설정
+    setGuides(fallbackGuides);
+    setRecords(fallbackRecords);
+    setOcrDocs(fallbackOcr);
   }, []);
 
   const meds = data?.medications ?? fallback.medications!;
