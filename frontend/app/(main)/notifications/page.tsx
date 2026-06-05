@@ -53,7 +53,12 @@ export default function NotificationsPage() {
   const { data: apiItems = [], isLoading } = useNotifications();
   const markRead = useMarkRead();
 
-  const items = apiItems.length > 0 ? apiItems : DUMMY_NOTIFICATIONS;
+  // created_at 없는 항목은 오늘 날짜로 채움
+  const rawItems = apiItems.length > 0 ? apiItems : DUMMY_NOTIFICATIONS;
+  const items = rawItems.map((n, i) => ({
+    ...n,
+    created_at: n.created_at ?? new Date(Date.now() - i * 60000).toISOString(),
+  }));
 
   function handleClick(n: typeof items[0]) {
     if (!n.is_read) markRead.mutate(n.id);
