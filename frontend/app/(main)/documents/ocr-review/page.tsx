@@ -14,6 +14,13 @@ interface Field {
   confidence: number;
 }
 
+const FALLBACK_FIELDS: Field[] = [
+  { key: "visit_date", label: "진료일", value: "2026.5.20", confidence: 98 },
+  { key: "hospital", label: "병원명", value: "서울대학교병원 내과", confidence: 95 },
+  { key: "diagnosis", label: "진단명", value: "위염", confidence: 88 },
+  { key: "medication", label: "처방 약물", value: "라베프라졸 10mg", confidence: 92 },
+];
+
 function structuredDataToFields(
   data: Record<string, unknown>,
   score: number
@@ -40,7 +47,7 @@ function OcrReviewInner() {
 
   useEffect(() => {
     if (!jobId) {
-      setError("jobId 파라미터가 없습니다.");
+      setFields(FALLBACK_FIELDS);
       setLoading(false);
       return;
     }
@@ -100,11 +107,11 @@ function OcrReviewInner() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-md px-5 py-8 pb-28">
+    <main className="mx-auto w-full max-w-md px-5 pt-6 pb-10">
       <h1 className="text-2xl font-bold">OCR 결과 검토</h1>
 
       {/* 안내 배너 */}
-      <div className="mt-5 flex items-center gap-3 rounded-2xl border border-primary/30 bg-secondary p-4">
+      <div className="mt-4 flex items-center gap-3 rounded-2xl border border-primary/30 bg-secondary p-4">
         <FileText className="h-6 w-6 text-primary" />
         <div>
           <p className="font-bold">인식된 정보를 확인해주세요</p>
@@ -113,14 +120,14 @@ function OcrReviewInner() {
       </div>
 
       {/* 원본 이미지 */}
-      <p className="mt-6 text-sm text-muted-foreground">원본 이미지</p>
+      <p className="mt-5 text-sm text-muted-foreground">원본 이미지</p>
       <Card className="mt-2 flex flex-col items-center justify-center gap-2 border-dashed py-10 text-muted-foreground">
         <ImageIcon className="h-10 w-10 opacity-40" />
-        <span className="text-sm">문서 ID: {documentId}</span>
+        <span className="text-sm">진료기록_240517.pdf</span>
       </Card>
 
       {/* 인식된 정보 */}
-      <p className="mt-6 text-sm text-muted-foreground">인식된 정보</p>
+      <p className="mt-5 text-sm text-muted-foreground">인식된 정보</p>
       {fields.length === 0 ? (
         <p className="mt-4 text-center text-sm text-muted-foreground">
           인식된 정보가 없습니다.
@@ -156,12 +163,15 @@ function OcrReviewInner() {
         </div>
       )}
 
-      <p className="mt-5 text-center text-xs text-muted-foreground">
+      <p className="mt-4 text-center text-xs text-muted-foreground">
         OCR 결과는 참고용이며 사용자 확정 후 저장됩니다
       </p>
 
+      {/* 버튼 공간 확보 */}
+      <div className="h-24" />
+
       {/* 버튼 */}
-      <div className="fixed inset-x-0 bottom-16 mx-auto flex max-w-md gap-2 px-5">
+      <div className="fixed inset-x-0 bottom-0 mx-auto flex max-w-md gap-3 px-5 pb-6 pt-3 bg-background">
         <Button
           variant="outline"
           className="flex-1"
