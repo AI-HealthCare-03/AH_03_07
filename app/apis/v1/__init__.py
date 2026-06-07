@@ -15,6 +15,7 @@ from app.apis.v1.care_routers import care_router
 from app.apis.v1.chat_routers import chat_router
 from app.apis.v1.chat_stream_routers import chat_stream_router
 from app.apis.v1.content_conversion_routers import content_router
+from app.apis.v1.dashboard_routers import dashboard_router
 from app.apis.v1.diary_log_routers import diary_log_router
 from app.apis.v1.diet_info_routers import diet_info_router
 from app.apis.v1.disease_routers import disease_router
@@ -49,6 +50,7 @@ v1_routers.include_router(mode_router)
 v1_routers.include_router(risk_flag_router)
 v1_routers.include_router(risk_profile_router)
 v1_routers.include_router(autoimmune_profile_router)
+v1_routers.include_router(dashboard_router)
 v1_routers.include_router(knowledge_router)
 v1_routers.include_router(chat_router)
 v1_routers.include_router(content_router)
