@@ -16,9 +16,7 @@ class DashboardService:
         today = datetime.now(config.TIMEZONE).date()
         today_log = await DiseaseActivityLog.get_or_none(user_id=user_id, log_date=today)
         recent_activity = (
-            [ActivityLogResponse.model_validate(today_log).model_dump(mode="json")]
-            if today_log is not None
-            else []
+            [ActivityLogResponse.model_validate(today_log).model_dump(mode="json")] if today_log is not None else []
         )
 
         return DashboardResponse(
