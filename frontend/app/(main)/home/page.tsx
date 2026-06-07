@@ -26,7 +26,15 @@ export default function HomePage() {
   const displayName = name || "OOO";
 
   if (userType === "autoimmune") {
-    return <AutoimmuneHome name={displayName} medications={meds} />;
+    return (
+      <AutoimmuneHome
+        name={displayName}
+        medications={meds}
+        recentActivity={data?.recent_activity ?? []}
+        riskFlags={data?.active_risk_flags ?? []}
+        pendingSchedules={data?.pending_schedules ?? []}
+      />
+    );
   }
   return <GeneralHome name={displayName} medications={meds} />;
 }
