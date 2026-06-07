@@ -11,7 +11,7 @@ import {
 
 const PURPLE = "#7C5CCF";
 
-const SWELLING_AREAS = ["어깨", "팔꿈치", "손목", "손가락", "엉덩이", "무릎", "발목"];
+const SWELLING_AREAS = ["턱", "어깨", "팔꿈치", "손목", "손가락", "척추", "엉덩이", "무릎", "발목", "발가락"];
 
 function todayStr(): string {
   const d = new Date();
