@@ -11,6 +11,8 @@ import {
 
 const PURPLE = "#7C5CCF";
 
+const SWELLING_AREAS = ["어깨", "팔꿈치", "손목", "손가락", "엉덩이", "무릎", "발목"];
+
 function todayStr(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -82,18 +84,34 @@ export default function ActivityNewPage() {
   const [painVas, setPainVas] = useState(5);
   const [fatigue, setFatigue] = useState(5);
   const [stiffnessMin, setStiffnessMin] = useState(0);
+  const [swellingAreas, setSwellingAreas] = useState<string[]>([]);
   const [dailyDifficulty, setDailyDifficulty] = useState(5);
   const [memo, setMemo] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
-  // 날짜 바뀌면 기존 기록 불러오기
+  // 쿼리(?date=)로 진입 시 해당 날짜로 시작 (수정 모드)
+  useEffect(() => {
+    const d = new URLSearchParams(window.location.search).get("date");
+    if (d) setLogDate(d);
+  }, []);
+
+  // 날짜 바뀌면 기존 기록 불러오기 (없으면 폼 초기화)
   useEffect(() => {
     getActivityLog(logDate).then((log) => {
-      if (!log) return;
+      if (!log) {
+        setPainVas(5);
+        setFatigue(5);
+        setStiffnessMin(0);
+        setSwellingAreas([]);
+        setDailyDifficulty(5);
+        setMemo("");
+        return;
+      }
       setPainVas(log.pain_vas);
       setFatigue(log.fatigue);
       setStiffnessMin(log.morning_stiffness_minutes ?? 0);
+      setSwellingAreas(log.joint_swelling_areas ?? []);
       setDailyDifficulty(log.daily_difficulty);
       setMemo(log.free_memo ?? "");
     });
@@ -108,6 +126,7 @@ export default function ActivityNewPage() {
         pain_vas: painVas,
         fatigue,
         morning_stiffness_minutes: stiffnessMin > 0 ? stiffnessMin : null,
+        joint_swelling_areas: swellingAreas.length > 0 ? swellingAreas : null,
         daily_difficulty: dailyDifficulty,
         free_memo: memo.trim() || null,
       });
@@ -181,6 +200,37 @@ export default function ActivityNewPage() {
           unit="분"
           onChange={setStiffnessMin}
         />
+
+            {/* 관절 부종 부위 (다중 선택) */}
+            <Card className="p-4">
+              <span className="font-semibold">관절 부종 부위</span>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {SWELLING_AREAS.map((area) => {
+                  const selected = swellingAreas.includes(area);
+                  return (
+                    <button
+                      key={area}
+                      type="button"
+                      onClick={() =>
+                        setSwellingAreas((prev) =>
+                          prev.includes(area)
+                            ? prev.filter((a) => a !== area)
+                            : [...prev, area]
+                        )
+                      }
+                      className="rounded-full border px-3 py-1.5 text-sm"
+                      style={
+                        selected
+                          ? { background: PURPLE, borderColor: PURPLE, color: "#fff" }
+                          : { borderColor: "#d4d4d8", color: "#52525b" }
+                      }
+                    >
+                      {area}
+                    </button>
+                  );
+                })}
+              </div>
+            </Card>
         <SliderField
           label="일상 불편도"
           min={0}
@@ -204,7 +254,12 @@ export default function ActivityNewPage() {
           />
           <p className="mt-1 text-right text-xs text-muted-foreground">{memo.length}/500</p>
         </Card>
-      </div>
+
+            {/* 안내 문구 (NFR-SAFE) */}
+            <p className="px-1 text-xs leading-relaxed text-muted-foreground">
+              본 기록은 사용자 자가 기록입니다. 앱은 의학적 평가를 수행하지 않습니다.
+            </p>
+          </div>
 
       {apiError && (
         <p className="mt-4 text-center text-sm text-destructive">{apiError}</p>

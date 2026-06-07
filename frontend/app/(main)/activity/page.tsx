@@ -91,7 +91,7 @@ export default function ActivityViewPage() {
         <div className="mt-10 text-center">
           <p className="text-muted-foreground">이 날의 활성도 기록이 없어요.</p>
           <button
-            onClick={() => router.push(`/activity/new`)}
+            onClick={() => router.push(`/activity/new?date=${logDate}`)}
             className="mt-4 rounded-xl px-6 py-3 font-bold text-white"
             style={{ background: PURPLE }}
           >
@@ -143,6 +143,24 @@ export default function ActivityViewPage() {
             ))}
           </div>
 
+              {/* 관절 부종 부위 */}
+              {log.joint_swelling_areas && log.joint_swelling_areas.length > 0 && (
+                <>
+                  <p className="mt-6 text-sm font-semibold text-muted-foreground">관절 부종 부위</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {log.joint_swelling_areas.map((area) => (
+                      <span
+                        key={area}
+                        className="rounded-full px-3 py-1.5 text-sm"
+                        style={{ background: PURPLE + "1A", color: PURPLE }}
+                      >
+                        {area}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
+
           {/* 메모 */}
           {log.free_memo && (
             <>
@@ -154,7 +172,7 @@ export default function ActivityViewPage() {
           {/* 수정 버튼 */}
           <div className="fixed inset-x-0 bottom-16 mx-auto max-w-md px-5">
             <button
-              onClick={() => router.push("/activity/new")}
+              onClick={() => router.push(`/activity/new?date=${logDate}`)}
               className="w-full rounded-xl py-3.5 font-bold text-white"
               style={{ background: PURPLE }}
             >
