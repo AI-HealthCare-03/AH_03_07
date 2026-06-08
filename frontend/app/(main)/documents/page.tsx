@@ -25,7 +25,18 @@ const ICON_BG = {
 
 type DocType = keyof typeof ICONS;
 
+const DOC_TYPE_MAP: Record<string, DocType> = {
+  prescription: "처방전",
+  lab_result: "검사결과",
+  medical_record: "진료기록",
+  health_checkup: "진료기록",
+  pill_bag: "진료기록",
+  other: "진료기록",
+};
+
 function toDocType(raw: string | undefined): DocType {
+  if (!raw) return "진료기록";
+  if (raw in DOC_TYPE_MAP) return DOC_TYPE_MAP[raw];
   if (raw === "진료기록" || raw === "검사결과" || raw === "처방전") return raw;
   return "진료기록";
 }
