@@ -40,6 +40,7 @@ TORTOISE_APP_MODELS = [
     "app.models.share_logs",
     "app.models.prompts",
     "app.models.health_guides",
+    "app.models.medical_documents",
     "app.models.prescriptions",
     "app.models.medications",
     "app.models.risk_flag",
