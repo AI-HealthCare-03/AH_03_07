@@ -10,6 +10,7 @@ class NotificationType(StrEnum):
     HEALTH_METRIC = "HEALTH_METRIC"
     EMERGENCY = "EMERGENCY"
     GUIDE = "GUIDE"
+    SCHEDULE = "SCHEDULE"
 
 
 class Notification(models.Model):

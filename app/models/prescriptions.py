@@ -18,6 +18,7 @@ class Prescription(models.Model):
         "models.MedicalDocument", related_name="prescriptions", null=True, on_delete=fields.SET_NULL
     )
     image_s3_url = fields.TextField()
+    ocr_raw_text = fields.TextField(null=True)
     ocr_status = fields.CharEnumField(enum_type=OCRStatus, max_length=20, default=OCRStatus.PENDING)
     user_confirmed = fields.BooleanField(default=False)
     prescription_date = fields.DateField(null=True)

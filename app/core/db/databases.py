@@ -19,6 +19,10 @@ TORTOISE_APP_MODELS = [
     "app.models.medical_schedule",
     "app.models.lab_result",
     "app.models.lupus_skin_log",
+    "app.models.lupus_daily_context",
+    "app.models.chat_session",
+    "app.models.chat_message",
+    "app.models.chat_feedback",
     "app.models.user_consents",
     "app.models.accessibility_settings",
     "app.models.diary_medication_logs",
@@ -38,6 +42,16 @@ TORTOISE_APP_MODELS = [
     "app.models.health_guides",
     "app.models.prescriptions",
     "app.models.medications",
+    "app.models.risk_flag",
+    "app.models.autoimmune_profile",
+    "app.models.auto_guide",
+    "app.models.guide_generation_job",
+    "app.models.pre_consultation_report",
+    "app.models.report_share",
+    "app.models.safety_filter_log",
+    "app.models.model_improvement_dataset",
+    "app.models.model_version",
+    "app.models.prompt_version",
 ]
 
 TORTOISE_ORM = {
