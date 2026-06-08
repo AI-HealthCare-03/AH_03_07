@@ -1,0 +1,136 @@
+- b935d67 `22분 전` Merge pull request #84 from AI-HealthCare-03/fix/admin-safety-filter-logs
+- 519364c `32분 전` feat: NFR-SAFE-003 GET /api/v1/admin/safety-filter-logs 엔드포인트 추가
+- 753aa47 `33분 전` Merge pull request #83 from AI-HealthCare-03/fix/emergency-spec-compliance
+- c5c37b8 `40분 전` fix: REQ-EMRG-001 API path 명세서 일치 수정 + SOS 트리거 추가
+- d34fb7c `48분 전` Merge pull request #82 from AI-HealthCare-03/fix/care-spec-compliance
+- 8ce4a37 `55분 전` fix: REQ-CARE-001 API path 명세서 일치 수정
+- 02c026d `25시간 전` Merge pull request #81 from AI-HealthCare-03/fix/spec-compliance-path
+- 7dbb4e8 `25시간 전` fix: REQ-FEED-001/PILL-003 API path 명세서 일치 수정
+- b6a4bc6 `25시간 전` feat: REQ-DIARY-001 GET /diary/pdf 엔드포인트 추가
+- 70d8fe9 `25시간 전` fix: REQ-CONT-001/002 라우터 prefix /content → /contents (단/복수 수정)
+- f44f55f `25시간 전` Merge pull request #80 from AI-HealthCare-03/fix/missing-routers-register
+- 3ed9b7c `25시간 전` fix: 누락된 라우터 5개 등록 (care/diary/emergency/health-metric/pharmacy)
+- 64f9463 `26시간 전` fix: migration 16번 중복 파일 삭제 (000000 수동본 제거, 143136 통합본 유지)
+- 57a3db1 `27시간 전` Merge pull request #78 from AI-HealthCare-03/fix/register-content-router-and-chat-items
+- aec1427 `27시간 전` fix: test_chat_history_apis items→messages 키 수정
+- 52de1b3 `27시간 전` fix: chat_routers MessageHistoryResponse items→messages 필드명 수정
+- d2af441 `27시간 전` fix: gtts 의존성 추가 (content_conversion_service TTS 기능)
+- 0602cf9 `27시간 전` fix: content_conversion_router 등록 누락 수정 + 챗봇 대화내역 응답 키 items→messages
+- f0fed8e `28시간 전` fix: migration 16 aerich 재생성 (phantom MODIFY 해결)
+- 9d68a58 `28시간 전` Merge pull request #59 from AI-HealthCare-03/feature/req-chat-004
+- e08326a `28시간 전` fix: chat_stream 테스트에 guardrail mock 추가
+- 9bf4a2e `28시간 전` style: ruff import 정렬 (chat_feedback, chat_messages conftest)
+- 6228140 `28시간 전` fix: CI OpenAI mock - chat_feedback, chat_messages 테스트에 guardrail mock 추가
+- b8a4aea `30시간 전` Merge pull request #76 from AI-HealthCare-03/feature/req-feed-002
+- 9b22370 `30시간 전` feat: REQ-FEED-002 피드백 활용 모델 개선 인프라
+- 92bc696 `30시간 전` Merge pull request #75 from AI-HealthCare-03/feature/nfr-perf-001
+- e65bd33 `30시간 전` feat: NFR-PERF-001 Prometheus latency 미들웨어 + /metrics 엔드포인트
+- 0fa33e0 `30시간 전` Merge pull request #74 from AI-HealthCare-03/fix/health-guide-router-register
+- 50ae051 `30시간 전` fix: REQ-GUIDE-001 health_guide_router 등록 누락 수정
+- ba4ec61 `31시간 전` Merge pull request #73 from AI-HealthCare-03/feature/nfr-perf-003
+- 91452fd `31시간 전` feat: NFR-PERF-003 가이드 상세 캐시 (TTL 30분, 수정 시 무효화) + GET /{guide_id}
+- 2b83532 `31시간 전` feat: NFR-PERF-003 UserCacheService 제공 (TTL 10분, invalidate 포함)
+- 678e47b `31시간 전` feat: NFR-PERF-003 DrugInfoService cache-aside 적용 (TTL 1시간)
+- d998d25 `31시간 전` feat: NFR-PERF-003 cache client — get/set/delete JSON 헬퍼 + TTL 상수
+- e6c2c12 `32시간 전` Merge pull request #72 from AI-HealthCare-03/feature/nfr-sec-004
+- 6b33694 `32시간 전` style: NFR-SEC-004 ruff format and deps
+- 57d32f6 `32시간 전` feat: NFR-SEC-004 RateLimitMiddleware를 FastAPI 앱에 등록
+- 5b9a131 `32시간 전` style: NFR-SEC-004 minor — PyJWTError 좁히기 + prefix 순서 주석 + 매직넘버 주석
+- 665544d `32시간 전` feat: NFR-SEC-004 RateLimitMiddleware + 미들웨어 테스트 4개
+- 6b508af `32시간 전` refactor: NFR-SEC-004 config — _DEFAULT_TIER 분리 + limit 단위 주석 + keyword 인수
+- eebd02c `32시간 전` feat: NFR-SEC-004 rate_limit 패키지 + Tier 설정 + 분류 테스트 7개
+- 678afba `32시간 전` fix: NFR-SAFE-003 migration 16에 MODELS_STATE 추가 (aerich 0.9.2 호환)
+- e719e1d `32시간 전` Merge pull request #70 from AI-HealthCare-03/feature/nfr-perf-002
+- da4d27e `33시간 전` style: NFR-PERF-002 ruff 포맷 정리 (W292 trailing newline, I001 import 정렬)
+- fc0fe58 `33시간 전` feat: NFR-PERF-002 worker_queues entry point — celery_app에 큐 설정 주입
+- fb7294d `33시간 전` feat: NFR-PERF-002 큐별 태스크 스켈레톤 5개 (retry_backoff=True, max_retries=3)
+- 48d8860 `33시간 전` feat: NFR-PERF-002 queue_config — 5개 큐 정의 + task_routes
+- 434a1d3 `33시간 전` Merge pull request #68 from AI-HealthCare-03/feature/nfr-safe-004
+- 6f9676a `33시간 전` feat: NFR-SAFE-004 제공 금지 기능 차단 정책 모듈 + 테스트 14개
+- 122245f `33시간 전` docs: NFR-SAFE-004 구현 계획 추가
+- d608bfd `33시간 전` docs: NFR-SAFE-004 제공 금지 기능 차단 정책 설계 스펙 추가
+- b085ae2 `33시간 전` Merge pull request #67 from AI-HealthCare-03/feature/nfr-safe-003
+- 89a7b4d `34시간 전` fix: NFR-SAFE-003 마이그레이션 파일 trailing newline 추가 (ruff W292)
+- 65b0d0c `34시간 전` feat: NFR-SAFE-003 의료행위 차단 룰셋 + safety_filter_logs DB 영속화
+- 245bac6 `34시간 전` Merge pull request #65 from AI-HealthCare-03/feature/req-chat-003
+- 9ff1623 `34시간 전` ci: trigger workflow after base branch change
+- 79a77be `34시간 전` feat: REQ-CHAT-003 컨텍스트 윈도우 10턴 고정 + 컨텍스트 빌드 테스트 4개
+- c749495 `35시간 전` Merge pull request #64 from AI-HealthCare-03/feature/req-chat-002
+- 2558771 `35시간 전` style: REQ-CHAT-002 ruff lint/format 정리
+- 1de6321 `35시간 전` feat: REQ-CHAT-002 safety_filter 이벤트 + 전체 테스트 7개 통과
+- 15834a9 `35시간 전` fix: REQ-CHAT-002 컨텍스트 빌드를 메시지 저장 전으로 이동 (히스토리 중복 방지)
+- 215cc1d `35시간 전` feat: REQ-CHAT-002 OpenAI 스트리밍 + token/done 이벤트 구현
+- d17896c `35시간 전` feat: REQ-CHAT-002 가드레일 이벤트 (guardrail/emergency/crisis) 구현
+- 8562cba `35시간 전` feat: REQ-CHAT-002 서비스 골격·라우터·세션만료(410) 구현
+- 83996b8 `35시간 전` feat: REQ-CHAT-002 StreamMessageRequest DTO 추가
+- 6d86799 `35시간 전` docs: REQ-CHAT-002 구현 계획 추가
+- 8ed683c `2일 전` docs: REQ-CHAT-002 설계 문서 추가
+- ebfa6d2 `2일 전` Merge pull request #60 from AI-HealthCare-03/fix/chat-tests-mock-openai
+- 56cecbd `2일 전` fix: 챗봇 테스트 OpenAI Moderation API mock 처리 (CI 401 방지)
+- c0f8900 `2일 전` feat: REQ-CHAT-004 챗봇 가드레일 고도화 (한국 의료 특화 + Moderation API)
+- fa2afaa `2일 전` Merge pull request #57 from AI-HealthCare-03/feature/nfr-compli-003
+- aa23997 `2일 전` feat: NFR-COMPLI-003 의료광고법 준수 콘텐츠 출력 게이트 구현
+- c9bcbd9 `2일 전` Merge pull request #55 from AI-HealthCare-03/feature/nfr-safe-002
+- 767fe4a `2일 전` feat: NFR-SAFE-002 RAG 지식베이스 출처 검증 게이트 구현
+- 428ac99 `3일 전` Merge pull request #48 from AI-HealthCare-03/fix/guide001-table-rename
+- 39aacad `3일 전` fix: REQ-GUIDE-001 모델 테이블명 분리 (health_guides 충돌 해소)
+- cba0acf `5일 전` Merge pull request #45 from AI-HealthCare-03/feature/cont-001
+- 8d18180 `5일 전` feat: CONT-001 카드뉴스 변환 AI 기능
+- 467c976 `5일 전` Merge pull request #41 from AI-HealthCare-03/feature/medication
+- 9e2883d `5일 전` fix: ra_exposure, pre_consultation_report 테스트 URL user-medications로 수정
+- 6fe205c `5일 전` fix: user_consent_router 등록 누락 추가
+- e6b6861 `5일 전` fix: user_medication_routers.py 코드 포맷 적용
+- 5ef10ec `5일 전` fix: import 순서 정렬
+- 7600cd7 `5일 전` fix: UserMedication 라우터 추가 및 autoimmune_care 테스트 URL 수정
+- 7dfb618 `5일 전` fix: medication 테스트에 MEDICAL_DATA consent 등록 추가
+- 2342de0 `5일 전` fix: medication 테스트를 실제 API 스펙에 맞게 수정
+- 5c1005f `5일 전` fix: Medication 모델 related_name 충돌 해결
+- f5b629f `5일 전` fix: Prescription 모델 추가 및 Tortoise ORM에 등록
+- d55c01e `5일 전` fix: 존재하지 않는 prescriptions 모델 등록 제거
+- ceef7c7 `5일 전` fix: prescriptions, medications 모델 Tortoise ORM에 등록
+- f5eba47 `5일 전` Merge branch 'develop' into feature/medication
+- 09a52e3 `5일 전` fix: conftest.py trailing newline 추가
+- 8556ff0 `5일 전` fix: tortoise-orm 0.25.x 호환되도록 conftest.py DB 초기화 방식 수정
+- a4169e0 `5일 전` Merge pull request #43 from AI-HealthCare-03/fix/register-models-v2
+- a405c86 `5일 전` fix: 누락된 모델들 Tortoise ORM에 등록
+- 857dcce `5일 전` Merge pull request #40 from AI-HealthCare-03/feature/req-guide-001
+- 4617601 `5일 전` feat: 복약 관리 기능
+- ecb31c3 `5일 전` feat: REQ-GUIDE-001 건강 가이드 AI 기능
+- f685ecd `5일 전` Merge pull request #39 from AI-HealthCare-03/feature/req-guide-002
+- cbf5559 `5일 전` Merge pull request #37 from AI-HealthCare-03/feature/care-001
+- eacf26a `5일 전` feat: REQ-GUIDE-002 프롬프트 관리 기능
+- 6ca7f9d `5일 전` fix: dtos/care.py import 정렬
+- 0de4ce8 `5일 전` fix: import 정렬 자동 수정
+- 1476ff3 `5일 전` fix: import 정렬
+- 047902b `5일 전` fix: share_links, share_logs 모델 추가 (CARE-001 의존)
+- 9be174c `5일 전` feat: CARE-001 보호자 공유 기능
+- 26405b9 `5일 전` Merge pull request #36 from AI-HealthCare-03/feature/sched-001
+- fb1508f `5일 전` fix: import 정렬
+- 8ecdff9 `5일 전` fix: import 정렬 수정
+- 5011638 `5일 전` fix: medical_appointments 모델 추가 (SCHED-001 의존)
+- 558d112 `5일 전` style: ruff format 적용
+- 1a879b2 `5일 전` Merge pull request #35 from AI-HealthCare-03/feature/pharm-001
+- cad8344 `5일 전` fix: favorite_places 모델 추가 (SCHED-001 의존)
+- 57fdc61 `5일 전` feat: SCHED-001 일정 통합 기능
+- e402ad3 `5일 전` feat: PHARM-001 약국 정보 기능
+- fd20830 `5일 전` Merge pull request #34 from AI-HealthCare-03/feature/req-noti-002
+- 95bce2a `5일 전` feat: REQ-NOTI-002 복약 알림 기능
+- 41c8a82 `5일 전` Merge pull request #33 from AI-HealthCare-03/feature/feed-001
+- 924744e `5일 전` Merge pull request #32 from AI-HealthCare-03/feature/health-001
+- ee0edac `5일 전` feat: FEED-001 피드백 기능
+- 7521a49 `5일 전` Merge pull request #31 from AI-HealthCare-03/feature/req-emrg-001
+- 08ec41a `5일 전` feat: HEALTH-001 건강 수치 기록 기능
+- 0f463a4 `5일 전` Merge pull request #30 from AI-HealthCare-03/feature/req-diary-001
+- 4a9bbcc `5일 전` feat: REQ-EMRG-001 응급카드 기능
+- 8cd840c `5일 전` fix: 중복 Decimal import 제거
+- 78965d2 `5일 전` feat: REQ-DIARY-001 일기 기능
+- fbaeddd `6일 전` Merge pull request #27 from AI-HealthCare-03/feature/compat-002-redo
+- cf9f00e `6일 전` feat: COMPAT-002 접근성 설정 기능
+- 0f2f9ce `6일 전` Merge pull request #24 from AI-HealthCare-03/feature/nfr-compli-002
+- 71adce7 `6일 전` fix: add tiktoken dependency for CI
+- b9c0f0f `6일 전` Merge remote-tracking branch 'origin/develop' into feature/nfr-compli-002
+- 9fb99f4 `6일 전` feat: NFR-COMPLI-002 사용자 동의 기능
+- 208d59c `6일 전` Merge pull request #15 from AI-HealthCare-03/feature/req-pill-003-v2
+- e611a5e `6일 전` fix: develop의 최신 config 반영 + DRUG 설정 추가
+- 413fa75 `6일 전` style: ruff lint/format 적용
+- d103756 `6일 전` feat: REQ-PILL-003 식약처 의약품안전나라 API 연동

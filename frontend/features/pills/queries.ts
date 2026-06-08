@@ -1,6 +1,6 @@
 // 약품 인식 내역 서버 상태 (TanStack Query) — 데모 폴백 유지
 import { useQuery } from "@tanstack/react-query";
-import { getRecognitions, type PillRecognition } from "./api";
+import { getPillRecognitions, type PillRecognition } from "./api";
 import { withTimeout } from "@/lib/query/util";
 
 export const pillKeys = { recognitions: ["pill-recognitions"] as const };
@@ -16,7 +16,7 @@ export function useRecognitions() {
     queryKey: pillKeys.recognitions,
     queryFn: async () => {
       try {
-        const data = await withTimeout(getRecognitions());
+        const data = await withTimeout(getPillRecognitions());
         return data.length ? data : DUMMY;
       } catch {
         return DUMMY;

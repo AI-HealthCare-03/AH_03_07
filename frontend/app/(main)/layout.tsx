@@ -21,7 +21,7 @@ const tabs = [
   { href: "/mypage", label: "마이", icon: MyIcon },
 ];
 
-const HIDE_NAV_PATHS = ["/documents/ocr-review", "/notifications/settings", "/health-metrics", "/diary", "/emergency", "/pharmacy", "/guardian", "/schedule"];
+const HIDE_NAV_PATHS = ["/documents/ocr-review", "/notifications/settings", "/health-metrics", "/diary", "/emergency", "/pharmacy", "/guardian", "/schedule", "/guides", "/pills"];
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

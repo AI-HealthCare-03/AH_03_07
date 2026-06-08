@@ -7,7 +7,7 @@ import {
   User, FileText, Pill, Activity, Folder, FolderOpen,
   Bell, Settings, HelpCircle, Megaphone, LogOut, ChevronRight,
   ShieldCheck, BarChart3, FlaskConical, CalendarDays, AlertTriangle,
-  RefreshCw, Gift, Home, Gamepad2,
+  RefreshCw, Gift, Home, Gamepad2, NotebookPen, Camera,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { getMe, logout } from "@/features/auth/api";
@@ -44,12 +44,16 @@ export default function MyPage() {
         { href: "/schedule", label: "검사·진료 일정", icon: CalendarDays },
         { href: "/risk-flags", label: "의료진 확인 신호", icon: AlertTriangle },
         { href: "/documents", label: "문서 보관함", icon: Folder },
+        { href: "/diary", label: "건강 일기", icon: NotebookPen },
+        { href: "/pills", label: "약품 인식", icon: Camera },
       ]
     : [
         { href: "/records", label: "진료 기록", icon: FileText },
         { href: "/medication", label: "약물 목록", icon: Pill },
         { href: "/health-metrics", label: "건강 수치 기록", icon: Activity },
         { href: "/documents", label: "문서 보관함", icon: Folder },
+        { href: "/diary", label: "건강 일기", icon: NotebookPen },
+        { href: "/pills", label: "약품 인식", icon: Camera },
       ];
 
   const benefitMenus = [

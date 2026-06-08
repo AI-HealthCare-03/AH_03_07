@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Search, FileText, FlaskConical, Pill } from "lucide-react";
+import { ChevronLeft, Search, FileText, FlaskConical, Pill } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { getDocuments, MedicalDocument } from "@/features/documents/api";
 
@@ -11,9 +11,9 @@ type Filter = "전체" | "진료기록" | "검사결과" | "처방전";
 const FILTERS: Filter[] = ["전체", "진료기록", "검사결과", "처방전"];
 
 const FALLBACK_DOCS: MedicalDocument[] = [
-  { id: 1, document_type: "진료기록", file_name: "진료기록", created_at: "2026-05-20" },
-  { id: 2, document_type: "검사결과", file_name: "검사결과", created_at: "2026-05-12" },
-  { id: 3, document_type: "처방전", file_name: "처방전", created_at: "2026-04-25" },
+  { id: 1, document_type: "진료기록", file_name: "서울대학교병원 내과 · 위염", created_at: "2026-05-20" },
+  { id: 2, document_type: "검사결과", file_name: "서울대병원 류마티스 · CRP, ESR", created_at: "2026-05-12" },
+  { id: 3, document_type: "처방전", file_name: "서울가정의학과 · 아세트아미노펜", created_at: "2026-04-25" },
 ];
 
 const ICONS = { 진료기록: FileText, 검사결과: FlaskConical, 처방전: Pill } as const;
@@ -65,7 +65,12 @@ export default function DocumentsPage() {
   return (
     <main className="mx-auto w-full max-w-md px-5 pt-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">의료문서</h1>
+        <div className="flex items-center gap-1">
+          <button onClick={() => router.back()} aria-label="뒤로가기" className="-ml-1 p-1">
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+          <h1 className="text-2xl font-bold">의료문서</h1>
+        </div>
         <Link href="/search" aria-label="검색">
           <Search className="h-6 w-6" />
         </Link>
