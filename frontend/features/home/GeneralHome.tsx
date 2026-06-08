@@ -29,7 +29,7 @@ export default function GeneralHome({ name, medications }: GeneralHomeProps) {
         <MedicationCard medications={medications} />
 
         {/* 통합 캘린더 */}
-        <SectionCard title="통합 캘린더" moreHref="/calendar" moreLabel="전체 보기">
+        <SectionCard title="통합 캘린더" moreHref="/schedule" moreLabel="전체 보기">
           <p className="mt-2 text-sm text-muted-foreground">
             복약·일정을 한눈에 확인하세요.
           </p>
