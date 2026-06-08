@@ -121,7 +121,7 @@ export default function AutoimmuneHome({
         <MedicationCard medications={medications} accentClassName="text-[#7C5CCF]" />
 
         {/* ④ 다가오는 일정 */}
-        <SectionCard title="다가오는 일정" moreHref="/calendar" accentClassName="text-[#7C5CCF]">
+        <SectionCard title="다가오는 일정" moreHref="/schedule" accentClassName="text-[#7C5CCF]">
           <p className="text-sm text-muted-foreground">
             {hasSchedule ? "예정된 일정이 있어요." : "예정된 일정이 없어요."}
           </p>
