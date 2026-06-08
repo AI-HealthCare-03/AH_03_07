@@ -15,6 +15,7 @@ from app.apis.v1.care_routers import care_router
 from app.apis.v1.chat_routers import chat_router
 from app.apis.v1.chat_stream_routers import chat_stream_router
 from app.apis.v1.content_conversion_routers import content_router
+from app.apis.v1.dashboard_routers import dashboard_router
 from app.apis.v1.diary_log_routers import diary_log_router
 from app.apis.v1.diet_info_routers import diet_info_router
 from app.apis.v1.disease_routers import disease_router
@@ -23,6 +24,7 @@ from app.apis.v1.health_guide_routers import health_guide_router
 from app.apis.v1.health_metric_routers import health_metric_router
 from app.apis.v1.knowledge_routers import knowledge_router
 from app.apis.v1.lab_result_routers import lab_result_router
+from app.apis.v1.lupus_daily_context_routers import lupus_daily_context_router
 from app.apis.v1.lupus_exposure_routers import lupus_exposure_router
 from app.apis.v1.lupus_skin_routers import lupus_skin_router
 from app.apis.v1.medical_schedule_routers import medical_schedule_router
@@ -49,6 +51,7 @@ v1_routers.include_router(mode_router)
 v1_routers.include_router(risk_flag_router)
 v1_routers.include_router(risk_profile_router)
 v1_routers.include_router(autoimmune_profile_router)
+v1_routers.include_router(dashboard_router)
 v1_routers.include_router(knowledge_router)
 v1_routers.include_router(chat_router)
 v1_routers.include_router(content_router)
@@ -75,6 +78,7 @@ v1_routers.include_router(pregnancy_safety_router)
 v1_routers.include_router(vaccine_prevention_router)
 v1_routers.include_router(lupus_exposure_router)
 v1_routers.include_router(lupus_skin_router)
+v1_routers.include_router(lupus_daily_context_router)
 v1_routers.include_router(pre_consultation_report_router)
 v1_routers.include_router(ra_exposure_router)
 v1_routers.include_router(pill_router)

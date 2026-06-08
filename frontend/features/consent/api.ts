@@ -7,19 +7,27 @@ import type { ConsentItem, ConsentType } from "./types";
 // 동의 현황/이력 조회
 export async function getConsents(): Promise<ConsentItem[]> {
   const res = await apiFetch<{ items?: ConsentItem[] } | ConsentItem[]>(
-    "/v1/consents"
+    "/v1/users/me/consents"
   );
   return Array.isArray(res) ? res : (res.items ?? []);
 }
 
+const CONSENT_TYPE_MAP: Record<ConsentType, string> = {
+  terms: "TERMS_OF_SERVICE",
+  privacy: "PRIVACY_POLICY",
+  sensitive_medical: "MEDICAL_DATA",
+  marketing: "MARKETING",
+};
+
 // 동의 변경
 export async function updateConsent(
   type: ConsentType,
-  agreed: boolean
+  agreed: boolean,
+  version: string = "1.0",
 ): Promise<void> {
-  await apiFetch(`/v1/consents/${type}`, {
-    method: "PUT",
-    body: { agreed },
+  await apiFetch("/v1/users/me/consents", {
+    method: "POST",
+    body: { consent_type: CONSENT_TYPE_MAP[type], agreed, version },
   });
   logger.info("consent", "동의 변경", { type, agreed });
 }
