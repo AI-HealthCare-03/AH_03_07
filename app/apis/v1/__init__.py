@@ -23,6 +23,7 @@ from app.apis.v1.emergency_card_routers import emergency_card_router
 from app.apis.v1.health_guide_routers import health_guide_router
 from app.apis.v1.health_metric_routers import health_metric_router
 from app.apis.v1.knowledge_routers import knowledge_router
+from app.apis.v1.lab_reference_routers import lab_reference_router
 from app.apis.v1.lab_result_routers import lab_result_router
 from app.apis.v1.lupus_daily_context_routers import lupus_daily_context_router
 from app.apis.v1.lupus_exposure_routers import lupus_exposure_router
@@ -72,6 +73,7 @@ v1_routers.include_router(symptom_check_router)
 v1_routers.include_router(medical_schedule_router)
 v1_routers.include_router(notification_router)
 v1_routers.include_router(pharmacy_router)
+v1_routers.include_router(lab_reference_router)
 v1_routers.include_router(lab_result_router)
 v1_routers.include_router(medication_card_router)
 v1_routers.include_router(pregnancy_safety_router)

@@ -17,6 +17,7 @@ TORTOISE_APP_MODELS = [
     "app.models.symptom_check_log",
     "app.models.activity_alert_setting",
     "app.models.medical_schedule",
+    "app.models.lab_reference",
     "app.models.lab_result",
     "app.models.lupus_skin_log",
     "app.models.lupus_daily_context",
