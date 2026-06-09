@@ -11,6 +11,7 @@ import {
   Newspaper,
   Volume2,
   Activity,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -40,6 +41,7 @@ export default function GuideDetailPage() {
   const [cardNewsLoading, setCardNewsLoading] = useState(false);
   const [ttsLoading, setTtsLoading] = useState(false);
   const [contentMessage, setContentMessage] = useState<{ text: string; ok: boolean } | null>(null);
+  const [shareMessage, setShareMessage] = useState<string | null>(null);
 
   async function handleCardNews() {
     setCardNewsLoading(true);
@@ -64,6 +66,26 @@ export default function GuideDetailPage() {
       setContentMessage({ text: "음성 변환에 실패했어요.", ok: false });
     } finally {
       setTtsLoading(false);
+    }
+  }
+
+  async function handleShare() {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "진료 전 요약", url });
+      } catch {
+        /* 사용자가 취소한 경우 무시 */
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareMessage("링크가 복사됐어요");
+      setTimeout(() => setShareMessage(null), 2500);
+    } catch {
+      setShareMessage("복사에 실패했어요");
+      setTimeout(() => setShareMessage(null), 2500);
     }
   }
 
@@ -193,7 +215,11 @@ export default function GuideDetailPage() {
           onClick={handleCardNews}
           disabled={cardNewsLoading || ttsLoading}
         >
-          <Newspaper className="h-4 w-4" />
+          {cardNewsLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Newspaper className="h-4 w-4" />
+          )}
           {cardNewsLoading ? "생성 중..." : "카드뉴스로 보기"}
         </Button>
         <Button
@@ -202,7 +228,11 @@ export default function GuideDetailPage() {
           onClick={handleTTS}
           disabled={ttsLoading || cardNewsLoading}
         >
-          <Volume2 className="h-4 w-4" />
+          {ttsLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Volume2 className="h-4 w-4" />
+          )}
           {ttsLoading ? "변환 중..." : "음성으로 듣기"}
         </Button>
       </div>
@@ -214,15 +244,18 @@ export default function GuideDetailPage() {
 
       {/* PDF 저장 / 공유하기 */}
       <div className="grid grid-cols-2 gap-3">
-        <Button variant="outline" className="gap-2" onClick={() => {}}>
+        <Button variant="outline" className="gap-2" onClick={() => window.print()}>
           <Download className="h-4 w-4" />
           PDF 저장
         </Button>
-        <Button variant="outline" className="gap-2" onClick={() => {}}>
+        <Button variant="outline" className="gap-2" onClick={handleShare}>
           <Share2 className="h-4 w-4" />
           공유하기
         </Button>
       </div>
+      {shareMessage && (
+        <p className="text-center text-xs text-[#7C5CCF]">{shareMessage}</p>
+      )}
 
       {/* REQ-FEED-001: 👍👎 피드백 */}
       <Card className="p-4">
