@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
+
 import {
   Activity,
   ChevronDown,
@@ -17,8 +17,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { regenerateGuide, feedbackGuide, generateCardNews, generateTTS } from "@/features/guides/api";
-import { useGuide, useGuideSources, guideKeys } from "@/features/guides/queries";
+import { feedbackGuide, generateCardNews, generateTTS } from "@/features/guides/api";
+import { useGuide, useGuideSources } from "@/features/guides/queries";
 import { withTimeout } from "@/lib/query/util";
 
 const PURPLE = "#7C5CCF";
@@ -40,10 +40,8 @@ function Section({ title, content }: { title: string; content?: string | string[
 export default function GuideDetailPage() {
   const params = useParams();
   const id = Number(params.id);
-  const qc = useQueryClient();
   const { data: guide, isLoading } = useGuide(id);
   const { data: sources } = useGuideSources(id);
-  const [busy, setBusy] = useState(false);
   const [rating, setRating] = useState(0);
   const [sourcesOpen, setSourcesOpen] = useState(false);
 
@@ -54,19 +52,6 @@ export default function GuideDetailPage() {
   const [ttsLoading, setTtsLoading] = useState(false);
   const [contentMessage, setContentMessage] = useState<{ text: string; ok: boolean } | null>(null);
   const [shareMessage, setShareMessage] = useState<string | null>(null);
-
-  // HEAD: 안내문 재생성
-  async function handleRegenerate() {
-    setBusy(true);
-    try {
-      await withTimeout(regenerateGuide(id));
-      await qc.invalidateQueries({ queryKey: guideKeys.detail(id) });
-    } catch {
-      /* 백엔드 미가동(데모) */
-    } finally {
-      setBusy(false);
-    }
-  }
 
   // HEAD: 별점 피드백
   async function handleStarFeedback(score: number) {
@@ -210,11 +195,6 @@ export default function GuideDetailPage() {
           ))}
         </div>
       </Card>
-
-      {/* HEAD: 재생성 (REQ-GUIDE-005) */}
-      <Button variant="outline" className="w-full" onClick={handleRegenerate} disabled={busy}>
-        {busy ? "재생성 중..." : "안내문 재생성"}
-      </Button>
 
       {/* HEAD: 면책 조항 고정 노출 (NFR-SAFE-001) */}
       <p className="rounded-xl bg-muted/60 px-4 py-3 text-xs leading-5 text-muted-foreground">

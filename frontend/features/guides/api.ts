@@ -80,3 +80,22 @@ export async function generateTTS(guideId: number): Promise<void> {
     body: { guide_id: guideId },
   });
 }
+
+// REQ-AUTO-005: 안내문 생성 job
+export interface GuideJob {
+  status: string; // PENDING | PROCESSING | COMPLETED | BLOCKED | FAILED
+  guide_id: number | null;
+  blocked_reason: string | null; // HIGH_RISK_GATE_BLOCKED | SAFETY_FILTER_BLOCKED
+  error_message: string | null;
+  trigger_emergency_modal: boolean;
+}
+
+export async function createGuide(): Promise<{ job_id: number; status: string }> {
+  return apiFetch<{ job_id: number; status: string }>("/v1/guides/generate", {
+    method: "POST",
+  });
+}
+
+export async function getGuideJob(jobId: number): Promise<GuideJob> {
+  return apiFetch<GuideJob>(`/v1/guide-generation-jobs/${jobId}`);
+}
