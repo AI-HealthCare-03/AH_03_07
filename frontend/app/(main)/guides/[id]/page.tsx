@@ -4,7 +4,9 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  Activity,
   Download,
+  Loader2,
   Newspaper,
   Share2,
   Star,
@@ -49,6 +51,7 @@ export default function GuideDetailPage() {
   const [cardNewsLoading, setCardNewsLoading] = useState(false);
   const [ttsLoading, setTtsLoading] = useState(false);
   const [contentMessage, setContentMessage] = useState<{ text: string; ok: boolean } | null>(null);
+  const [shareMessage, setShareMessage] = useState<string | null>(null);
 
   // HEAD: 안내문 재생성
   async function handleRegenerate() {
@@ -101,12 +104,32 @@ export default function GuideDetailPage() {
     }
   }
 
-  // b06d67b: 👍👎 피드백
-  async function handleThumbFeedback(vote: "up" | "down") {
-    setFeedback(vote);
+  async function handleShare() {
+    const url = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "진료 전 요약", url });
+      } catch {
+        /* 사용자가 취소한 경우 무시 */
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareMessage("링크가 복사됐어요");
+      setTimeout(() => setShareMessage(null), 2500);
+    } catch {
+      setShareMessage("복사에 실패했어요");
+      setTimeout(() => setShareMessage(null), 2500);
+    }
+  }
+
+  async function handleFeedback(type: "up" | "down") {
+    if (feedbackSent) return;
+    setFeedback(type);
     setFeedbackSent(true);
     try {
-      await withTimeout(feedbackGuide(id, vote === "up" ? 1 : 0));
+      await withTimeout(feedbackGuide(id, type === "up" ? 1 : 0));
     } catch {
       /* no-op */
     }
@@ -172,7 +195,11 @@ export default function GuideDetailPage() {
           onClick={handleCardNews}
           disabled={cardNewsLoading || ttsLoading}
         >
-          <Newspaper className="h-4 w-4" />
+          {cardNewsLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Newspaper className="h-4 w-4" />
+          )}
           {cardNewsLoading ? "생성 중..." : "카드뉴스로 보기"}
         </Button>
         <Button
@@ -181,7 +208,11 @@ export default function GuideDetailPage() {
           onClick={handleTTS}
           disabled={ttsLoading || cardNewsLoading}
         >
-          <Volume2 className="h-4 w-4" />
+          {ttsLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Volume2 className="h-4 w-4" />
+          )}
           {ttsLoading ? "변환 중..." : "음성으로 듣기"}
         </Button>
       </div>
@@ -193,22 +224,25 @@ export default function GuideDetailPage() {
 
       {/* b06d67b: PDF 저장 / 공유하기 */}
       <div className="grid grid-cols-2 gap-3">
-        <Button variant="outline" className="gap-2" onClick={() => {}}>
+        <Button variant="outline" className="gap-2" onClick={() => window.print()}>
           <Download className="h-4 w-4" />
           PDF 저장
         </Button>
-        <Button variant="outline" className="gap-2" onClick={() => {}}>
+        <Button variant="outline" className="gap-2" onClick={handleShare}>
           <Share2 className="h-4 w-4" />
           공유하기
         </Button>
       </div>
+      {shareMessage && (
+        <p className="text-center text-xs text-[#7C5CCF]">{shareMessage}</p>
+      )}
 
       {/* b06d67b: REQ-FEED-001 👍👎 피드백 */}
       <Card className="p-4">
         <h2 className="mb-3 text-center text-sm font-bold">이 요약이 도움이 됐나요?</h2>
         <div className="flex justify-center gap-6">
           <button
-            onClick={() => handleThumbFeedback("up")}
+            onClick={() => handleFeedback("up")}
             disabled={feedbackSent}
             className={`flex flex-col items-center gap-1.5 rounded-xl px-6 py-3 text-xs font-semibold transition-colors disabled:opacity-60 ${
               feedback === "up"
@@ -220,7 +254,7 @@ export default function GuideDetailPage() {
             도움됐어요
           </button>
           <button
-            onClick={() => handleThumbFeedback("down")}
+            onClick={() => handleFeedback("down")}
             disabled={feedbackSent}
             className={`flex flex-col items-center gap-1.5 rounded-xl px-6 py-3 text-xs font-semibold transition-colors disabled:opacity-60 ${
               feedback === "down"
