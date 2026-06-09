@@ -58,7 +58,7 @@ export default function GeneralHome({ name, medications, recentMetrics }: Genera
         </SectionCard>
 
         {/* 약품 카메라 빠른 진입 */}
-        <Link href="/ocr">
+        <Link href="/documents">
           <SectionCard>
             <div className="flex items-center gap-3">
               <Camera className="h-5 w-5 text-primary" />
