@@ -33,15 +33,12 @@ export default function ModeConsentPage() {
     if (!allChecked || submitting) return;
     setSubmitting(true);
     setError(null);
-    try {
-      await updateConsent("sensitive_medical", true);
-      await updateMode("autoimmune");
-      setMode("autoimmune");
-      router.replace("/disease/new");
-    } catch (e) {
-      setSubmitting(false);
-      setError("동의 처리 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.");
-    }
+    // 로컬 저장 즉시 처리 → 백엔드 API는 백그라운드 동기화 (EC2 미가동 시에도 동작)
+    setMode("autoimmune");
+    router.replace("/disease/new");
+    // 백그라운드 서버 동기화 (실패해도 이동은 완료)
+    updateConsent("sensitive_medical", true).catch(() => {});
+    updateMode("autoimmune").catch(() => {});
   }
 
   return (
