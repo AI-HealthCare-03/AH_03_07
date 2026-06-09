@@ -1,6 +1,6 @@
 // 맞춤 안내문 서버 상태 (TanStack Query) — 데모 폴백 유지
-import { useQuery } from "@tanstack/react-query";
-import { getGuides, getGuide, getSources, getSections, type Guide } from "./api";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { getGuides, getGuide, getSources, getSections, createGuide, getGuideJob, type Guide, type GuideJob } from "./api";
 import { withTimeout } from "@/lib/query/util";
 
 export const guideKeys = {
@@ -8,6 +8,7 @@ export const guideKeys = {
   detail: (id: number) => ["guides", id] as const,
   sources: (id: number) => ["guides", id, "sources"] as const,
   sections: (id: number) => ["guides", id, "sections"] as const,
+  job: (jobId: number) => ["guides", "job", jobId] as const,
 };
 
 const DUMMY_LIST: Guide[] = [
@@ -74,4 +75,20 @@ export function useGuideSections(guideId: number) {
     queryFn: () => getSections(guideId),
     enabled: !!guideId,
   });
+}
+
+export function useGuideJob(jobId: number | null) {
+  return useQuery<GuideJob>({
+    queryKey: guideKeys.job(jobId!),
+    queryFn: () => getGuideJob(jobId!),
+    enabled: jobId != null,
+    refetchInterval: (query) => {
+      const s = query.state.data?.status;
+      return s === "COMPLETED" || s === "BLOCKED" || s === "FAILED" ? false : 2000;
+    },
+  });
+}
+
+export function useGenerateGuide() {
+  return useMutation({ mutationFn: createGuide });
 }
