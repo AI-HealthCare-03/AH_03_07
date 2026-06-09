@@ -81,7 +81,7 @@ function toTabData(items: HealthMetric[], unit: string): TabData {
     value: m.value,
     status: m.status ?? "정상",
   }));
-  return { latest: latest.value, unit, status: latest.status ?? "정상", trend, history };
+  return { latest: latest.value ?? "0", unit, status: latest.status ?? "정상", trend, history };
 }
 
 function buildData(metrics: HealthMetric[]): Record<Tab, TabData> {
