@@ -83,10 +83,11 @@ export default function GuideDetailPage() {
         {busy ? "재생성 중..." : "안내문 재생성"}
       </Button>
 
-      {/* 면책 (NFR-SAFE) */}
-      {guide.disclaimer && (
-        <p className="px-1 text-xs leading-5 text-muted-foreground">{guide.disclaimer}</p>
-      )}
+      {/* 면책 조항 고정 노출 (NFR-SAFE-001) */}
+      <p className="rounded-xl bg-muted/60 px-4 py-3 text-xs leading-5 text-muted-foreground">
+        ⚠️ 본 안내문은 정보 제공 목적이며 의료 진단·처방·용량 조절을 대체하지 않습니다. 증상이 심각하거나 응급 상황이면 즉시 의료진에게 상담하세요.
+        {guide.disclaimer && ` ${guide.disclaimer}`}
+      </p>
     </main>
   );
 }
