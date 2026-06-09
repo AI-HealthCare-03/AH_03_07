@@ -63,10 +63,12 @@ class ChatMessageService:
             messages = await ChatMessage.filter(session=session).order_by("-created_at").limit(10)
             history = []
             for m in reversed(messages):
-                history.append({
-                    "role": m.role.value if hasattr(m.role, "value") else str(m.role),
-                    "content": m.content,
-                })
+                history.append(
+                    {
+                        "role": m.role.value if hasattr(m.role, "value") else str(m.role),
+                        "content": m.content,
+                    }
+                )
             return history
         except Exception:
             return []
