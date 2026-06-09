@@ -73,6 +73,7 @@ async def email_verify_send(
     # 개발환경에서는 응답에 코드 포함 (배포 전 제거)
     from app.core import config as cfg
     from app.core.config import Env
+
     dev_code = code if cfg.ENV != Env.PROD else None
     return {"message": "인증코드가 발송되었습니다.", "dev_code": dev_code}
 
