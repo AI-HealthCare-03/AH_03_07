@@ -73,7 +73,7 @@ function toTabData(items: HealthMetric[], unit: string): TabData {
     .slice(0, 7)
     .reverse()
     .map((m) => {
-      const n = parseFloat(m.value.split("/")[0]);
+      const n = parseFloat((m.value ?? "0").split("/")[0]);
       return isNaN(n) ? 0 : n;
     });
   const history = sorted.map((m) => ({
