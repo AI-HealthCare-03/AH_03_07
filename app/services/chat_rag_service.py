@@ -57,6 +57,21 @@ class ChatRAGService:
         if user_profile.get("recent_guide_topics"):
             topics = ", ".join(user_profile["recent_guide_topics"][:3])
             lines.append(f"- 최근 가이드 주제: {topics}")
+
+        # 일반 모드 추가 컨텍스트
+        if user_profile.get("recent_records"):
+            records = ", ".join(
+                f"{r.get('hospital', '')}({r.get('diagnosis', '')})"
+                for r in user_profile["recent_records"]
+            )
+            lines.append(f"- 최근 진료 기록: {records}")
+        if user_profile.get("recent_health_metrics"):
+            metrics = ", ".join(
+                f"{m.get('type', '')} {m.get('value', '')}"
+                for m in user_profile["recent_health_metrics"]
+            )
+            lines.append(f"- 최근 건강 수치: {metrics}")
+
         return "\n".join(lines)
 
     def to_sources(self, chunks: list[KnowledgeChunk]) -> list[dict]:

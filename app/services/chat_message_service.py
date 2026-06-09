@@ -18,33 +18,21 @@ class ChatMessageService:
         self._rag = rag or ChatRAGService()
 
     async def _build_user_profile(self, session: ChatSession) -> dict | None:
-        """REQ-CHAT-007: 사용자 프로필·약물·활성도·최근 가이드 수집"""
+        """REQ-CHAT-007: 사용자 프로필·약물 수집 (일반·자가면역 모드 공통 + 모드별 추가)"""
         try:
             user = await session.user
             profile: dict = {}
+            is_autoimmune = session.mode == ChatMode.AUTOIMMUNE
 
-            # 질환 정보
-            disease = await user.diseases.filter(is_primary=True).first()  # type: ignore
-            if disease:
-                profile["disease"] = getattr(disease, "disease_name", None) or getattr(disease, "name", None)
-
-            # 복용 약물 (최대 5개)
+            # 공통: 복용 약물 (최대 5개)
             meds = await user.medications.all().limit(5)  # type: ignore
             if meds:
                 profile["medications"] = [
-                    getattr(m, "drug_name", None) or getattr(m, "name", "") for m in meds
+                    getattr(m, "drug_name_user_input", None) or getattr(m, "drug_name", None) or ""
+                    for m in meds
                 ]
 
-            # 최근 활성도 (가장 최근 1건)
-            activity = await user.activity_logs.order_by("-log_date").first()  # type: ignore
-            if activity:
-                profile["recent_activity"] = {
-                    "pain": getattr(activity, "pain_vas", "-"),
-                    "fatigue": getattr(activity, "fatigue", "-"),
-                    "difficulty": getattr(activity, "daily_difficulty", "-"),
-                }
-
-            # 최근 가이드 주제 (30일 이내, 최대 3개)
+            # 공통: 최근 가이드 주제
             cutoff = datetime.utcnow() - timedelta(days=30)
             guides = await user.auto_guides.filter(created_at__gte=cutoff).order_by("-created_at").limit(3)  # type: ignore
             if guides:
@@ -52,6 +40,41 @@ class ChatMessageService:
                     getattr(g, "symptom_summary", None) or getattr(g, "medication_general", None) or ""
                     for g in guides
                 ]
+
+            if is_autoimmune:
+                # 자가면역 전용: 질환·활성도
+                disease = await user.diseases.filter(is_primary=True).first()  # type: ignore
+                if disease:
+                    profile["disease"] = (
+                        getattr(disease, "disease_name", None) or getattr(disease, "name", None)
+                    )
+                activity = await user.activity_logs.order_by("-log_date").first()  # type: ignore
+                if activity:
+                    profile["recent_activity"] = {
+                        "pain": getattr(activity, "pain_vas", "-"),
+                        "fatigue": getattr(activity, "fatigue", "-"),
+                        "difficulty": getattr(activity, "daily_difficulty", "-"),
+                    }
+            else:
+                # 일반 모드 전용: 최근 진료기록·건강수치
+                records = await user.medical_records.order_by("-visit_date").limit(3)  # type: ignore
+                if records:
+                    profile["recent_records"] = [
+                        {
+                            "hospital": getattr(r, "hospital_name", ""),
+                            "diagnosis": getattr(r, "diagnosis", ""),
+                        }
+                        for r in records
+                    ]
+                metrics = await user.health_metrics.order_by("-measured_at").limit(3)  # type: ignore
+                if metrics:
+                    profile["recent_health_metrics"] = [
+                        {
+                            "type": getattr(m, "metric_type", ""),
+                            "value": str(getattr(m, "user_recorded_value", "")),
+                        }
+                        for m in metrics
+                    ]
 
             return profile if profile else None
         except Exception:
