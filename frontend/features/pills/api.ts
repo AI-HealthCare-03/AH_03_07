@@ -19,6 +19,9 @@ export interface PillCandidate {
 export interface DrugInfo {
   name?: string;
   drug_name?: string;
+  item_name?: string;
+  entp_name?: string;
+  efcy_qesitm?: string;
   ingredient?: string;
   category?: string;
 }
