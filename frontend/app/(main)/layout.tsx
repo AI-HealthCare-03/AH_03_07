@@ -21,6 +21,8 @@ const tabs = [
   { href: "/mypage", label: "마이", icon: MyIcon },
 ];
 
+const HIDE_NAV_PATHS = ["/documents/ocr-review", "/notifications/settings", "/health-metrics", "/diary", "/emergency", "/pharmacy", "/guardian", "/schedule"];
+
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isAuto, setIsAuto] = useState(false);
@@ -30,30 +32,28 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   }, []);
 
   const activeColor = isAuto ? PURPLE : "hsl(var(--primary))";
-  const hideTabBar = pathname === "/lab-results";
+  const hideNav = HIDE_NAV_PATHS.some((p) => pathname.startsWith(p));
 
   return (
-    <div className={`min-h-screen bg-background${hideTabBar ? "" : " pb-16"}`}>
+    <div className={cn("min-h-screen bg-background", !hideNav && "pb-16")}>
       {children}
-      {!hideTabBar && (
-        <nav className="fixed inset-x-0 bottom-0 z-50 mx-auto flex max-w-md items-center justify-around border-t border-border bg-card py-2">
-          {tabs.map(({ href, label, icon: Icon }) => {
-            const active = pathname === href || pathname.startsWith(href + "/");
-            const tabActiveColor = href === "/lab-results/list" ? PURPLE : activeColor;
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={cn("flex flex-1 flex-col items-center gap-0.5 py-1 text-xs", active ? "" : "text-muted-foreground")}
-                style={active ? { color: tabActiveColor } : undefined}
-              >
-                <Icon className="h-5 w-5" strokeWidth={active ? 2.5 : 2} />
-                {label}
-              </Link>
-            );
-          })}
-        </nav>
-      )}
+      <nav className={cn("fixed inset-x-0 bottom-0 z-50 mx-auto flex max-w-md items-center justify-around border-t border-border bg-card py-2", hideNav && "hidden")}>
+        {tabs.map(({ href, label, icon: Icon }) => {
+          const active = pathname === href || pathname.startsWith(href + "/");
+          const tabActiveColor = href === "/lab-results/list" ? PURPLE : activeColor;
+          return (
+            <Link
+              key={href}
+              href={href}
+              className={cn("flex flex-1 flex-col items-center gap-0.5 py-1 text-xs", active ? "" : "text-muted-foreground")}
+              style={active ? { color: tabActiveColor } : undefined}
+            >
+              <Icon className="h-5 w-5" strokeWidth={active ? 2.5 : 2} />
+              {label}
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }
