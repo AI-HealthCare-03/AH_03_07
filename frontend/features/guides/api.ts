@@ -2,6 +2,27 @@
 // 백엔드 auto_guides 정본 (id=정수, 필드명 그대로)
 import { apiFetch } from "@/lib/api/client";
 
+export interface GuideSource {
+  citation_order: number;
+  source_title: string;
+  source_org: string;
+  source_page: number | null;
+  used_for_section: string | null;
+}
+
+export type GuideSectionType =
+  | "MEDICATION_GENERAL"
+  | "SIDE_EFFECT"
+  | "LIFESTYLE"
+  | "SYMPTOM_SUMMARY";
+
+export interface GuideSection {
+  section_type: GuideSectionType;
+  section_title: string;
+  section_content: string;
+  display_order: number;
+}
+
 export interface Guide {
   id: number;
   status?: string;
@@ -10,7 +31,7 @@ export interface Guide {
   side_effect_monitoring?: string[] | string;
   lifestyle_info?: string;
   symptom_summary?: string;
-  sources?: { title?: string; organization?: string }[];
+  sources?: GuideSource[];
   disclaimer?: string;
 }
 
@@ -21,6 +42,14 @@ export async function getGuides(): Promise<Guide[]> {
 
 export async function getGuide(id: number): Promise<Guide> {
   return apiFetch<Guide>(`/v1/guides/${id}`);
+}
+
+export async function getSources(guideId: number): Promise<GuideSource[]> {
+  return apiFetch<GuideSource[]>(`/v1/guides/${guideId}/sources`);
+}
+
+export async function getSections(guideId: number): Promise<GuideSection[]> {
+  return apiFetch<GuideSection[]>(`/v1/guides/${guideId}/sections`);
 }
 
 export async function regenerateGuide(id: number): Promise<void> {

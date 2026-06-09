@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Activity,
+  ChevronDown,
   Download,
   Loader2,
   Newspaper,
@@ -17,9 +18,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { regenerateGuide, feedbackGuide, generateCardNews, generateTTS } from "@/features/guides/api";
-import { useGuide, guideKeys } from "@/features/guides/queries";
+import { useGuide, useGuideSources, guideKeys } from "@/features/guides/queries";
 import { withTimeout } from "@/lib/query/util";
 
+const PURPLE = "#7C5CCF";
 const MOCK = {
   key_symptoms: ["관절 통증", "발열", "피로감", "피부 발진"],
 };
@@ -40,10 +42,10 @@ export default function GuideDetailPage() {
   const id = Number(params.id);
   const qc = useQueryClient();
   const { data: guide, isLoading } = useGuide(id);
-
-  // HEAD: 재생성 + 별점 상태
+  const { data: sources } = useGuideSources(id);
   const [busy, setBusy] = useState(false);
   const [rating, setRating] = useState(0);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
 
   // b06d67b: 카드뉴스/TTS + 👍👎 상태
   const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
@@ -151,7 +153,53 @@ export default function GuideDetailPage() {
       <Section title="생활 습관" content={guide.lifestyle_info} />
       <Section title="부작용 모니터링" content={guide.side_effect_monitoring} />
 
-      {/* HEAD: 별점 평가 (REQ-GUIDE-006) */}
+      {/* 참고 자료 (REQ-KB-003) */}
+      <Card className="p-4">
+        <button
+          className="flex w-full items-center justify-between"
+          onClick={() => setSourcesOpen((v) => !v)}
+          aria-expanded={sourcesOpen}
+        >
+          <span className="text-sm font-bold" style={{ color: PURPLE }}>참고 자료</span>
+          <ChevronDown
+            className="h-4 w-4 transition-transform"
+            style={{ color: PURPLE, transform: sourcesOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+          />
+        </button>
+
+        {sourcesOpen && (
+          <div className="mt-3 space-y-3">
+            {!sources || sources.length === 0 ? (
+              <p className="text-xs text-muted-foreground">출처 없는 일반 정보입니다</p>
+            ) : (
+              [...sources]
+                .sort((a, b) => a.citation_order - b.citation_order)
+                .map((src) => (
+                  <div key={src.citation_order} className="rounded-lg border p-3 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="rounded px-1.5 py-0.5 text-[11px] font-bold text-white"
+                        style={{ background: PURPLE }}
+                      >
+                        {src.source_org}
+                      </span>
+                      <span className="font-medium text-foreground">{src.source_title}</span>
+                    </div>
+                    {src.source_page != null && (
+                      <p className="mt-1 text-muted-foreground">p.{src.source_page}</p>
+                    )}
+                    {src.used_for_section != null && (
+                      <p className="mt-1 text-muted-foreground">참고 챕터: {src.used_for_section}</p>
+                    )}
+                    {/* TODO(source_url): 외부 링크 자리 — source_url 추가 시 <a> 태그로 연결 */}
+                  </div>
+                ))
+            )}
+          </div>
+        )}
+      </Card>
+
+      {/* 평가 (REQ-GUIDE-006) */}
       <Card className="p-4">
         <h2 className="text-sm font-bold">이 안내문이 도움이 됐나요?</h2>
         <div className="mt-2 flex gap-1">
