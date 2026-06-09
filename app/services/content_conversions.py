@@ -22,8 +22,8 @@ class ContentConversionService:
         self.repo = ContentConversionRepository()
         self.guide_repo = HealthGuideRepository()
         self.openai_client = OpenAI(api_key=config.OPENAI_API_KEY)
-        self.output_dir = "/home/appuser/app/static/cards"
-        self.audio_dir = "/home/appuser/app/static/audio"
+        self.output_dir = os.path.join(os.getcwd(), "static", "cards")
+        self.audio_dir = os.path.join(os.getcwd(), "static", "audio")
         os.makedirs(self.output_dir, exist_ok=True)
         os.makedirs(self.audio_dir, exist_ok=True)
 
