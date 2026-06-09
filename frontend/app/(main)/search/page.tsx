@@ -9,7 +9,7 @@ const CATEGORIES = [
   { label: "내 약물", href: "/medication", icon: Pill },
   { label: "진료 기록", href: "/records", icon: FileText },
   { label: "가이드 모음", href: "/guides", icon: BookOpen },
-  { label: "활성도 기록", href: "/lab", icon: BarChart3 },
+  { label: "활성도 기록", href: "/activity/new", icon: BarChart3 },
   { label: "혜택 · 게임", href: "/rewards", icon: Gift },
 ];
 
