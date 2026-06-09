@@ -67,9 +67,7 @@ async def list_documents(
     user: Annotated[User, Depends(get_request_user)],
 ) -> ORJSONResponse:
     docs = await MedicalDocument.filter(user_id=user.id, deleted_at=None).order_by("-created_at").all()
-    return ORJSONResponse(
-        [MedicalDocumentResponse.model_validate(d).model_dump(mode="json") for d in docs]
-    )
+    return ORJSONResponse([MedicalDocumentResponse.model_validate(d).model_dump(mode="json") for d in docs])
 
 
 @medical_document_router.get("/{document_id}", status_code=status.HTTP_200_OK)
@@ -126,9 +124,7 @@ async def list_ocr_jobs(
     if doc is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="문서를 찾을 수 없습니다.")
     jobs = await OcrJob.filter(document_id=document_id).order_by("-created_at").all()
-    return ORJSONResponse(
-        [OcrJobResponse.model_validate(j).model_dump(mode="json") for j in jobs]
-    )
+    return ORJSONResponse([OcrJobResponse.model_validate(j).model_dump(mode="json") for j in jobs])
 
 
 @medical_document_router.put("/{document_id}/confirm", status_code=status.HTTP_200_OK)
