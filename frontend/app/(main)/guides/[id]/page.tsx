@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { feedbackGuide } from "@/features/guides/api";
+import { feedbackGuide, generateCardNews, generateTTS } from "@/features/guides/api";
 import { useGuide } from "@/features/guides/queries";
 import { withTimeout } from "@/lib/query/util";
 
@@ -37,6 +37,35 @@ export default function GuideDetailPage() {
   const { data: guide, isLoading } = useGuide(id);
   const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
   const [feedbackSent, setFeedbackSent] = useState(false);
+  const [cardNewsLoading, setCardNewsLoading] = useState(false);
+  const [ttsLoading, setTtsLoading] = useState(false);
+  const [contentMessage, setContentMessage] = useState<{ text: string; ok: boolean } | null>(null);
+
+  async function handleCardNews() {
+    setCardNewsLoading(true);
+    setContentMessage(null);
+    try {
+      await withTimeout(generateCardNews(id));
+      setContentMessage({ text: "카드뉴스 생성이 완료됐어요.", ok: true });
+    } catch {
+      setContentMessage({ text: "카드뉴스 생성에 실패했어요.", ok: false });
+    } finally {
+      setCardNewsLoading(false);
+    }
+  }
+
+  async function handleTTS() {
+    setTtsLoading(true);
+    setContentMessage(null);
+    try {
+      await withTimeout(generateTTS(id));
+      setContentMessage({ text: "음성 변환이 완료됐어요.", ok: true });
+    } catch {
+      setContentMessage({ text: "음성 변환에 실패했어요.", ok: false });
+    } finally {
+      setTtsLoading(false);
+    }
+  }
 
   async function handleFeedback(type: "up" | "down") {
     if (feedbackSent) return;
@@ -161,20 +190,27 @@ export default function GuideDetailPage() {
         <Button
           variant="outline"
           className="h-14 flex-col gap-1 text-xs"
-          onClick={() => {}}
+          onClick={handleCardNews}
+          disabled={cardNewsLoading || ttsLoading}
         >
           <Newspaper className="h-4 w-4" />
-          카드뉴스로 보기
+          {cardNewsLoading ? "생성 중..." : "카드뉴스로 보기"}
         </Button>
         <Button
           variant="outline"
           className="h-14 flex-col gap-1 text-xs"
-          onClick={() => {}}
+          onClick={handleTTS}
+          disabled={ttsLoading || cardNewsLoading}
         >
           <Volume2 className="h-4 w-4" />
-          음성으로 듣기
+          {ttsLoading ? "변환 중..." : "음성으로 듣기"}
         </Button>
       </div>
+      {contentMessage && (
+        <p className={`text-center text-xs px-1 ${contentMessage.ok ? "text-[#7C5CCF]" : "text-destructive"}`}>
+          {contentMessage.text}
+        </p>
+      )}
 
       {/* PDF 저장 / 공유하기 */}
       <div className="grid grid-cols-2 gap-3">
