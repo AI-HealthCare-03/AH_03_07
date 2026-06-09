@@ -5,9 +5,9 @@ from fastapi.responses import ORJSONResponse as Response
 
 from app.dependencies.security import get_request_user
 from app.dtos.users import AutoimmuneOnboardingStatusResponse, UserInfoResponse, UserUpdateRequest
+from app.models.autoimmune_profile import AutoimmuneProfile
 from app.models.user_consents import ConsentType, UserConsent
 from app.models.user_disease import UserDisease
-from app.models.user_risk_profile import UserRiskProfile
 from app.models.users import User
 from app.services.users import UserManageService
 
@@ -33,7 +33,7 @@ async def get_autoimmune_onboarding_status(
         user_id=user.id, consent_type=ConsentType.MEDICAL_DATA, agreed=True
     ).exists()
     disease_done = await UserDisease.filter(user_id=user.id, deleted_at__isnull=True).exists()
-    risk_profile_done = await UserRiskProfile.filter(user_id=user.id).exists()
+    risk_profile_done = await AutoimmuneProfile.filter(user_id=user.id).exists()
     completed = consent_done and disease_done and risk_profile_done
     return Response(
         AutoimmuneOnboardingStatusResponse(
