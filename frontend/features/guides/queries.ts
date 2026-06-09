@@ -1,11 +1,13 @@
 // 맞춤 안내문 서버 상태 (TanStack Query) — 데모 폴백 유지
 import { useQuery } from "@tanstack/react-query";
-import { getGuides, getGuide, type Guide } from "./api";
+import { getGuides, getGuide, getSources, getSections, type Guide } from "./api";
 import { withTimeout } from "@/lib/query/util";
 
 export const guideKeys = {
   all: ["guides"] as const,
   detail: (id: number) => ["guides", id] as const,
+  sources: (id: number) => ["guides", id, "sources"] as const,
+  sections: (id: number) => ["guides", id, "sections"] as const,
 };
 
 const DUMMY_LIST: Guide[] = [
@@ -55,5 +57,21 @@ export function useGuide(id: number) {
       }
     },
     enabled: Number.isFinite(id),
+  });
+}
+
+export function useGuideSources(guideId: number) {
+  return useQuery({
+    queryKey: guideKeys.sources(guideId),
+    queryFn: () => getSources(guideId),
+    enabled: !!guideId,
+  });
+}
+
+export function useGuideSections(guideId: number) {
+  return useQuery({
+    queryKey: guideKeys.sections(guideId),
+    queryFn: () => getSections(guideId),
+    enabled: !!guideId,
   });
 }
