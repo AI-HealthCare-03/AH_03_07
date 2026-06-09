@@ -2,6 +2,7 @@ import asyncio
 import time
 import uuid
 
+import redis.asyncio as aioredis
 from openai import AsyncOpenAI, OpenAIError
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.http.exceptions import UnexpectedResponse
@@ -120,6 +121,17 @@ async def _embed_document_async(doc_id: int) -> None:
         logger.info(
             f'{{"event": "embed_task_done", "doc_id": {doc_id}, "chunk_count": {len(chunks)}, "duration_sec": {duration:.1f}}}'
         )
+        try:
+            redis_client = aioredis.from_url(_cfg.REDIS_URL, decode_responses=True)
+            try:
+                keys = [k async for k in redis_client.scan_iter(match="kb:search:*")]
+                if keys:
+                    await redis_client.delete(*keys)
+                    logger.info(f'{{"event": "kb_cache_invalidated", "doc_id": {doc_id}, "keys_deleted": {len(keys)}}}')
+            finally:
+                await redis_client.aclose()
+        except Exception as e:
+            logger.warning(f'{{"event": "kb_cache_invalidate_failed", "doc_id": {doc_id}, "error": "{e}"}}')
 
     except Exception as exc:
         if doc is not None:
