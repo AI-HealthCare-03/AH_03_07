@@ -1,36 +1,25 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Camera, Pill, Search, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import {
   recognizePill,
   searchDrugReferences,
-  getPillRecognitions,
   type PillCandidate,
-  type PillRecognition,
   type DrugInfo,
 } from "@/features/pills/api";
-
-const MOCK_CANDIDATES: PillCandidate[] = [
-  { drug_name: "타이레놀 500mg", ingredient: "아세트아미노펜", category: "해열진통제", confidence: 0.98 },
-  { drug_name: "게보린", ingredient: "아세트아미노펜 복합", category: "진통제", confidence: 0.85 },
-  { drug_name: "펜잘큐", ingredient: "아세트아미노펜 복합", category: "진통제", confidence: 0.72 },
-];
+import { usePillRecognitions } from "@/features/pills/queries";
 
 export default function PillsRecognizePage() {
   const router = useRouter();
-  const [candidates, setCandidates] = useState<PillCandidate[]>(MOCK_CANDIDATES);
+  const [candidates, setCandidates] = useState<PillCandidate[]>([]);
   const [recognizing, setRecognizing] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [history, setHistory] = useState<PillRecognition[]>([]);
-
-  useEffect(() => {
-    getPillRecognitions().then(setHistory).catch(() => {});
-  }, []);
+  const { data: history = [] } = usePillRecognitions();
 
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -48,9 +37,9 @@ export default function PillsRecognizePage() {
     setCandidates([]);
     try {
       const result = await recognizePill(file);
-      setCandidates(result.length ? result : MOCK_CANDIDATES);
+      setCandidates(result);
     } catch {
-      setCandidates(MOCK_CANDIDATES);
+      setCandidates([]);
     } finally {
       setRecognizing(false);
       e.target.value = "";
