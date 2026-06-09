@@ -15,6 +15,62 @@ class ChatMessageService:
         self._validation = validation or ChatValidationService()
         self._rag = rag or ChatRAGService()
 
+    async def _build_user_profile(self, session: ChatSession) -> dict | None:
+        """REQ-CHAT-007: 사용자 프로필·약물·활성도·최근 가이드 수집"""
+        try:
+            user = await session.user
+            profile: dict = {}
+
+            # 질환 정보
+            disease = await user.diseases.filter(is_primary=True).first()  # type: ignore
+            if disease:
+                profile["disease"] = getattr(disease, "disease_name", None) or getattr(disease, "name", None)
+
+            # 복용 약물 (최대 5개)
+            meds = await user.medications.all().limit(5)  # type: ignore
+            if meds:
+                profile["medications"] = [
+                    getattr(m, "drug_name", None) or getattr(m, "name", "") for m in meds
+                ]
+
+            # 최근 활성도 (가장 최근 1건)
+            activity = await user.activity_logs.order_by("-log_date").first()  # type: ignore
+            if activity:
+                profile["recent_activity"] = {
+                    "pain": getattr(activity, "pain_vas", "-"),
+                    "fatigue": getattr(activity, "fatigue", "-"),
+                    "difficulty": getattr(activity, "daily_difficulty", "-"),
+                }
+
+            # 최근 가이드 주제 (30일 이내, 최대 3개)
+            from tortoise.expressions import Q
+            from datetime import datetime, timedelta
+            cutoff = datetime.utcnow() - timedelta(days=30)
+            guides = await user.auto_guides.filter(created_at__gte=cutoff).order_by("-created_at").limit(3)  # type: ignore
+            if guides:
+                profile["recent_guide_topics"] = [
+                    getattr(g, "symptom_summary", None) or getattr(g, "medication_general", None) or ""
+                    for g in guides
+                ]
+
+            return profile if profile else None
+        except Exception:
+            return None
+
+    async def _get_conversation_history(self, session: ChatSession) -> list[dict]:
+        """최근 10턴(사용자 5 + 어시스턴트 5) 대화 이력"""
+        try:
+            messages = await ChatMessage.filter(session=session).order_by("-created_at").limit(10)
+            history = []
+            for m in reversed(messages):
+                history.append({
+                    "role": m.role.value if hasattr(m.role, "value") else str(m.role),
+                    "content": m.content,
+                })
+            return history
+        except Exception:
+            return []
+
     async def handle_message(self, session: ChatSession, user_message: str) -> ChatMessage:
         # 1. 사용자 메시지 저장
         await ChatMessage.create(
@@ -25,26 +81,34 @@ class ChatMessageService:
             blocked_by_filter=False,
         )
 
-        # 2. 의도 분류 → 차단 시 즉시 반환 (RAG 호출 안 함)
+        # 2. 의도 분류 → 차단 시 즉시 반환
         intent = self._validation.classify_intent(user_message)
         if intent is not None:
             return await self._save_blocked(session, BlockReason.INTENT_BLOCKED)
 
-        # 3. RAG 생성
-        result = await self._rag.generate_response(user_message)
+        # 3. 사용자 프로필 + 대화 이력 수집 (REQ-CHAT-007)
+        user_profile = await self._build_user_profile(session)
+        conversation_history = await self._get_conversation_history(session)
+
+        # 4. RAG 생성 (개인화 컨텍스트 포함)
+        result = await self._rag.generate_response(
+            user_message,
+            user_profile=user_profile,
+            conversation_history=conversation_history,
+        )
         answer: str = result["answer"]
         is_general_info: bool = result["is_general_info"]
         sources: list[dict] = result["sources"]
 
-        # 4. 응답 안전 표현 검사
+        # 5. 응답 안전 표현 검사
         if self._validation.check_safety_expressions(answer) is not None:
             return await self._save_blocked(session, BlockReason.SAFETY_FILTER)
 
-        # 5. KB-003: AUTOIMMUNE 모드 + 출처 없음 → "[일반 정보]" 라벨
+        # 6. AUTOIMMUNE 모드 + 출처 없음 → "[일반 정보]" 라벨
         if session.mode == ChatMode.AUTOIMMUNE and is_general_info:
             answer = f"[일반 정보] {answer}"
 
-        # 6. 어시스턴트 메시지 저장
+        # 7. 어시스턴트 메시지 저장
         return await ChatMessage.create(
             session=session,
             role=MessageRole.ASSISTANT,
