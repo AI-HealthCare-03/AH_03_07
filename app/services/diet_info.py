@@ -5,7 +5,7 @@
 
 from urllib.parse import quote
 
-from app.dtos.diet_info import DietInfoResponse, DietLink
+from app.dtos.diet_info import DrugLinkResponse, DietLink
 
 _DISCLAIMER = (
     "외부 사이트로 이동합니다. 본 앱은 공식 기관 진입점만 제공하며, 외부 콘텐츠를 수집·요약·재가공하지 않습니다."
@@ -15,7 +15,7 @@ _DISCLAIMER = (
 class DietInfoService:
     """약품명으로 공식 외부 링크 4개를 생성해 반환한다."""
 
-    def get_external_links(self, drug_name: str) -> DietInfoResponse:
+    def get_external_links(self, drug_name: str) -> DrugLinkResponse:
         encoded = quote(drug_name)
         links = [
             DietLink(
@@ -39,7 +39,7 @@ class DietInfoService:
                 description="일반 건강 정보",
             ),
         ]
-        return DietInfoResponse(
+        return DrugLinkResponse(
             drug_name=drug_name,
             external_links=links,
             disclaimer=_DISCLAIMER,
