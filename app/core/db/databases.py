@@ -55,6 +55,7 @@ TORTOISE_APP_MODELS = [
     "app.models.model_version",
     "app.models.prompt_version",
     "app.models.pill_recognition",
+    "app.models.diet_info",
 ]
 
 TORTOISE_ORM = {
