@@ -5,7 +5,7 @@
 
 from urllib.parse import quote
 
-from app.dtos.diet_info import DrugLinkResponse, DietLink
+from app.dtos.diet_info import DietLink, DrugLinkResponse
 
 _DISCLAIMER = (
     "외부 사이트로 이동합니다. 본 앱은 공식 기관 진입점만 제공하며, 외부 콘텐츠를 수집·요약·재가공하지 않습니다."
