@@ -19,6 +19,7 @@ async def downgrade(db: BaseDBAsyncClient) -> str:
     return """
         DROP TABLE IF EXISTS `diet_infos`;"""
 
+
 MODELS_STATE = (
     "eJztXftz6jiW/ldc/NRdlb4DBBJCbW0VASehL68FcqfvtqdcxhbEc43M2CbdmZ3+31eSbf"
     "BDMjZPm6hSRfzQEfiTLJ3z6eic/ystTQ0Y9pcWsHT1rdQU/q8ElSVAB5E7N0JJWa221/EF"
