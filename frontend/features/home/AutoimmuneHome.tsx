@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import HomeHeader from "./components/HomeHeader";
 import MedicationCard, { type Medication } from "./components/MedicationCard";
 import SectionCard from "./components/SectionCard";
+import { useGuides } from "@/features/guides/queries";
 
 const PURPLE = "#7C5CCF";
 
@@ -46,6 +47,8 @@ export default function AutoimmuneHome({
   const hasActivity = recentActivity.length > 0;
   const riskCount = riskFlags.length;
   const hasSchedule = pendingSchedules.length > 0;
+  const { data: guides = [] } = useGuides();
+  const latestGuideHref = guides[0]?.id ? `/guides/${guides[0].id}` : "/guides";
 
   return (
     <main className="mx-auto w-full max-w-md px-5 pb-32 pt-10">
@@ -128,7 +131,7 @@ export default function AutoimmuneHome({
         </SectionCard>
 
         {/* ⑤ 최신 맞춤 안내문 */}
-        <SectionCard title="최신 맞춤 안내문" moreHref="/guides" accentClassName="text-[#7C5CCF]">
+        <SectionCard title="최신 맞춤 안내문" moreHref={latestGuideHref} accentClassName="text-[#7C5CCF]">
           <p className="text-sm text-muted-foreground">
             내 질환에 맞춘 안내문을 확인해 보세요.
           </p>

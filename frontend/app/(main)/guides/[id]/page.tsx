@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
+
 import {
   Activity,
+  ChevronDown,
   Download,
   Loader2,
   Newspaper,
@@ -16,10 +17,11 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { regenerateGuide, feedbackGuide, generateCardNews, generateTTS } from "@/features/guides/api";
-import { useGuide, guideKeys } from "@/features/guides/queries";
+import { feedbackGuide, generateCardNews, generateTTS } from "@/features/guides/api";
+import { useGuide, useGuideSources } from "@/features/guides/queries";
 import { withTimeout } from "@/lib/query/util";
 
+const PURPLE = "#7C5CCF";
 const MOCK = {
   key_symptoms: ["관절 통증", "발열", "피로감", "피부 발진"],
 };
@@ -38,12 +40,10 @@ function Section({ title, content }: { title: string; content?: string | string[
 export default function GuideDetailPage() {
   const params = useParams();
   const id = Number(params.id);
-  const qc = useQueryClient();
   const { data: guide, isLoading } = useGuide(id);
-
-  // HEAD: 재생성 + 별점 상태
-  const [busy, setBusy] = useState(false);
+  const { data: sources } = useGuideSources(id);
   const [rating, setRating] = useState(0);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
 
   // b06d67b: 카드뉴스/TTS + 👍👎 상태
   const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
@@ -52,19 +52,6 @@ export default function GuideDetailPage() {
   const [ttsLoading, setTtsLoading] = useState(false);
   const [contentMessage, setContentMessage] = useState<{ text: string; ok: boolean } | null>(null);
   const [shareMessage, setShareMessage] = useState<string | null>(null);
-
-  // HEAD: 안내문 재생성
-  async function handleRegenerate() {
-    setBusy(true);
-    try {
-      await withTimeout(regenerateGuide(id));
-      await qc.invalidateQueries({ queryKey: guideKeys.detail(id) });
-    } catch {
-      /* 백엔드 미가동(데모) */
-    } finally {
-      setBusy(false);
-    }
-  }
 
   // HEAD: 별점 피드백
   async function handleStarFeedback(score: number) {
@@ -151,7 +138,63 @@ export default function GuideDetailPage() {
       <Section title="생활 습관" content={guide.lifestyle_info} />
       <Section title="부작용 모니터링" content={guide.side_effect_monitoring} />
 
-      {/* HEAD: 별점 평가 (REQ-GUIDE-006) */}
+      {/* 참고 자료 (REQ-KB-003) */}
+      <Card className="p-4">
+        <button
+          className="flex w-full items-center justify-between"
+          onClick={() => setSourcesOpen((v) => !v)}
+          aria-expanded={sourcesOpen}
+        >
+          <span className="text-sm font-bold" style={{ color: PURPLE }}>참고 자료</span>
+          <ChevronDown
+            className="h-4 w-4 transition-transform"
+            style={{ color: PURPLE, transform: sourcesOpen ? "rotate(180deg)" : "rotate(0deg)" }}
+          />
+        </button>
+
+        {sourcesOpen && (
+          <div className="mt-3 space-y-3">
+            {!sources || sources.length === 0 ? (
+              <p className="text-xs text-muted-foreground">출처 없는 일반 정보입니다</p>
+            ) : (
+              [...sources]
+                .sort((a, b) => a.citation_order - b.citation_order)
+                .map((src) => (
+                  <div key={src.citation_order} className="rounded-lg border p-3 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="rounded px-1.5 py-0.5 text-[11px] font-bold text-white"
+                        style={{ background: PURPLE }}
+                      >
+                        {src.source_org}
+                      </span>
+                      <span className="font-medium text-foreground">{src.source_title}</span>
+                    </div>
+                    {src.source_page != null && (
+                      <p className="mt-1 text-muted-foreground">p.{src.source_page}</p>
+                    )}
+                    {src.used_for_section != null && (
+                      <p className="mt-1 text-muted-foreground">참고 챕터: {src.used_for_section}</p>
+                    )}
+                    {src.source_url && (
+                      <a
+                        href={src.source_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 block underline"
+                        style={{ color: PURPLE }}
+                      >
+                        공식 출처 보기
+                      </a>
+                    )}
+                  </div>
+                ))
+            )}
+          </div>
+        )}
+      </Card>
+
+      {/* 평가 (REQ-GUIDE-006) */}
       <Card className="p-4">
         <h2 className="text-sm font-bold">이 안내문이 도움이 됐나요?</h2>
         <div className="mt-2 flex gap-1">
@@ -162,11 +205,6 @@ export default function GuideDetailPage() {
           ))}
         </div>
       </Card>
-
-      {/* HEAD: 재생성 (REQ-GUIDE-005) */}
-      <Button variant="outline" className="w-full" onClick={handleRegenerate} disabled={busy}>
-        {busy ? "재생성 중..." : "안내문 재생성"}
-      </Button>
 
       {/* HEAD: 면책 조항 고정 노출 (NFR-SAFE-001) */}
       <p className="rounded-xl bg-muted/60 px-4 py-3 text-xs leading-5 text-muted-foreground">

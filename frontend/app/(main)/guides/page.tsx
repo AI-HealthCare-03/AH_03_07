@@ -1,17 +1,111 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { BookOpen } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { BookOpen, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useGuides } from "@/features/guides/queries";
+import { useGuides, useGuideJob, useGenerateGuide, guideKeys } from "@/features/guides/queries";
+
+const PURPLE = "#7C5CCF";
 
 export default function GuidesPage() {
+  const router = useRouter();
+  const qc = useQueryClient();
   const { data: guides = [], isLoading } = useGuides();
+  const gen = useGenerateGuide();
+
+  const [jobId, setJobId] = useState<number | null>(null);
+  const [emergency, setEmergency] = useState(false);
+
+  const { data: jobData } = useGuideJob(jobId);
+
+  const isGenerating =
+    gen.isPending ||
+    jobData?.status === "PENDING" ||
+    jobData?.status === "PROCESSING";
+
+  useEffect(() => {
+    if (!jobData) return;
+    // 우선순위: 응급 > 차단 > 완료
+    if (jobData.trigger_emergency_modal) {
+      setEmergency(true);
+      return;
+    }
+    if (jobData.status === "BLOCKED") return;
+    if (jobData.status === "COMPLETED" && jobData.guide_id) {
+      router.push(`/guides/${jobData.guide_id}`);
+      qc.invalidateQueries({ queryKey: guideKeys.all });
+      setJobId(null);
+    }
+  }, [jobData, router, qc]);
+
+  async function handleGenerate() {
+    try {
+      const res = await gen.mutateAsync();
+      setJobId(res.job_id);
+    } catch {
+      /* gen.isError 로 처리 */
+    }
+  }
 
   return (
     <main className="mx-auto w-full max-w-md px-5 pt-10">
-      <h1 className="text-2xl font-bold">맞춤 안내문</h1>
+      {/* 헤더 + 생성 버튼 */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">맞춤 안내문</h1>
+        <Button
+          onClick={handleGenerate}
+          disabled={isGenerating}
+          className="gap-2 text-white"
+          style={{ background: PURPLE }}
+        >
+          {isGenerating && <Loader2 className="h-4 w-4 animate-spin" />}
+          안내문 생성
+        </Button>
+      </div>
 
+      {/* 생성 진행 중 */}
+      {isGenerating && (
+        <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/60 px-4 py-3 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" style={{ color: PURPLE }} />
+          안내문을 생성하고 있어요
+        </div>
+      )}
+
+      {/* 차단(BLOCKED) 안내 — REQ-AUTO-006, A안 */}
+      {jobData?.status === "BLOCKED" && !emergency && (
+        <div className="mt-4 rounded-lg bg-yellow-50 px-4 py-3">
+          <p className="text-sm text-yellow-800">
+            현재 입력하신 상태는 의료진 검토가 권고됩니다. 담당 의료진 상담을 권고합니다.
+          </p>
+          <Button
+            variant="outline"
+            className="mt-3 w-full border-yellow-400 text-yellow-800 hover:bg-yellow-100"
+            onClick={() => router.push("/risk-flags")}
+          >
+            의료진 확인 필요 신호 보기
+          </Button>
+        </div>
+      )}
+
+      {/* 생성 실패 */}
+      {jobData?.status === "FAILED" && (() => {
+        const raw = jobData.error_message ?? "";
+        if (raw) console.warn("[guide generation] failed:", raw);
+        const msg = raw.includes("TRIGGER_NOT_MET")
+          ? "안내문을 생성하려면 먼저 자가면역 모드 설정과 증상·약물·검사 기록 중 하나 이상을 입력해 주세요."
+          : "안내문 생성에 실패했어요. 잠시 후 다시 시도해 주세요.";
+        return (
+          <div className="mt-4 rounded-lg bg-muted/60 px-4 py-3 text-sm text-muted-foreground">
+            {msg}
+          </div>
+        );
+      })()}
+
+      {/* 목록 */}
       {isLoading ? (
         <p className="mt-8 text-sm text-muted-foreground">불러오는 중...</p>
       ) : guides.length === 0 ? (
@@ -46,6 +140,30 @@ export default function GuidesPage() {
               </Card>
             </Link>
           ))}
+        </div>
+      )}
+
+      {/* 응급 모달 (trigger_emergency_modal) — NFR-SAFE-003 */}
+      {emergency && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6">
+            <h2 className="text-base font-bold text-yellow-700">
+              의료진 확인이 필요한 위험 신호가 있어요
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-foreground">
+              즉시 담당 의료진 상담 또는 응급실 방문을 권고합니다.
+            </p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              119 직접 호출을 권장합니다.
+            </p>
+            <Button
+              variant="outline"
+              className="mt-5 w-full"
+              onClick={() => setEmergency(false)}
+            >
+              닫기
+            </Button>
+          </div>
         </div>
       )}
     </main>

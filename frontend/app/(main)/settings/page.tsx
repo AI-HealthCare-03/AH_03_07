@@ -1,12 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { withdraw } from "@/features/auth/api";
 import { ApiError } from "@/lib/api/client";
+
+type FontSize = "small" | "medium" | "large";
+
+const FONT_SIZE_CLASS: Record<FontSize, string> = {
+  small: "text-sm",
+  medium: "text-base",
+  large: "text-lg",
+};
+
+const FONT_SIZE_LABEL: Record<FontSize, string> = {
+  small: "작게",
+  medium: "보통",
+  large: "크게",
+};
+
+function applyFontSize(size: FontSize) {
+  const html = document.documentElement;
+  html.classList.remove("text-sm", "text-base", "text-lg");
+  html.classList.add(FONT_SIZE_CLASS[size]);
+}
 
 function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -25,9 +45,24 @@ export default function SettingsPage() {
   const router = useRouter();
   const [alerts, setAlerts] = useState({ med: true, guide: true, marketing: false, location: false });
   const [channels, setChannels] = useState({ app: true, email: false, kakao: true });
+  const [fontSize, setFontSize] = useState<FontSize>("medium");
   const [confirming, setConfirming] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("fontSize") as FontSize | null;
+    if (saved && saved in FONT_SIZE_CLASS) {
+      setFontSize(saved);
+      applyFontSize(saved);
+    }
+  }, []);
+
+  function handleFontSize(size: FontSize) {
+    setFontSize(size);
+    localStorage.setItem("fontSize", size);
+    applyFontSize(size);
+  }
 
   async function handleWithdraw() {
     setLoading(true);
@@ -66,6 +101,29 @@ export default function SettingsPage() {
         <Row label="앱 알림" right={<Toggle on={channels.app} onChange={(v) => setChannels({ ...channels, app: v })} />} />
         <Row label="이메일" right={<Toggle on={channels.email} onChange={(v) => setChannels({ ...channels, email: v })} />} />
         <Row label="카카오톡" right={<Toggle on={channels.kakao} onChange={(v) => setChannels({ ...channels, kakao: v })} />} />
+      </Card>
+
+      {/* 접근성 */}
+      <p className="mt-6 text-sm font-semibold text-muted-foreground">접근성</p>
+      <Card className="mt-2 p-4">
+        <p className="text-sm font-medium mb-3">글씨 크기</p>
+        <div className="flex gap-2">
+          {(["small", "medium", "large"] as FontSize[]).map((size) => (
+            <button
+              key={size}
+              onClick={() => handleFontSize(size)}
+              className={
+                "flex-1 rounded-lg border py-2 text-sm font-medium transition-colors " +
+                (fontSize === size
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-background text-foreground")
+              }
+              aria-pressed={fontSize === size}
+            >
+              {FONT_SIZE_LABEL[size]}
+            </button>
+          ))}
+        </div>
       </Card>
 
       {/* 계정 */}

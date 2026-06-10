@@ -85,9 +85,10 @@ export async function updateMode(mode: "general" | "autoimmune"): Promise<ModeRe
 }
 
 export interface AutoimmuneOnboardingStatus {
-  completed: boolean;
   consent_done: boolean;
   disease_done: boolean;
+  risk_profile_done: boolean;
+  completed: boolean;
 }
 
 export async function getAutoimmuneOnboarding(): Promise<AutoimmuneOnboardingStatus> {

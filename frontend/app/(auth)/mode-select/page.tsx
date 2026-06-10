@@ -24,16 +24,17 @@ export default function ModeSelectPage() {
     if (mode === "autoimmune") {
       try {
         // 타임아웃 3초 — 응답 없으면 consent 화면으로 바로 이동
-        const s: import("@/features/auth/api").AutoimmuneOnboardingStatus =
-          await withTimeout(getAutoimmuneOnboarding(), 3000);
+        const s = await withTimeout(getAutoimmuneOnboarding(), 3000);
         if (s.completed) {
           router.replace("/home");
         } else if (!s.consent_done) {
           router.replace("/mode-consent");
         } else if (!s.disease_done) {
           router.replace("/disease/new");
-        } else {
+        } else if (!s.risk_profile_done) {
           router.replace("/risk-profile");
+        } else {
+          router.replace("/home");
         }
       } catch {
         router.replace("/mode-consent");
