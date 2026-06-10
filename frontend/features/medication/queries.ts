@@ -1,6 +1,6 @@
 // 약물 목록/등록 서버 상태 (TanStack Query) — 로컬 저장 + 데모 폴백
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getMedications, createMedication, type Medication, type MedicationCreate } from "./api";
+import { getUserMedications, createMedication, type Medication, type MedicationCreate } from "./api";
 import { getLocalMeds, addLocalMed } from "./local";
 import { withTimeout } from "@/lib/query/util";
 
@@ -16,7 +16,7 @@ async function fetchMedications(): Promise<Medication[]> {
   const local = getLocalMeds();
   let server: Medication[] = [];
   try {
-    server = await withTimeout(getMedications());
+    server = await withTimeout(getUserMedications());
   } catch {
     /* 백엔드 미가동(데모) */
   }
