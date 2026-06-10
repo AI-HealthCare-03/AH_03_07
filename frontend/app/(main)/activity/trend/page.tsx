@@ -272,13 +272,6 @@ export default function ActivityTrendPage() {
         앱은 의학적 평가를 수행하지 않습니다.
       </p>
 
-      {/* 알림 기준 설정 (ACTV-003/004 — 준비 중) */}
-      <button
-        disabled
-        className="mt-4 w-full cursor-not-allowed rounded-xl border border-gray-200 py-3 text-sm font-medium text-gray-400"
-      >
-        내 알림 기준 설정 (준비 중)
-      </button>
     </main>
   );
 }
