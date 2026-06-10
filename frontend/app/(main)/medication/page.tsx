@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Pill, Plus, Syringe, Trash2 } from "lucide-react";
+import { Droplet, Pill, Plus, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useMedications, useDeleteMedication } from "@/features/medication/queries";
 import { DRUG_CLASS_LABEL, DRUG_CLASS_COLOR } from "@/features/medication/schema";
-import type { MedicationDetail } from "@/features/medication/api";
 
 function DrugClassBadge({ drugClass }: { drugClass?: string }) {
   if (!drugClass) return null;
@@ -28,7 +27,10 @@ export default function MedicationPage() {
   const [confirmId, setConfirmId] = useState<number | null>(null);
 
   function handleDelete(id: number) {
-    deleteMutation.mutate(id, { onSuccess: () => setConfirmId(null) });
+    deleteMutation.mutate(id, {
+      onSuccess: () => setConfirmId(null),
+      onError: () => setConfirmId(null),
+    });
   }
 
   return (
@@ -54,14 +56,12 @@ export default function MedicationPage() {
         </div>
       ) : (
         <div className="mt-6 space-y-3">
-          {meds.map((m) => {
-            const med = m as MedicationDetail;
-            return (
+          {meds.map((m) => (
               <Card key={m.id} className="flex items-center gap-3 p-4">
                 {/* 약 아이콘 */}
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                  {med.is_injection
-                    ? <Syringe className="h-5 w-5 text-primary" />
+                  {m.is_injection
+                    ? <Droplet className="h-5 w-5 text-primary" />
                     : <Pill className="h-5 w-5 text-primary" />
                   }
                 </div>
@@ -70,16 +70,16 @@ export default function MedicationPage() {
                 <Link href={`/medication/${m.id}`} className="flex-1 min-w-0">
                   <p className="truncate font-semibold">{m.name}</p>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                    <DrugClassBadge drugClass={med.drug_class} />
-                    {med.is_injection && (
+                    <DrugClassBadge drugClass={m.drug_class} />
+                    {m.is_injection && (
                       <span className="text-[11px] text-muted-foreground">주사제</span>
                     )}
                     {m.frequency && (
                       <span className="text-xs text-muted-foreground">{m.frequency}</span>
                     )}
                   </div>
-                  {med.note && (
-                    <p className="mt-0.5 truncate text-xs text-muted-foreground">{med.note}</p>
+                  {m.note && (
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">{m.note}</p>
                   )}
                 </Link>
 
@@ -92,8 +92,7 @@ export default function MedicationPage() {
                   <Trash2 className="h-4 w-4" />
                 </button>
               </Card>
-            );
-          })}
+          ))}
         </div>
       )}
 
