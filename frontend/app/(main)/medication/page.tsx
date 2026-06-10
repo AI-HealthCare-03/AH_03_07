@@ -1,15 +1,38 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Pill, Plus } from "lucide-react";
+import { Pill, Plus, Syringe, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { useMedications } from "@/features/medication/queries";
+import { useMedications, useDeleteMedication } from "@/features/medication/queries";
+import { DRUG_CLASS_LABEL, DRUG_CLASS_COLOR } from "@/features/medication/schema";
+import type { MedicationDetail } from "@/features/medication/api";
+
+function DrugClassBadge({ drugClass }: { drugClass?: string }) {
+  if (!drugClass) return null;
+  const label = DRUG_CLASS_LABEL[drugClass] ?? drugClass;
+  const color = DRUG_CLASS_COLOR[drugClass] ?? "#6B7280";
+  return (
+    <span
+      className="inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold"
+      style={{ background: color + "1A", color }}
+    >
+      {label}
+    </span>
+  );
+}
 
 export default function MedicationPage() {
   const { data: meds = [], isLoading } = useMedications();
+  const deleteMutation = useDeleteMedication();
+  const [confirmId, setConfirmId] = useState<number | null>(null);
+
+  function handleDelete(id: number) {
+    deleteMutation.mutate(id, { onSuccess: () => setConfirmId(null) });
+  }
 
   return (
-    <main className="mx-auto w-full max-w-md px-5 pt-10">
+    <main className="mx-auto w-full max-w-md px-5 pt-10 pb-28">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">내 약물 목록</h1>
         <Link
@@ -31,22 +54,79 @@ export default function MedicationPage() {
         </div>
       ) : (
         <div className="mt-6 space-y-3">
-          {meds.map((m) => (
-            <Link key={m.id} href={`/medication/${m.id}`}>
-              <Card className="flex items-center gap-3 p-4 hover:bg-accent">
-                <Pill className="h-7 w-7 text-primary" />
-                <div className="flex-1">
-                  <p className="font-semibold">{m.name}</p>
-                  {m.frequency && (
-                    <p className="text-xs text-muted-foreground">{m.frequency}</p>
-                  )}
-                  {m.next_dose && (
-                    <p className="text-xs text-muted-foreground">다음 복용: {m.next_dose}</p>
-                  )}
+          {meds.map((m) => {
+            const med = m as MedicationDetail;
+            return (
+              <Card key={m.id} className="flex items-center gap-3 p-4">
+                {/* 약 아이콘 */}
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                  {med.is_injection
+                    ? <Syringe className="h-5 w-5 text-primary" />
+                    : <Pill className="h-5 w-5 text-primary" />
+                  }
                 </div>
+
+                {/* 약 정보 — 클릭 시 상세 */}
+                <Link href={`/medication/${m.id}`} className="flex-1 min-w-0">
+                  <p className="truncate font-semibold">{m.name}</p>
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    <DrugClassBadge drugClass={med.drug_class} />
+                    {med.is_injection && (
+                      <span className="text-[11px] text-muted-foreground">주사제</span>
+                    )}
+                    {m.frequency && (
+                      <span className="text-xs text-muted-foreground">{m.frequency}</span>
+                    )}
+                  </div>
+                  {med.note && (
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">{med.note}</p>
+                  )}
+                </Link>
+
+                {/* 삭제 버튼 */}
+                <button
+                  onClick={() => setConfirmId(m.id)}
+                  aria-label="삭제"
+                  className="shrink-0 rounded-full p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </Card>
-            </Link>
-          ))}
+            );
+          })}
+        </div>
+      )}
+
+      {/* 삭제 확인 모달 */}
+      {confirmId !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-5 pb-8"
+          onClick={() => setConfirmId(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-background p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-center text-base font-bold">약물을 삭제할까요?</p>
+            <p className="mt-1 text-center text-sm text-muted-foreground">
+              삭제하면 복구할 수 없습니다.
+            </p>
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => setConfirmId(null)}
+                className="flex-1 rounded-xl border border-border py-3 text-sm font-semibold"
+              >
+                취소
+              </button>
+              <button
+                onClick={() => handleDelete(confirmId)}
+                disabled={deleteMutation.isPending}
+                className="flex-1 rounded-xl bg-destructive py-3 text-sm font-semibold text-white disabled:opacity-60"
+              >
+                {deleteMutation.isPending ? "삭제 중..." : "삭제"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </main>

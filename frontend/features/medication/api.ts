@@ -13,6 +13,9 @@ export interface MedicationDetail extends Medication {
   name_en?: string;
   dosage?: string;
   description?: string;
+  drug_class?: string;
+  is_injection?: boolean;
+  note?: string;
 }
 
 export interface MedicationCreate {
@@ -45,4 +48,8 @@ export async function getMedication(id: number): Promise<MedicationDetail> {
 
 export async function createMedication(data: MedicationCreate): Promise<void> {
   await apiFetch("/v1/user-medications", { method: "POST", body: { medications: [data] } });
+}
+
+export async function deleteMedication(id: number): Promise<void> {
+  await apiFetch(`/v1/user-medications/${id}`, { method: "DELETE" });
 }

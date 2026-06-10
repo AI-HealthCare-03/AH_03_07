@@ -1,6 +1,6 @@
 // 약물 목록/등록 서버 상태 (TanStack Query) — 로컬 저장 + 데모 폴백
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getUserMedications, createMedication, type Medication, type MedicationCreate } from "./api";
+import { getUserMedications, createMedication, deleteMedication, type Medication, type MedicationCreate } from "./api";
 import { getLocalMeds, addLocalMed } from "./local";
 import { withTimeout } from "@/lib/query/util";
 
@@ -41,6 +41,14 @@ export function useCreateMedication() {
         /* 백엔드 미가동 */
       }
     },
+    onSuccess: () => qc.invalidateQueries({ queryKey: medicationKeys.all }),
+  });
+}
+
+export function useDeleteMedication() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => deleteMedication(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: medicationKeys.all }),
   });
 }

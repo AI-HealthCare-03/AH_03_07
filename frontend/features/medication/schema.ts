@@ -10,6 +10,24 @@ export const CATEGORY_TO_DRUG_CLASS: Record<string, string> = {
   "생물학적제제": "BIOLOGIC",
   "NSAID": "NSAID",
 };
+
+/** 백엔드 DrugClass → 한국어 표시명 */
+export const DRUG_CLASS_LABEL: Record<string, string> = {
+  STEROID: "스테로이드",
+  IMMUNOSUPPRESSANT: "면역억제제",
+  ANTIMALARIAL: "항말라리아제",
+  BIOLOGIC: "생물학적제제",
+  NSAID: "NSAID",
+};
+
+/** DrugClass 배지 색상 */
+export const DRUG_CLASS_COLOR: Record<string, string> = {
+  STEROID: "#F59E0B",
+  IMMUNOSUPPRESSANT: "#7C5CCF",
+  ANTIMALARIAL: "#10B981",
+  BIOLOGIC: "#3B82F6",
+  NSAID: "#6B7280",
+};
 export const MED_UNITS = ["정", "캡슐", "ml", "mg", "포"] as const;
 export const MED_TIMINGS = ["아침", "점심", "저녁", "취침 전"] as const;
 
