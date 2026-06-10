@@ -2,13 +2,16 @@ from tortoise import BaseDBAsyncClient
 
 RUN_IN_TRANSACTION = True
 
+
 async def upgrade(db: BaseDBAsyncClient) -> str:
     return """
         ALTER TABLE `user_diseases` MODIFY COLUMN `disease_code` VARCHAR(20) NOT NULL;"""
 
+
 async def downgrade(db: BaseDBAsyncClient) -> str:
     return """
         ALTER TABLE `user_diseases` MODIFY COLUMN `disease_code` VARCHAR(16) NOT NULL;"""
+
 
 MODELS_STATE = (
     "eJztXW1z6jiW/isuPnVXpe8AgYRQW1tFwEnoy9sCudN321MuYwviuUZmbJPuzE7/95VkG/"
