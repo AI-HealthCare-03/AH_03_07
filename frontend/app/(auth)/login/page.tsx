@@ -80,7 +80,7 @@ export default function LoginPage() {
           <div className="mt-6 flex items-center justify-center gap-3 text-sm text-muted-foreground">
             <span className="cursor-pointer hover:text-foreground">비밀번호 찾기</span>
             <span className="text-border">|</span>
-            <Link href="/signup" className="hover:text-foreground">
+            <Link href="/signup/verify" className="hover:text-foreground">
               회원가입
             </Link>
           </div>
