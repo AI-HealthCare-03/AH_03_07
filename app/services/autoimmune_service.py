@@ -43,6 +43,9 @@ class DiseaseService:
     async def create_diseases(self, user: User, data: DiseaseBulkCreateRequest) -> list[UserDisease]:
         diseases = []
         for item in data.diseases:
+            existing = await UserDisease.get_or_none(user_id=user.id, disease_code=item.disease_code, deleted_at=None)
+            if existing:
+                continue
             d = await UserDisease.create(
                 user=user,
                 disease_code=item.disease_code,
