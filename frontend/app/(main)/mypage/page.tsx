@@ -73,7 +73,7 @@ export default function MyPage() {
       <h1 className="text-2xl font-extrabold">마이페이지</h1>
 
       <Card className="mt-5 p-5">
-        <Link href="/settings" className="flex items-center gap-4">
+        <Link href="/settings/profile" className="flex items-center gap-4">
           <div className="flex h-13 w-13 items-center justify-center rounded-full p-3" style={{ background: isAuto ? PURPLE + "20" : "hsl(var(--secondary))" }}>
             <User className="h-7 w-7" style={{ color: accent }} />
           </div>
