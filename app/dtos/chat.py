@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, field_serializer, field_validator
 
 from app.models.chat_message import MessageRole
 
@@ -38,6 +38,10 @@ class MessageResponse(BaseModel):
     blocked_by_filter: bool
     block_reason: str | None = None
 
+    @field_serializer("role")
+    def serialize_role(self, role: MessageRole) -> str:
+        return role.value.lower()
+
 
 class MessageItem(BaseModel):
     id: int
@@ -48,6 +52,10 @@ class MessageItem(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_serializer("role")
+    def serialize_role(self, role: MessageRole) -> str:
+        return role.value.lower()
 
 
 class MessageHistoryResponse(BaseModel):
