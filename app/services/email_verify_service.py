@@ -1,4 +1,4 @@
-"""REQ-USER-002 이메일 인증 서비스 (로컬 개발용: 메모리 저장 + 콘솔 출력)"""
+"""REQ-USER-002 이메일 인증 서비스 — DB 기반 저장 (멀티워커/재시작 안전)"""
 
 from __future__ import annotations
 
@@ -12,12 +12,9 @@ from email.mime.text import MIMEText
 
 from app.core import config
 from app.core.config import Env
+from app.models.email_verify_code import EmailVerifyCode
 
 logger = logging.getLogger(__name__)
-
-# 로컬 개발용: 인메모리 저장소 {email: (code, expires_at)}
-# 프로덕션에서는 Redis로 교체
-_store: dict[str, tuple[str, float]] = {}
 
 CODE_TTL = 300  # 5분
 CODE_LEN = 6
@@ -39,9 +36,13 @@ def _send_gmail_sync(to: str, code: str) -> None:
 
 
 async def send_verification_code(email: str) -> str:
-    """인증코드 생성 및 발송 (로컬: 콘솔 출력, 프로덕션: Gmail SMTP)"""
+    """인증코드 생성·DB 저장·발송 (로컬: 콘솔 출력, 프로덕션: Gmail SMTP)"""
     code = _generate_code()
-    _store[email] = (code, time.time() + CODE_TTL)
+    expires_at = time.time() + CODE_TTL
+
+    # 기존 코드 삭제 후 새 코드 저장 (upsert 대신 delete+create로 unique 보장)
+    await EmailVerifyCode.filter(email=email).delete()
+    await EmailVerifyCode.create(email=email, code=code, expires_at=expires_at)
 
     if config.ENV == Env.PROD and config.GMAIL_USER and config.GMAIL_APP_PASSWORD:
         try:
@@ -56,17 +57,16 @@ async def send_verification_code(email: str) -> str:
 
 
 async def confirm_code(email: str, code: str) -> bool:
-    """인증코드 검증"""
-    entry = _store.get(email)
+    """인증코드 검증 — 일치 시 삭제 (1회용)"""
+    entry = await EmailVerifyCode.filter(email=email).first()
     if not entry:
         return False
-    stored_code, expires_at = entry
-    if time.time() > expires_at:
-        del _store[email]
+    if time.time() > entry.expires_at:
+        await entry.delete()
         return False
-    if stored_code != code:
+    if entry.code != code:
         return False
-    del _store[email]
+    await entry.delete()
     return True
 
 
