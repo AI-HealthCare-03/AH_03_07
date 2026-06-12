@@ -119,6 +119,8 @@ function OcrReviewInner() {
   }
 
   async function handleConfirm() {
+
+      console.log("localDocumentId:", localDocumentId);
     if (!localDocumentId) return;
     setSaving(true);
     try {

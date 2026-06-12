@@ -4,7 +4,10 @@ import { apiFetch } from "@/lib/api/client";
 export interface MedicalDocument {
   id: number;
   document_type?: string;
+  original_filename?: string;
   file_name?: string;
+  upload_status?: string;
+  is_user_confirmed?: boolean;
   status?: string;
   created_at?: string;
   updated_at?: string;
@@ -77,6 +80,10 @@ export async function startOcrJob(documentId: number): Promise<OcrJob> {
   return apiFetch<OcrJob>(`/v1/medical-documents/${documentId}/ocr-jobs`, {
     method: "POST",
   });
+}
+
+export async function getOcrJobs(documentId: number): Promise<OcrJob[]> {
+  return apiFetch<OcrJob[]>(`/v1/medical-documents/${documentId}/ocr-jobs`);
 }
 
 export async function getOcrJob(jobId: string, documentId: number): Promise<OcrJob> {

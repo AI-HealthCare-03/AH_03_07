@@ -132,9 +132,7 @@ export default function DocumentsPage() {
                         <Card
                           key={d.id}
                           className="flex cursor-pointer items-center gap-3 p-4 hover:bg-accent"
-                          onClick={() =>
-                            router.push(`/documents/ocr-review?documentId=${d.id}&document_type=${d.document_type ?? "other"}`)
-                          }
+                          onClick={() => router.push(`/documents/${d.id}`)}
                         >
                           <div
                             className={
