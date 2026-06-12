@@ -92,8 +92,13 @@ export async function apiFetch<T = unknown>(
   const data = text ? safeJson(text) : null;
 
   if (!res.ok) {
+    const detail = (data as { detail?: unknown })?.detail;
     const message =
-      (data as { detail?: string })?.detail || `요청 실패 (${res.status})`;
+      typeof detail === "string"
+        ? detail
+        : Array.isArray(detail)
+        ? detail.map((d: { msg?: string }) => d.msg).filter(Boolean).join(", ") || `요청 실패 (${res.status})`
+        : `요청 실패 (${res.status})`;
     throw new ApiError(res.status, message, data);
   }
 

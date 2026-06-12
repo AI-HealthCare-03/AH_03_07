@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getMode } from "@/features/auth/mode";
 import {
   ArrowLeft,
   CalendarDays,
@@ -184,6 +185,11 @@ function toFormValues(s: CareSchedule): FormValues {
 export default function SchedulePage() {
   const router = useRouter();
   const now = new Date();
+  const [mode, setMode] = useState<"general" | "autoimmune">("general");
+  const ACCENT = mode === "autoimmune" ? PURPLE : "hsl(var(--primary))";
+  const ACCENT14 = mode === "autoimmune" ? PURPLE + "14" : "hsl(var(--primary) / 0.1)";
+
+  useEffect(() => { setMode(getMode()); }, []);
 
   // HEAD: 뷰 토글 + care-schedule 상태
   const [view, setView] = useState<"calendar" | "list">("calendar");
@@ -448,15 +454,27 @@ export default function SchedulePage() {
           <h1 className="text-2xl font-bold">검사·진료 일정</h1>
         </div>
 
-        {/* 자가면역 배너 */}
+        {/* 일정 배너 — 모드별 분기 */}
         <div
-          className="flex items-center gap-3 rounded-2xl border p-4"
-          style={{ borderColor: PURPLE + "55", background: PURPLE + "12" }}
+          className={
+            mode === "autoimmune"
+              ? "flex items-center gap-3 rounded-2xl border p-4"
+              : "flex items-center gap-3 rounded-2xl border p-4 border-primary/30 bg-primary/5"
+          }
+          style={
+            mode === "autoimmune"
+              ? { borderColor: PURPLE + "55", background: PURPLE + "12" }
+              : undefined
+          }
         >
-          <CalendarDays className="h-6 w-6" style={{ color: PURPLE }} />
+          <CalendarDays className="h-6 w-6" style={{ color: ACCENT }} />
           <div>
-            <p className="font-bold">자가면역 일정 통합 관리</p>
-            <p className="text-sm" style={{ color: PURPLE }}>검사·진료·주사를 한 번에</p>
+            <p className="font-bold">
+              {mode === "autoimmune" ? "자가면역 일정 통합 관리" : "검사·진료 일정 관리"}
+            </p>
+            <p className="text-sm" style={{ color: ACCENT }}>
+              {mode === "autoimmune" ? "검사·진료·주사를 한 번에" : "예약·검사 일정을 한눈에 확인하세요"}
+            </p>
           </div>
         </div>
 
@@ -469,7 +487,7 @@ export default function SchedulePage() {
                 key={v}
                 onClick={() => setView(v)}
                 className="flex-1 rounded-xl py-2 text-sm font-semibold"
-                style={on ? { background: PURPLE, color: "#fff" } : { background: PURPLE + "14", color: PURPLE }}
+                style={on ? { background: ACCENT, color: "#fff" } : { background: ACCENT14, color: ACCENT }}
               >
                 {v === "calendar" ? "월간" : "리스트"}
               </button>
@@ -490,7 +508,7 @@ export default function SchedulePage() {
                   {month.year}년 {month.m}월
                   <ChevronDown
                     className="h-4 w-4 transition-transform"
-                    style={{ transform: showPicker ? "rotate(180deg)" : "rotate(0deg)", color: PURPLE }}
+                    style={{ transform: showPicker ? "rotate(180deg)" : "rotate(0deg)", color: ACCENT }}
                   />
                 </button>
                 <button onClick={nextMonth} className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted" aria-label="다음 달">

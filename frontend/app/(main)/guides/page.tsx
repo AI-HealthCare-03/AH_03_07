@@ -91,6 +91,13 @@ export default function GuidesPage() {
         </div>
       )}
 
+      {/* API 호출 자체 실패 (401 등) */}
+      {gen.isError && !jobId && (
+        <div className="mt-4 rounded-lg bg-muted/60 px-4 py-3 text-sm text-muted-foreground">
+          안내문 생성 요청에 실패했어요. 로그인 상태를 확인하거나 잠시 후 다시 시도해 주세요.
+        </div>
+      )}
+
       {/* 생성 실패 */}
       {jobData?.status === "FAILED" && (() => {
         const raw = jobData.error_message ?? "";
