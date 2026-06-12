@@ -4,8 +4,9 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 
 import {
-  Activity,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Download,
   Loader2,
   Newspaper,
@@ -45,13 +46,15 @@ export default function GuideDetailPage() {
   const [rating, setRating] = useState(0);
   const [sourcesOpen, setSourcesOpen] = useState(false);
 
-  // b06d67b: 카드뉴스/TTS + 👍👎 상태
   const [feedback, setFeedback] = useState<"up" | "down" | null>(null);
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [cardNewsLoading, setCardNewsLoading] = useState(false);
   const [ttsLoading, setTtsLoading] = useState(false);
   const [contentMessage, setContentMessage] = useState<{ text: string; ok: boolean } | null>(null);
   const [shareMessage, setShareMessage] = useState<string | null>(null);
+  const [cardNewsUrls, setCardNewsUrls] = useState<string[]>([]);
+  const [cardIndex, setCardIndex] = useState(0);
+  const [ttsUrl, setTtsUrl] = useState<string | null>(null);
 
   // HEAD: 별점 피드백
   async function handleStarFeedback(score: number) {
@@ -63,12 +66,14 @@ export default function GuideDetailPage() {
     }
   }
 
-  // b06d67b: 카드뉴스 생성
   async function handleCardNews() {
     setCardNewsLoading(true);
     setContentMessage(null);
     try {
-      await withTimeout(generateCardNews(id));
+      const res = await withTimeout(generateCardNews(id));
+      const urls = res?.file_urls ?? [];
+      setCardNewsUrls(urls);
+      setCardIndex(0);
       setContentMessage({ text: "카드뉴스 생성이 완료됐어요.", ok: true });
     } catch {
       setContentMessage({ text: "카드뉴스 생성에 실패했어요.", ok: false });
@@ -77,12 +82,12 @@ export default function GuideDetailPage() {
     }
   }
 
-  // b06d67b: TTS 변환
   async function handleTTS() {
     setTtsLoading(true);
     setContentMessage(null);
     try {
-      await withTimeout(generateTTS(id));
+      const res = await withTimeout(generateTTS(id));
+      setTtsUrl(res?.file_url ?? null);
       setContentMessage({ text: "음성 변환이 완료됐어요.", ok: true });
     } catch {
       setContentMessage({ text: "음성 변환에 실패했어요.", ok: false });
@@ -258,6 +263,70 @@ export default function GuideDetailPage() {
         <p className={`px-1 text-center text-xs ${contentMessage.ok ? "text-[#7C5CCF]" : "text-destructive"}`}>
           {contentMessage.text}
         </p>
+      )}
+
+      {/* 카드뉴스 슬라이더 */}
+      {cardNewsUrls.length > 0 && (
+        <Card className="overflow-hidden p-0">
+          <div className="relative">
+            <img
+              src={`http://localhost:8000${cardNewsUrls[cardIndex]}`}
+              alt={`카드뉴스 ${cardIndex + 1}`}
+              className="w-full object-contain"
+            />
+            {cardNewsUrls.length > 1 && (
+              <>
+                <button
+                  onClick={() => setCardIndex((i) => Math.max(0, i - 1))}
+                  disabled={cardIndex === 0}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-1.5 shadow disabled:opacity-30"
+                  aria-label="이전 카드"
+                >
+                  <ChevronLeft className="h-4 w-4 text-foreground" />
+                </button>
+                <button
+                  onClick={() => setCardIndex((i) => Math.min(cardNewsUrls.length - 1, i + 1))}
+                  disabled={cardIndex === cardNewsUrls.length - 1}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-1.5 shadow disabled:opacity-30"
+                  aria-label="다음 카드"
+                >
+                  <ChevronRight className="h-4 w-4 text-foreground" />
+                </button>
+              </>
+            )}
+          </div>
+          {cardNewsUrls.length > 1 && (
+            <div className="flex justify-center gap-1.5 py-3">
+              {cardNewsUrls.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCardIndex(i)}
+                  aria-label={`${i + 1}번 카드`}
+                  className={`h-2 rounded-full transition-all ${
+                    i === cardIndex ? "w-5 bg-[#7C5CCF]" : "w-2 bg-muted-foreground/30"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+          <p className="pb-3 text-center text-xs text-muted-foreground">
+            {cardIndex + 1} / {cardNewsUrls.length}
+          </p>
+        </Card>
+      )}
+
+      {/* TTS 오디오 플레이어 */}
+      {ttsUrl && (
+        <Card className="p-4">
+          <h2 className="mb-2 text-sm font-bold">음성 안내</h2>
+          <audio
+            controls
+            className="w-full"
+            src={`http://localhost:8000${ttsUrl}`}
+          >
+            브라우저가 오디오를 지원하지 않습니다.
+          </audio>
+        </Card>
       )}
 
       {/* b06d67b: PDF 저장 / 공유하기 */}
