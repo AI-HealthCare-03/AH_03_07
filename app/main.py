@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse, Response
+from fastapi.staticfiles import StaticFiles
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+import os
 
 import app.services.chat_guardrail_enhanced  # noqa: F401 — REQ-CHAT-004 pre_save signal 등록
 import app.services.content_advertisement_filter  # noqa: F401 — NFR-COMPLI-003 pre_save signal 등록
@@ -17,6 +19,11 @@ app = FastAPI(
 initialize_tortoise(app)
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(LatencyMiddleware)  # NFR-PERF-001: latency 측정
+
+# static 파일 서빙 추가
+os.makedirs("/app/static/cards", exist_ok=True)
+os.makedirs("/app/static/audio", exist_ok=True)
+app.mount("/static", StaticFiles(directory="/app/static"), name="static")
 
 
 @app.get("/metrics", include_in_schema=False)

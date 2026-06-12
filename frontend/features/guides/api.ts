@@ -68,15 +68,23 @@ export async function feedbackGuide(
   });
 }
 
-export async function generateCardNews(guideId: number): Promise<void> {
-  await apiFetch("/v1/contents/card-news", {
+export interface ContentConversionResponse {
+  file_urls: string[];
+}
+
+export interface TTSResponse {
+  file_url: string;
+}
+
+export async function generateCardNews(guideId: number): Promise<ContentConversionResponse> {
+  return apiFetch<ContentConversionResponse>("/v1/contents/card-news", {
     method: "POST",
     body: { guide_id: guideId },
   });
 }
 
-export async function generateTTS(guideId: number): Promise<void> {
-  await apiFetch("/v1/contents/tts", {
+export async function generateTTS(guideId: number): Promise<TTSResponse> {
+  return apiFetch<TTSResponse>("/v1/contents/tts", {
     method: "POST",
     body: { guide_id: guideId },
   });
