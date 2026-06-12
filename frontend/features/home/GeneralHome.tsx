@@ -65,7 +65,7 @@ export default function GeneralHome({ name, medications, recentMetrics }: Genera
         </SectionCard>
 
         {/* 약품 카메라 빠른 진입 */}
-        <Link href="/documents">
+        <Link href="/pills">
           <SectionCard>
             <div className="flex items-center gap-3">
               <Camera className="h-5 w-5 text-primary" />
@@ -73,6 +73,14 @@ export default function GeneralHome({ name, medications, recentMetrics }: Genera
               <ArrowRight className="h-4 w-4 text-primary" />
             </div>
           </SectionCard>
+        </Link>
+
+        {/* SOS 응급 버튼 */}
+        <Link href="/emergency">
+          <div className="flex items-center justify-center gap-3 rounded-2xl bg-red-500 px-5 py-4 text-white shadow-md active:bg-red-600">
+            <span className="text-lg font-bold">🚨 SOS 응급</span>
+            <ArrowRight className="h-5 w-5" />
+          </div>
         </Link>
       </div>
     </main>
