@@ -27,3 +27,6 @@ class Config(BaseSettings):
     CELERY_WORKER_CONCURRENCY: int = 2
 
     MEDIA_DIR: str = "media"
+
+    CLOVA_OCR_API_URL: str = ""
+    CLOVA_OCR_SECRET_KEY: str = ""
