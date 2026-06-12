@@ -114,7 +114,14 @@ async def _process_ocr_async(document_id: int) -> None:
         ocr_job.field_confidences = field_confidences_json
         ocr_job.structured_data = structured_data_json
         await ocr_job.save(
-            update_fields=["status", "completed_at", "raw_text", "confidence_score", "field_confidences", "structured_data"]
+            update_fields=[
+                "status",
+                "completed_at",
+                "raw_text",
+                "confidence_score",
+                "field_confidences",
+                "structured_data",
+            ]
         )
         logger.info(f'{{"event": "ocr_task_done", "document_id": {document_id}, "job_id": {ocr_job.id}}}')
 
