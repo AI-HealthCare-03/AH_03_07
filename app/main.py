@@ -1,8 +1,9 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-import os
 
 import app.services.chat_guardrail_enhanced  # noqa: F401 — REQ-CHAT-004 pre_save signal 등록
 import app.services.content_advertisement_filter  # noqa: F401 — NFR-COMPLI-003 pre_save signal 등록
