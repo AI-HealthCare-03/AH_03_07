@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { getMode } from "@/features/auth/mode";
 import RecordsIcon from "@/components/icons/nav/RecordsIcon";
-import SearchIcon from "@/components/icons/nav/SearchIcon";
+import ChatIcon from "@/components/icons/nav/ChatIcon";
 import HomeIcon from "@/components/icons/nav/HomeIcon";
 import BellIcon from "@/components/icons/nav/BellIcon";
 import MyIcon from "@/components/icons/nav/MyIcon";
@@ -15,7 +15,7 @@ const PURPLE = "#7C5CCF";
 
 const tabs = [
   { href: "/lab-results/list", label: "기록", icon: RecordsIcon },
-  { href: "/search", label: "검색", icon: SearchIcon },
+  { href: "/chat", label: "챗봇", icon: ChatIcon },
   { href: "/home", label: "홈", icon: HomeIcon },
   { href: "/notifications", label: "알림", icon: BellIcon },
   { href: "/mypage", label: "마이", icon: MyIcon },
