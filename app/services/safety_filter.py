@@ -87,8 +87,13 @@ def apply_safety_filter(text: str) -> SafetyFilterResult:
     return SafetyFilterResult(is_blocked=False, filtered_text=text)
 
 
-def log_block_event(user_id: int, section: str, matched_patterns: list[str]) -> None:
-    """(e) 차단 이력 감사 로그 (NFR-COMPLI-004)."""
+async def log_block_event(
+    user_id: int,
+    section: str,
+    matched_patterns: list[str],
+    original_text: str = "",
+) -> None:
+    """(e) 차단 이력 감사 로그 (NFR-COMPLI-004) — logger + DB 이중 기록."""
     logger.warning(
         json.dumps(
             {
@@ -98,4 +103,15 @@ def log_block_event(user_id: int, section: str, matched_patterns: list[str]) -> 
                 "matched_patterns": matched_patterns,
             }
         )
+    )
+    from app.models.safety_filter_log import SafetyFilterLog
+
+    await SafetyFilterLog.create(
+        user_id=user_id,
+        target_type="guide",
+        target_id=section,
+        blocked_reason=",".join(matched_patterns)[:100],
+        original_text=original_text,
+        safe_replacement_text=STANDARD_REPLACEMENT,
+        filter_stage="guide_generator",
     )

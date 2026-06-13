@@ -185,6 +185,7 @@ async def test_forbidden_expression_in_llm_output_is_replaced():
         patch("app.guide_generator.service.search_knowledge", AsyncMock(return_value=[])),
         patch("app.guide_generator.service.AsyncOpenAI") as mock_openai_cls,
         patch("app.guide_generator.service.HealthGuide.create", _mock_health_guide_create()),
+        patch("app.guide_generator.service.log_block_event", AsyncMock()),
     ):
         mock_openai_cls.return_value.chat.completions.create = AsyncMock(return_value=_mock_completion(bad_json))
         result = await generate_guide(_make_input())
