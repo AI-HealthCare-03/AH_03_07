@@ -95,6 +95,12 @@ def _build_user_context(guide_input: HealthGuideInput) -> str:
         lines.append(f"검사 요약(의료진 공유용): {guide_input.lab_results_summary}")
     if guide_input.pregnancy_lactation_codes:
         lines.append(f"임신·수유 상태: {', '.join(guide_input.pregnancy_lactation_codes)}")
+    if guide_input.risk_factor_summary:
+        lines.append(f"위험요인 요약(의료진 공유용): {guide_input.risk_factor_summary}")
+    if guide_input.upcoming_appointments:
+        lines.append(f"예정 진료·검사: {'; '.join(guide_input.upcoming_appointments)}")
+    if guide_input.vaccine_infection_prevention:
+        lines.append(f"백신·감염예방 정보: {guide_input.vaccine_infection_prevention}")
     return "\n".join(lines)
 
 
@@ -140,7 +146,7 @@ def _build_sources(chunks: list[KnowledgeChunk]) -> list[SourceItem]:
     return sources
 
 
-def _apply_filters(sections: dict, user_id: int) -> dict:
+async def _apply_filters(sections: dict, user_id: int) -> dict:
     filtered: dict = {}
     for key, value in sections.items():
         if key == "side_effect_monitoring":
@@ -148,7 +154,7 @@ def _apply_filters(sections: dict, user_id: int) -> dict:
             for item in value:
                 r = apply_safety_filter(str(item))
                 if r.is_blocked:
-                    log_block_event(user_id, key, r.matched_patterns)
+                    await log_block_event(user_id, key, r.matched_patterns, str(item))
                     result_list.append(STANDARD_REPLACEMENT)
                 else:
                     result_list.append(item)
@@ -156,7 +162,7 @@ def _apply_filters(sections: dict, user_id: int) -> dict:
         else:
             r = apply_safety_filter(str(value))
             if r.is_blocked:
-                log_block_event(user_id, key, r.matched_patterns)
+                await log_block_event(user_id, key, r.matched_patterns, str(value))
                 filtered[key] = STANDARD_REPLACEMENT
             else:
                 filtered[key] = value
@@ -260,7 +266,7 @@ async def generate_guide(guide_input: HealthGuideInput) -> HealthGuideOutput:
     sources = _build_sources(chunks)
 
     # Step 7: NFR-SAFE-003 다단계 필터 적용
-    filtered = _apply_filters(sections, guide_input.user_id)
+    filtered = await _apply_filters(sections, guide_input.user_id)
 
     # Step 8: HealthGuide 저장
     guide = await HealthGuide.create(
