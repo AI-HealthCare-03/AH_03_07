@@ -99,17 +99,17 @@ def test_message_and_disclaimer_contain_no_eval_expressions():
 
 
 def test_all_red_flag_codes_trigger_modal():
-    red_flag_codes = ["DYSPNEA", "ALTERED_CONSCIOUSNESS", "JAUNDICE", "ABNORMAL_BLEEDING", "CHEST_PAIN"]
+    red_flag_codes = ["DYSPNEA", "ALTERED_CONSCIOUSNESS", "JAUNDICE", "SEVERE_BLEEDING", "CHEST_PAIN"]
     for code in red_flag_codes:
         result = evaluate_highrisk_gate(_make_input(checked_symptom_codes=[code]))
         assert result.trigger_emergency_modal is True, f"{code} should trigger modal"
 
 
 def test_matched_item_fields_populated():
-    result = evaluate_highrisk_gate(_make_input(checked_symptom_codes=["ORAL_ULCER"]))
+    result = evaluate_highrisk_gate(_make_input(checked_symptom_codes=["MOUTH_SORES"]))
     assert len(result.matched_items) == 1
     item = result.matched_items[0]
-    assert item.code == "ORAL_ULCER"
+    assert item.code == "MOUTH_SORES"
     assert item.label == "입안 헐음·구내염"
     assert item.category == "SYMPTOM_CHECK"
     assert item.red_flag is False
