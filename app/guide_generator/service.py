@@ -4,6 +4,7 @@
 """
 
 import json
+import re
 
 from openai import AsyncOpenAI
 
@@ -14,6 +15,7 @@ from app.guide_generator.schema import GuideStatus, HealthGuideInput, HealthGuid
 from app.models.health_guide import HealthGuide
 from app.services.knowledge_search import search_knowledge
 from app.services.safety_filter import (
+    SAFE_REPLACEMENTS,
     STANDARD_REPLACEMENT,
     apply_safety_filter,
     log_block_event,
@@ -146,16 +148,38 @@ def _build_sources(chunks: list[KnowledgeChunk]) -> list[SourceItem]:
     return sources
 
 
+def _log_long_sentences(sections: dict, user_id: int) -> None:
+    """[E] LLM 원문 기준 30자 초과 문장 soft 로깅 — 생성을 막지 않음."""
+    over_count = 0
+    for key, value in sections.items():
+        texts: list[str] = value if key == "side_effect_monitoring" else [str(value)]
+        for text in texts:
+            for sentence in re.split(r"[.!?。]", text):
+                if len(sentence.strip()) > 30:
+                    over_count += 1
+    if over_count:
+        logger.info(
+            json.dumps(
+                {
+                    "event": "guide_long_sentences",
+                    "user_id": user_id,
+                    "over_30_char_count": over_count,
+                }
+            )
+        )
+
+
 async def _apply_filters(sections: dict, user_id: int) -> dict:
     filtered: dict = {}
     for key, value in sections.items():
+        replacement = SAFE_REPLACEMENTS.get(key, STANDARD_REPLACEMENT)
         if key == "side_effect_monitoring":
             result_list: list[str] = []
             for item in value:
                 r = apply_safety_filter(str(item))
                 if r.is_blocked:
                     await log_block_event(user_id, key, r.matched_patterns, str(item))
-                    result_list.append(STANDARD_REPLACEMENT)
+                    result_list.append(replacement)
                 else:
                     result_list.append(item)
             filtered[key] = result_list
@@ -163,7 +187,7 @@ async def _apply_filters(sections: dict, user_id: int) -> dict:
             r = apply_safety_filter(str(value))
             if r.is_blocked:
                 await log_block_event(user_id, key, r.matched_patterns, str(value))
-                filtered[key] = STANDARD_REPLACEMENT
+                filtered[key] = replacement
             else:
                 filtered[key] = value
     return filtered
@@ -261,6 +285,9 @@ async def generate_guide(guide_input: HealthGuideInput) -> HealthGuideOutput:
             disclaimer=_DISCLAIMER,
             created_at=guide.created_at,
         )
+
+    # [E] 30자 초과 문장 soft 로깅 — LLM 원문 기준, 생성 차단 없음
+    _log_long_sentences(sections, guide_input.user_id)
 
     # Step 6: 출처 메타데이터 첨부 (REQ-KB-003 재사용)
     sources = _build_sources(chunks)
