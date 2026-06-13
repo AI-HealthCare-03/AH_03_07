@@ -9,7 +9,6 @@ import { TimePicker } from "@/components/ui/TimePicker";
 import {
   getNotificationSettings,
   updateNotificationSettings,
-  type NotificationSettings,
 } from "@/features/notifications/api";
 import { useMedications } from "@/features/medication/queries";
 import { DRUG_CLASS_LABEL } from "@/features/medication/schema";

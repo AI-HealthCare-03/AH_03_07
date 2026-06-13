@@ -198,7 +198,7 @@ export default function SchedulePage() {
   const [cursor, setCursor] = useState({ year: now.getFullYear(), month: now.getMonth() });
   const [selected, setSelected] = useState<string | null>(null);
   const [events, setEvents] = useState<MedicalScheduleResponse[]>([]);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [refreshKey] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [careForm, setCareForm] = useState({
