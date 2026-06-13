@@ -12,6 +12,8 @@ import {
 } from "@/features/lab-results/api";
 import { getMode, type UserMode } from "@/features/auth/mode";
 
+const PURPLE = "#7C5CCF";
+
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
 function pad(n: number) {
@@ -138,9 +140,10 @@ export default function LabResultsListPage() {
               onClick={() => setPeriod(p)}
               className={
                 active
-                  ? "rounded-full px-3 py-1 text-sm font-semibold transition bg-primary text-primary-foreground"
+                  ? "rounded-full px-3 py-1 text-sm font-semibold transition text-primary-foreground"
                   : "rounded-full px-3 py-1 text-sm font-semibold transition text-muted-foreground border border-border"
               }
+              style={active ? { backgroundColor: PURPLE } : undefined}
             >
               {label}
             </button>
@@ -170,7 +173,7 @@ export default function LabResultsListPage() {
             <Card key={r.id} className="p-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
-                  <FlaskConical className="h-4 w-4 text-primary" />
+                  <FlaskConical className="h-4 w-4" style={{ color: PURPLE }} />
                   <div>
                     <p className="font-bold">{r.test_type}</p>
                   </div>
@@ -232,7 +235,8 @@ export default function LabResultsListPage() {
             type="button"
             onClick={() => router.push("/lab-results")}
             aria-label="검사 결과 추가"
-            className="pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg"
+            className="pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full text-primary-foreground shadow-lg"
+            style={{ backgroundColor: PURPLE }}
           >
             <Plus className="h-6 w-6" />
           </button>
@@ -311,7 +315,8 @@ export default function LabResultsListPage() {
                 type="button"
                 onClick={handleEditSave}
                 disabled={editSaving || !edit.test_type.trim() || !edit.user_recorded_value.trim()}
-                className="flex-1 rounded-xl py-3 font-bold bg-primary text-primary-foreground disabled:opacity-50"
+                className="flex-1 rounded-xl py-3 font-bold text-primary-foreground disabled:opacity-50"
+                style={{ backgroundColor: PURPLE }}
               >
                 {editSaving ? "저장 중..." : "수정"}
               </button>
