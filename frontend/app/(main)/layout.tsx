@@ -13,14 +13,6 @@ import MyIcon from "@/components/icons/nav/MyIcon";
 
 const PURPLE = "#7C5CCF";
 
-const tabs = [
-  { href: "/lab-results/list", label: "기록", icon: RecordsIcon },
-  { href: "/chat", label: "챗봇", icon: ChatIcon },
-  { href: "/home", label: "홈", icon: HomeIcon },
-  { href: "/notifications", label: "알림", icon: BellIcon },
-  { href: "/mypage", label: "마이", icon: MyIcon },
-];
-
 const HIDE_NAV_PATHS = [
   "/documents/ocr-review", "/notifications/settings", "/health-metrics",
   "/diary", "/emergency", "/pharmacy", "/guardian", "/schedule",
@@ -38,6 +30,14 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   const activeColor = isAuto ? PURPLE : "hsl(var(--primary))";
   const hideNav = HIDE_NAV_PATHS.some((p) => pathname.startsWith(p));
+
+  const tabs = [
+    { href: isAuto ? "/lab-results/list" : "/records", label: "기록", icon: RecordsIcon },
+    { href: "/chat", label: "챗봇", icon: ChatIcon },
+    { href: "/home", label: "홈", icon: HomeIcon },
+    { href: "/notifications", label: "알림", icon: BellIcon },
+    { href: "/mypage", label: "마이", icon: MyIcon },
+  ];
 
   return (
     <div className={cn("min-h-screen bg-background", !hideNav && "pb-16")}>
