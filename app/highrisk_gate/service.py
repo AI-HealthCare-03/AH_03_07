@@ -25,19 +25,14 @@ _MSG_LOCKED_EMERGENCY = (
     "즉시 담당 의료진 또는 응급실에 연락하시기 바랍니다."
 )
 _MSG_NEEDS_RECHECK = (
-    "이전 증상 체크 기록이 오래되어 재확인이 필요합니다. "
-    "자동 안내문 생성이 보류됩니다. 증상 체크를 다시 진행해 주세요."
+    "이전 증상 체크 기록이 오래되어 재확인이 필요합니다. 자동 안내문 생성이 보류됩니다. 증상 체크를 다시 진행해 주세요."
 )
 
 
 def evaluate_highrisk_gate(gate_input: HighRiskGateInput) -> HighRiskGateResult:
     # stale/active 소스 분리 — stale 체크 코드는 별도 집합으로 관리
-    stale_codes: set[str] = (
-        set(gate_input.checked_symptom_codes) if gate_input.checked_symptoms_is_stale else set()
-    )
-    active_checked: set[str] = (
-        set() if gate_input.checked_symptoms_is_stale else set(gate_input.checked_symptom_codes)
-    )
+    stale_codes: set[str] = set(gate_input.checked_symptom_codes) if gate_input.checked_symptoms_is_stale else set()
+    active_checked: set[str] = set() if gate_input.checked_symptoms_is_stale else set(gate_input.checked_symptom_codes)
     active_codes: set[str] = active_checked | set(gate_input.self_report_codes) | set(gate_input.pregnancy_status_codes)
     if gate_input.lab_threshold_exceeded:
         active_codes.add("LAB_THRESHOLD_EXCEEDED")
