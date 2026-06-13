@@ -166,7 +166,7 @@ export default function MedicationDetailPage() {
       {/* 헤더 */}
       <div className="flex items-center gap-2">
         <button
-          onClick={() => router.push("/medication")}
+          onClick={() => router.back()}
           className="rounded-full p-1 hover:bg-accent"
           aria-label="뒤로가기"
         >
