@@ -59,7 +59,12 @@ export default function GuidesPage() {
     <main className="mx-auto w-full max-w-md px-5 pt-10">
       {/* 헤더 + 생성 버튼 */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">맞춤 안내문</h1>
+        <div className="flex items-center gap-2">
+          <button onClick={() => router.back()} className="flex items-center justify-center rounded-full p-1.5 hover:bg-muted text-lg font-semibold" aria-label="뒤로가기">
+            &lt;
+          </button>
+          <h1 className="text-2xl font-bold">맞춤 안내문</h1>
+        </div>
         {isAutoimmune && (
           <Button
             onClick={handleGenerate}

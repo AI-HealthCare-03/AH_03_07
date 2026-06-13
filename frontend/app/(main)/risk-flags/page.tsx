@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ClipboardCheck } from "lucide-react";
 import {
   listRiskFlags,
@@ -29,6 +30,7 @@ function formatDate(iso: string): string {
 }
 
 export default function RiskFlagsPage() {
+  const router = useRouter();
   const [tab, setTab] = useState<RiskFlagStatus>("ACTIVE");
   const [flags, setFlags] = useState<RiskFlagItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -53,6 +55,11 @@ export default function RiskFlagsPage() {
 
   return (
     <main className="mx-auto w-full max-w-md px-5 pb-28 pt-8">
+      <div className="flex items-center gap-2 mb-2">
+        <button onClick={() => router.back()} className="flex items-center justify-center rounded-full p-1.5 hover:bg-muted text-lg font-semibold" aria-label="뒤로가기">
+          &lt;
+        </button>
+      </div>
       <h1 className="text-3xl font-extrabold leading-tight">의료진 확인이<br />필요한 신호</h1>
       <p className="mt-2 text-sm text-muted-foreground">의료진 확인이 권고되는 신호 모음</p>
 

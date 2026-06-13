@@ -47,7 +47,12 @@ export default function MedicationAlarmPage() {
 
   return (
     <main className="mx-auto w-full max-w-md px-5 py-8 pb-28">
-      <h1 className="text-2xl font-bold">복약 알림 설정</h1>
+      <div className="flex items-center gap-2 mb-4">
+        <button onClick={() => router.back()} className="flex items-center justify-center rounded-full p-1.5 hover:bg-muted text-lg font-semibold" aria-label="뒤로가기">
+          &lt;
+        </button>
+        <h1 className="text-2xl font-bold">복약 알림 설정</h1>
+      </div>
 
       {/* 약품 헤더 */}
       <Card className="mt-5 flex items-center gap-3 p-4">

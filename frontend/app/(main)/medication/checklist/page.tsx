@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Camera, Check, Clock } from "lucide-react";
+import { Camera, Check, Clock } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import {
   getMedicationLogs,
@@ -197,10 +197,10 @@ export default function ChecklistPage() {
       <div className="flex items-center gap-2">
         <button
           onClick={() => router.push("/medication")}
-          className="flex items-center justify-center rounded-full p-1.5 hover:bg-muted"
+          className="flex items-center justify-center rounded-full p-1.5 hover:bg-muted text-lg font-semibold"
           aria-label="뒤로가기"
         >
-          <ArrowLeft className="h-5 w-5" />
+          &lt;
         </button>
         <h1 className="flex-1 text-xl font-bold">복약 체크리스트</h1>
         <button

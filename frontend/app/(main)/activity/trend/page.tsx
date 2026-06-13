@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
 import {
   ComposedChart,
   Line,
@@ -119,8 +118,8 @@ export default function ActivityTrendPage() {
     <main className="mx-auto w-full max-w-md px-5 pb-28 pt-6">
       {/* 헤더 */}
       <div className="flex items-center gap-6">
-        <button onClick={() => router.back()} aria-label="뒤로가기">
-          <ChevronLeft className="h-6 w-6" />
+        <button onClick={() => router.back()} className="flex items-center justify-center rounded-full p-1.5 hover:bg-muted text-lg font-semibold" aria-label="뒤로가기">
+          &lt;
         </button>
         <h1 className="text-xl font-bold">활성도 추이</h1>
       </div>
