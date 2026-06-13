@@ -190,7 +190,7 @@ async def test_forbidden_expression_in_llm_output_is_replaced():
         mock_openai_cls.return_value.chat.completions.create = AsyncMock(return_value=_mock_completion(bad_json))
         result = await generate_guide(_make_input())
 
-    assert result.medication_general == "담당 의료진과 상담하시기 바랍니다."
+    assert result.medication_general == "약물 관련 변경은 담당 의료진과 상담하세요."
     assert result.status == GuideStatus.GENERATED
 
 
