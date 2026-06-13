@@ -1,11 +1,12 @@
 ﻿"use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, Plus, Trash2, FileText, ChevronDown, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useRecords, useDeleteRecord } from "@/features/medical-records/queries";
+import { getMode } from "@/features/auth/mode";
 
 const PAGE_SIZE = 10;
 
@@ -20,6 +21,9 @@ export default function RecordsPage() {
   const router = useRouter();
   const { data: records = [], isLoading } = useRecords();
   const del = useDeleteRecord();
+  const [isAuto, setIsAuto] = useState(false);
+
+  useEffect(() => { setIsAuto(getMode() === "autoimmune"); }, []);
 
   const [sort, setSort] = useState<"newest" | "oldest">("newest");
   const [filterHospital, setFilterHospital] = useState("");
@@ -103,7 +107,7 @@ export default function RecordsPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-semibold">{r.hospital_name || "병원"}</p>
                       {r.department && <span className="text-xs text-muted-foreground">{r.department}</span>}
-                      {isAutoimmuneDx(r.diagnosis) && (
+                      {isAuto && isAutoimmuneDx(r.diagnosis) && (
                         <span className="rounded-full bg-[#EDE7FB] px-2 py-0.5 text-[10px] font-bold text-[#7C5CCF]">자가면역</span>
                       )}
                     </div>
