@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { getMe, updateMe } from "@/features/auth/api";
 
 const CHRONIC_OPTIONS = ["당뇨", "고혈압", "고지혈증", "심혈관 질환", "갑상선 질환", "기타"];

@@ -168,7 +168,6 @@ export default function HealthMetricsPage() {
   async function save() {
     const v = val.trim();
     if (!v) return;
-    const formatted = formatSaveValue(v);
     setSaving(true);
     try {
       const valueToSend = tab === "BLOOD_PRESSURE" ? v.split("/")[0] : v;
