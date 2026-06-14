@@ -26,7 +26,7 @@ export interface UserProfile {
   email: string;
   name: string;
   gender?: Gender;
-  birth_date?: string;
+  birthday?: string;
   phone_number?: string;
   height?: number;
   weight?: number;

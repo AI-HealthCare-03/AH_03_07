@@ -23,7 +23,7 @@ async function fetchMedications(): Promise<MedicationDetail[]> {
 }
 
 export function useMedications() {
-  return useQuery({ queryKey: medicationKeys.all, queryFn: fetchMedications });
+  return useQuery({ queryKey: medicationKeys.all, queryFn: fetchMedications, refetchOnMount: "always" });
 }
 
 export function useCreateMedication() {
