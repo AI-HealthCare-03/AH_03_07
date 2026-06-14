@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -180,8 +180,8 @@ export default function LupusPage() {
   return (
     <main className="mx-auto w-full max-w-md px-5 pb-32 pt-6">
       <div className="flex items-center gap-2">
-        <button onClick={() => router.back()} aria-label="뒤로가기">
-          <ChevronLeft className="h-6 w-6" />
+        <button onClick={() => router.back()} className="rounded-full p-1 hover:bg-accent" aria-label="뒤로가기">
+          <ChevronLeft className="h-5 w-5" />
         </button>
         <h1 className="text-xl font-bold">루푸스 기록</h1>
       </div>

@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ClipboardCheck } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ChevronLeft, ClipboardCheck } from "lucide-react";
 import {
   listRiskFlags,
   updateRiskFlagStatus,
@@ -30,6 +31,7 @@ function formatDate(iso: string): string {
 }
 
 export default function RiskFlagsPage() {
+  const router = useRouter();
   const [tab, setTab] = useState<RiskFlagStatus>("ACTIVE");
   const [flags, setFlags] = useState<RiskFlagItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -63,6 +65,11 @@ export default function RiskFlagsPage() {
 
   return (
     <main className="mx-auto w-full max-w-md px-5 pb-28 pt-8">
+      <div className="flex items-center gap-2 mb-2">
+        <button onClick={() => router.back()} className="rounded-full p-1 hover:bg-accent" aria-label="뒤로가기">
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+      </div>
       <h1 className="text-3xl font-extrabold leading-tight">의료진 확인이<br />필요한 신호</h1>
       <p className="mt-2 text-sm text-muted-foreground">의료진 확인이 권고되는 신호 모음</p>
 

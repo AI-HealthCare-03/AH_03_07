@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Camera, Pill, Search, X } from "lucide-react";
+import { ChevronLeft, Camera, Pill, Search, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import {
   recognizePill,
@@ -127,10 +127,10 @@ export default function PillsRecognizePage() {
       <div className="flex items-center gap-2 px-5 pt-8">
         <button
           onClick={() => router.push("/home")}
-          className="flex items-center justify-center rounded-full p-1.5 hover:bg-muted"
+          className="rounded-full p-1 hover:bg-accent"
           aria-label="뒤로가기"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ChevronLeft className="h-5 w-5" />
         </button>
         <h1 className="text-xl font-bold">약품 카메라 인식</h1>
       </div>

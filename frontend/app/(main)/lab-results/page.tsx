@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -108,8 +108,8 @@ export default function LabResultsPage() {
     <main className="mx-auto min-h-screen w-full max-w-md px-5 py-8">
       {/* 헤더 */}
       <div className="flex items-center gap-3">
-        <button type="button" onClick={() => router.back()} aria-label="뒤로가기">
-          <ChevronLeft className="h-6 w-6" />
+        <button type="button" onClick={() => router.back()} className="rounded-full p-1 hover:bg-accent" aria-label="뒤로가기">
+          <ChevronLeft className="h-5 w-5" />
         </button>
         <h1 className="text-2xl font-bold">검사 결과 입력</h1>
       </div>

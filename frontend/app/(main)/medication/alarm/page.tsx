@@ -1,8 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Pill, Check, ChevronDown } from "lucide-react";
+import { ChevronLeft, Pill, Check, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useMedications } from "@/features/medication/queries";
@@ -47,7 +47,12 @@ export default function MedicationAlarmPage() {
 
   return (
     <main className="mx-auto w-full max-w-md px-5 py-8 pb-28">
-      <h1 className="text-2xl font-bold">복약 알림 설정</h1>
+      <div className="flex items-center gap-2 mb-4">
+        <button onClick={() => router.back()} className="rounded-full p-1 hover:bg-accent" aria-label="뒤로가기">
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <h1 className="text-2xl font-bold">복약 알림 설정</h1>
+      </div>
 
       {/* 약품 헤더 */}
       <Card className="mt-5 flex items-center gap-3 p-4">

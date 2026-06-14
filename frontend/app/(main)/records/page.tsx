@@ -1,17 +1,30 @@
-"use client";
+﻿"use client";
 
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { Plus, Trash2, FileText, ChevronDown, ChevronRight, Pill } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ChevronLeft, Plus, Trash2, FileText, ChevronDown, ChevronRight, Pill } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useRecords, useDeleteRecord } from "@/features/medical-records/queries";
+import { getMode } from "@/features/auth/mode";
 import { getDocuments, MedicalDocument } from "@/features/documents/api";
 
 const PAGE_SIZE = 10;
 
+const AUTOIMMUNE_KEYWORDS = ["류마티스", "루푸스", "강직성척추염", "쇼그렌", "자가면역", "전신홍반", "크론", "베체트"];
+
+function isAutoimmuneDx(diagnosis?: string): boolean {
+  if (!diagnosis) return false;
+  return AUTOIMMUNE_KEYWORDS.some((k) => diagnosis.includes(k));
+}
+
 export default function RecordsPage() {
+  const router = useRouter();
   const { data: records = [], isLoading } = useRecords();
   const del = useDeleteRecord();
+  const [isAuto, setIsAuto] = useState(false);
+
+  useEffect(() => { setIsAuto(getMode() === "autoimmune"); }, []);
 
   const [ocrDocs, setOcrDocs] = useState<MedicalDocument[]>([]);
   const [ocrLoading, setOcrLoading] = useState(true);
@@ -60,8 +73,11 @@ export default function RecordsPage() {
 
   return (
     <main className="mx-auto w-full max-w-md px-5 pb-10 pt-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">진료기록</h1>
+      <div className="flex items-center gap-2">
+        <button onClick={() => router.back()} className="rounded-full p-1 hover:bg-accent" aria-label="뒤로가기">
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <h1 className="flex-1 text-2xl font-bold">진료기록</h1>
         <Link href="/records/new" className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground" aria-label="진료기록 추가">
           <Plus className="h-5 w-5" />
         </Link>
@@ -105,9 +121,12 @@ export default function RecordsPage() {
               <Card key={r.id} className="p-4">
                 <div className="flex items-start justify-between">
                   <Link href={`/records/${r.id}`} className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-semibold">{r.hospital_name || "병원"}</p>
                       {r.department && <span className="text-xs text-muted-foreground">{r.department}</span>}
+                      {isAuto && isAutoimmuneDx(r.diagnosis) && (
+                        <span className="rounded-full bg-[#EDE7FB] px-2 py-0.5 text-[10px] font-bold text-[#7C5CCF]">자가면역</span>
+                      )}
                     </div>
                     {r.diagnosis && <p className="mt-1 text-sm">{r.diagnosis}</p>}
                     <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">

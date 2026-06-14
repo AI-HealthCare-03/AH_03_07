@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
-import { Activity, ChevronLeft } from "lucide-react";
+import { ChevronLeft, Activity } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -41,32 +41,12 @@ interface TabData {
   history: { date: string; value: string; status: string }[];
 }
 
-const FALLBACK_DATA: Record<Tab, TabData> = {
-  BLOOD_PRESSURE: {
-    latest: "128/82",
-    unit: "mmHg",
-    status: "정상",
-    trend: [120, 124, 119, 138, 130, 133, 128],
-    history: [
-      { date: "05.20 (화)", value: "128/82", status: "정상" },
-      { date: "05.19 (월)", value: "135/88", status: "주의" },
-      { date: "05.18 (일)", value: "126/80", status: "정상" },
-    ],
-  },
-  BLOOD_SUGAR: {
-    latest: "98",
-    unit: "mg/dL",
-    status: "정상",
-    trend: [95, 102, 98, 110, 100, 97, 98],
-    history: [{ date: "05.20 (화)", value: "98", status: "정상" }],
-  },
-  WEIGHT: {
-    latest: "75.0",
-    unit: "kg",
-    status: "정상",
-    trend: [76, 75.5, 75.2, 75, 74.8, 75, 75],
-    history: [{ date: "05.20 (화)", value: "75.0", status: "정상" }],
-  },
+const EMPTY_TAB_DATA: TabData = { latest: "-", unit: "", status: "-", trend: [], history: [] };
+
+const EMPTY_DATA: Record<Tab, TabData> = {
+  BLOOD_PRESSURE: { ...EMPTY_TAB_DATA, unit: "mmHg" },
+  BLOOD_SUGAR:    { ...EMPTY_TAB_DATA, unit: "mg/dL" },
+  WEIGHT:         { ...EMPTY_TAB_DATA, unit: "kg" },
 };
 
 const DAY_KO = ["일", "월", "화", "수", "목", "금", "토"];
@@ -173,9 +153,17 @@ export default function HealthMetricsPage() {
     ? (filteredMetrics.length
         ? toTabData(filteredMetrics, TAB_UNIT[tab])
         : { latest: "-", unit: TAB_UNIT[tab], status: "-", trend: [], history: [] })
-    : FALLBACK_DATA[tab];
+    : EMPTY_DATA[tab];
 
   const periodLabel = PERIODS.find((p) => p.key === period)?.label ?? "";
+
+  function formatSaveValue(raw: string): string {
+    if (tab !== "WEIGHT") return raw;
+    // 77 → 77.0 / 75. → 75.0 / 75.5 → 75.5
+    if (!raw.includes(".")) return raw + ".0";
+    const [int, dec] = raw.split(".");
+    return `${int}.${dec || "0"}`;
+  }
 
   async function save() {
     const v = val.trim();
@@ -183,11 +171,11 @@ export default function HealthMetricsPage() {
     setSaving(true);
     try {
       const valueToSend = tab === "BLOOD_PRESSURE" ? v.split("/")[0] : v;
-  await createHealthMetric({
-    metric_type: tab,
-    user_recorded_value: valueToSend,
-    measured_at: new Date().toISOString()
-  });
+      await createHealthMetric({
+        metric_type: tab,
+        user_recorded_value: valueToSend,
+        measured_at: new Date().toISOString(),
+      });
       setAllMetrics((prev) => [
         { metric_type: tab, user_recorded_value: v, measured_at: new Date().toISOString(), status: "정상" },
         ...prev,
@@ -202,8 +190,8 @@ export default function HealthMetricsPage() {
   return (
     <main className="mx-auto w-full max-w-md px-5 py-8 pb-28">
       <div className="flex items-center gap-2">
-        <button onClick={() => router.push("/home")} className="rounded-full p-1 text-foreground hover:bg-muted">
-          <ChevronLeft className="h-6 w-6" />
+        <button onClick={() => router.back()} className="rounded-full p-1 hover:bg-accent" aria-label="뒤로가기">
+          <ChevronLeft className="h-5 w-5" />
         </button>
         <h1 className="text-2xl font-bold">건강 수치</h1>
       </div>

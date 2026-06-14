@@ -1,9 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { getMode } from "@/features/auth/mode";
 import {
-  ArrowLeft,
   CalendarDays,
   ChevronDown,
   ChevronLeft,
@@ -25,6 +25,9 @@ import {
   type MedicalScheduleResponse,
   type MedicalScheduleType,
 } from "@/features/care-schedule/api";
+import {
+  getLocalCareSchedules, addLocalCareSchedule, updateLocalCareSchedule, deleteLocalCareSchedule,
+} from "@/features/schedule/local";
 
 const PURPLE = "#7C5CCF";
 
@@ -108,12 +111,21 @@ function EventCard({
 export default function SchedulePage() {
   const router = useRouter();
   const now = new Date();
+  const [mode, setMode] = useState<"general" | "autoimmune">("general");
+  const ACCENT   = mode === "autoimmune" ? PURPLE : "hsl(var(--primary))";
+  const ACCENT14 = mode === "autoimmune" ? PURPLE + "14" : "hsl(var(--primary) / 0.1)";
+  const ACCENT22 = mode === "autoimmune" ? PURPLE + "22" : "hsl(var(--primary) / 0.13)";
+  const ACCENT66 = mode === "autoimmune" ? PURPLE + "66" : "hsl(var(--primary) / 0.4)";
+  const ACCENT99 = mode === "autoimmune" ? PURPLE + "99" : "hsl(var(--primary) / 0.6)";
+  const ACCENT12 = mode === "autoimmune" ? PURPLE + "12" : "hsl(var(--primary) / 0.07)";
+
+  useEffect(() => { setMode(getMode()); }, []);
 
   const [view, setView] = useState<"calendar" | "list">("calendar");
   const [cursor, setCursor] = useState({ year: now.getFullYear(), month: now.getMonth() });
   const [selected, setSelected] = useState<string | null>(null);
   const [events, setEvents] = useState<MedicalScheduleResponse[]>([]);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [refreshKey] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [careForm, setCareForm] = useState({
@@ -132,9 +144,16 @@ export default function SchedulePage() {
   const pickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const local = getLocalCareSchedules();
     listCareSchedules()
-      .then(setEvents)
-      .catch(() => setEvents([]));
+      .then((data) => {
+        const merged = [...local];
+        for (const e of data) {
+          if (!merged.some((x) => x.id === e.id)) merged.push(e);
+        }
+        setEvents(merged);
+      })
+      .catch(() => setEvents(local));
   }, [refreshKey]);
 
   useEffect(() => {
@@ -229,6 +248,34 @@ export default function SchedulePage() {
   async function handleCareSave() {
     if (!careForm.title.trim()) return;
     setCareSaving(true);
+
+    const tempId = editingId ?? Date.now();
+    const nowISO = new Date().toISOString();
+    const localItem: MedicalScheduleResponse = {
+      id: tempId,
+      schedule_type: careForm.schedule_type,
+      title: careForm.title.trim(),
+      scheduled_date: careForm.scheduled_date,
+      reminder_days_before: careForm.reminder_days_before,
+      note: careForm.note.trim() || null,
+      created_at: nowISO,
+      updated_at: nowISO,
+    };
+
+    // 즉시 로컬 저장 + 상태 반영
+    if (editingId !== null) {
+      updateLocalCareSchedule(editingId, localItem);
+      setEvents((prev) => prev.map((e) => e.id === editingId ? localItem : e));
+    } else {
+      addLocalCareSchedule(localItem);
+      setEvents((prev) => [...prev, localItem]);
+    }
+    setModalOpen(false);
+    setEditingId(null);
+    setCareForm({ schedule_type: "APPOINTMENT", title: "", scheduled_date: keyOf(new Date()), reminder_days_before: 1, note: "" });
+    setCareSaving(false);
+
+    // 백엔드 저장 시도 (실패해도 로컬에는 저장됨)
     try {
       const body = {
         schedule_type: careForm.schedule_type,
@@ -238,29 +285,25 @@ export default function SchedulePage() {
         note: careForm.note.trim() || null,
       };
       if (editingId !== null) {
-        await updateCareSchedule(editingId, body);
+        const saved = await updateCareSchedule(editingId, body);
+        updateLocalCareSchedule(editingId, saved);
+        setEvents((prev) => prev.map((e) => e.id === editingId ? saved : e));
       } else {
-        await createCareSchedule(body);
+        const saved = await createCareSchedule(body);
+        deleteLocalCareSchedule(tempId);
+        addLocalCareSchedule(saved);
+        setEvents((prev) => prev.map((e) => e.id === tempId ? saved : e));
       }
-      setModalOpen(false);
-      setEditingId(null);
-      setCareForm({ schedule_type: "APPOINTMENT", title: "", scheduled_date: keyOf(new Date()), reminder_days_before: 1, note: "" });
-      setRefreshKey((k) => k + 1);
     } catch {
-      /* 실패 시 유지 */
-    } finally {
-      setCareSaving(false);
+      /* 백엔드 미가동 — 로컬 유지 */
     }
   }
 
   async function handleCareDelete(id: number) {
     if (!confirm("일정을 삭제할까요?")) return;
-    try {
-      await deleteCareSchedule(id);
-      setRefreshKey((k) => k + 1);
-    } catch {
-      /* 실패 시 유지 */
-    }
+    deleteLocalCareSchedule(id);
+    setEvents((prev) => prev.filter((e) => e.id !== id));
+    try { await deleteCareSchedule(id); } catch { /* 백엔드 미가동 */ }
   }
 
   function prevMonth() {
@@ -309,23 +352,35 @@ export default function SchedulePage() {
         <div className="mb-5 flex items-center gap-3">
           <button
             onClick={() => router.push("/home")}
-            className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted"
+            className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted text-lg font-semibold"
             aria-label="뒤로가기"
           >
-            <ArrowLeft className="h-5 w-5" />
+            <ChevronLeft className="h-5 w-5" />
           </button>
           <h1 className="text-2xl font-bold">검사·진료 일정</h1>
         </div>
 
-        {/* 자가면역 배너 */}
+        {/* 일정 배너 — 모드별 분기 */}
         <div
-          className="flex items-center gap-3 rounded-2xl border p-4"
-          style={{ borderColor: PURPLE + "55", background: PURPLE + "12" }}
+          className={
+            mode === "autoimmune"
+              ? "flex items-center gap-3 rounded-2xl border p-4"
+              : "flex items-center gap-3 rounded-2xl border p-4 border-primary/30 bg-primary/5"
+          }
+          style={
+            mode === "autoimmune"
+              ? { borderColor: PURPLE + "55", background: PURPLE + "12" }
+              : undefined
+          }
         >
-          <CalendarDays className="h-6 w-6" style={{ color: PURPLE }} />
+          <CalendarDays className="h-6 w-6" style={{ color: ACCENT }} />
           <div>
-            <p className="font-bold">자가면역 일정 통합 관리</p>
-            <p className="text-sm" style={{ color: PURPLE }}>검사·진료·주사를 한 번에</p>
+            <p className="font-bold">
+              {mode === "autoimmune" ? "자가면역 일정 통합 관리" : "검사·진료 일정 관리"}
+            </p>
+            <p className="text-sm" style={{ color: ACCENT }}>
+              {mode === "autoimmune" ? "검사·진료·주사를 한 번에" : "예약·검사 일정을 한눈에 확인하세요"}
+            </p>
           </div>
         </div>
 
@@ -338,7 +393,7 @@ export default function SchedulePage() {
                 key={v}
                 onClick={() => setView(v)}
                 className="flex-1 rounded-xl py-2 text-sm font-semibold"
-                style={on ? { background: PURPLE, color: "#fff" } : { background: PURPLE + "14", color: PURPLE }}
+                style={on ? { background: ACCENT, color: "#fff" } : { background: ACCENT14, color: ACCENT }}
               >
                 {v === "calendar" ? "월간" : "리스트"}
               </button>
@@ -359,7 +414,7 @@ export default function SchedulePage() {
                   {month.year}년 {month.m}월
                   <ChevronDown
                     className="h-4 w-4 transition-transform"
-                    style={{ transform: showPicker ? "rotate(180deg)" : "rotate(0deg)", color: PURPLE }}
+                    style={{ transform: showPicker ? "rotate(180deg)" : "rotate(0deg)", color: ACCENT }}
                   />
                 </button>
                 <button onClick={nextMonth} className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted" aria-label="다음 달">
@@ -387,7 +442,7 @@ export default function SchedulePage() {
                           key={m}
                           onClick={() => selectMonthFromPicker(m)}
                           className="rounded-xl py-2 text-sm font-bold transition-colors"
-                          style={isSel ? { background: PURPLE, color: "#fff" } : { color: "#333" }}
+                          style={isSel ? { background: ACCENT, color: "#fff" } : { color: "#333" }}
                         >
                           {m}월
                         </button>
@@ -415,13 +470,13 @@ export default function SchedulePage() {
                   const hasEvent   = eventDays.has(day);
                   let spanStyle: React.CSSProperties = {};
                   let spanClass = "flex h-8 w-8 items-center justify-center rounded-full cursor-pointer transition-colors ";
-                  if (isToday)     { spanClass += "font-bold text-white"; spanStyle = { background: PURPLE }; }
-                  else if (isSel)  { spanClass += "font-bold"; spanStyle = { background: PURPLE + "22", color: PURPLE, outline: `2px solid ${PURPLE}` }; }
+                  if (isToday)     { spanClass += "font-bold text-white"; spanStyle = { background: ACCENT }; }
+                  else if (isSel)  { spanClass += "font-bold"; spanStyle = { background: ACCENT22, color: ACCENT, outline: `2px solid ${ACCENT}` }; }
                   else             { spanClass += "hover:bg-muted/60"; }
                   return (
                     <div key={i} className="flex flex-col items-center" onClick={() => handleDayClick(day)}>
                       <span className={spanClass} style={spanStyle}>{day}</span>
-                      {hasEvent && !isToday && <span className="mt-0.5 h-1 w-1 rounded-full" style={{ background: isSel ? PURPLE : PURPLE + "99" }} />}
+                      {hasEvent && !isToday && <span className="mt-0.5 h-1 w-1 rounded-full" style={{ background: isSel ? ACCENT : ACCENT99 }} />}
                       {hasEvent && isToday  && <span className="mt-0.5 h-1 w-1 rounded-full bg-white opacity-80" />}
                     </div>
                   );
@@ -472,12 +527,24 @@ export default function SchedulePage() {
               <button
                 onClick={openAdd}
                 className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed py-4 text-sm font-bold transition-colors hover:bg-muted/40"
-                style={{ borderColor: PURPLE + "66", color: PURPLE }}
+                style={{ borderColor: ACCENT66, color: ACCENT }}
               >
                 <Plus className="h-5 w-5" />
                 {selectedDay !== null ? `${month.m}월 ${selectedDay}일 일정 추가` : "일정 추가"}
               </button>
             </section>
+
+            {/* FAB — calendar view */}
+            <div className="pointer-events-none fixed inset-x-0 bottom-20 mx-auto flex max-w-md justify-end px-5">
+              <button
+                onClick={openAdd}
+                aria-label="일정 추가"
+                className="pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg"
+                style={{ background: ACCENT }}
+              >
+                <Plus className="h-6 w-6" />
+              </button>
+            </div>
           </>
         ) : (
           /* ── 리스트 뷰 ── */
@@ -507,7 +574,7 @@ export default function SchedulePage() {
                     <button key={i} onClick={() => setSelected((s) => s === k ? null : k)} className="flex flex-col items-center py-1">
                       <span
                         className={"flex h-8 w-8 items-center justify-center rounded-full " + (isToday ? "font-bold text-white" : inMonth ? "" : "text-muted-foreground/40")}
-                        style={isToday ? { background: PURPLE } : isSel ? { background: PURPLE + "22", color: PURPLE } : undefined}
+                        style={isToday ? { background: ACCENT } : isSel ? { background: ACCENT22, color: ACCENT } : undefined}
                       >
                         {date.getDate()}
                       </span>
@@ -565,7 +632,7 @@ export default function SchedulePage() {
                 }}
                 aria-label="일정 추가"
                 className="pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg"
-                style={{ background: PURPLE }}
+                style={{ background: ACCENT }}
               >
                 <Plus className="h-6 w-6" />
               </button>
@@ -629,7 +696,7 @@ export default function SchedulePage() {
                     key={d}
                     onClick={() => setCareForm((f) => ({ ...f, reminder_days_before: d }))}
                     className="flex-1 rounded-xl border py-2 text-sm font-medium"
-                    style={on ? { borderColor: PURPLE, color: PURPLE, background: PURPLE + "12" } : { borderColor: "#e5e7eb", color: "#6b7280" }}
+                    style={on ? { borderColor: ACCENT, color: ACCENT, background: ACCENT12 } : { borderColor: "#e5e7eb", color: "#6b7280" }}
                   >
                     {d}일 전
                   </button>
@@ -657,7 +724,7 @@ export default function SchedulePage() {
                 onClick={handleCareSave}
                 disabled={careSaving || !careForm.title.trim()}
                 className="flex-1 rounded-xl py-3 font-bold text-white disabled:opacity-50"
-                style={{ background: PURPLE }}
+                style={{ background: ACCENT }}
               >
                 {careSaving ? "저장 중..." : editingId !== null ? "수정" : "저장"}
               </button>

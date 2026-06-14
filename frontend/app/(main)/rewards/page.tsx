@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
-import { Home, Gamepad2, ChevronRight } from "lucide-react";
+import { ChevronLeft, Home, Gamepad2, ChevronRight } from "lucide-react";
 import {
   levelOf, levelName, progressRatio, nextLevelPoints,
 } from "@/features/gamification/types";
@@ -18,6 +19,7 @@ import { helcyLevelFromItems } from "@/features/gamification/room";
 type Tab = "badge" | "reward";
 
 export default function RewardsPage() {
+  const router = useRouter();
   const [tab, setTab] = useState<Tab>("badge");
   const [mounted, setMounted] = useState(false);
   const [points, setPoints] = useState(0);
@@ -57,7 +59,12 @@ export default function RewardsPage() {
 
   return (
     <main className="mx-auto w-full max-w-md px-5 pt-8">
-      <h1 className="text-2xl font-bold">포인트 · 보상</h1>
+      <div className="flex items-center gap-2">
+        <button onClick={() => router.back()} className="rounded-full p-1 hover:bg-accent" aria-label="뒤로가기">
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        <h1 className="text-2xl font-bold">포인트 · 보상</h1>
+      </div>
 
       {/* 헬씨 + 인사 */}
       <div className="mt-4 flex items-center gap-3 rounded-2xl bg-secondary/60 p-4">

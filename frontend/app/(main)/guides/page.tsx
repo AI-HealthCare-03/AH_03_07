@@ -1,22 +1,26 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
-import { BookOpen, Loader2 } from "lucide-react";
+import { ChevronLeft, BookOpen, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useGuides, useGuideJob, useGenerateGuide, useDeleteGuide, guideKeys } from "@/features/guides/queries";
+import { getMode } from "@/features/auth/mode";
 
 const PURPLE = "#7C5CCF";
 
 export default function GuidesPage() {
   const router = useRouter();
   const qc = useQueryClient();
+  const [isAutoimmune, setIsAutoimmune] = useState(false);
   const { data: guides = [], isLoading } = useGuides();
   const gen = useGenerateGuide();
   const del = useDeleteGuide();
+
+  useEffect(() => { setIsAutoimmune(getMode() === "autoimmune"); }, []);
 
   const [jobId, setJobId] = useState<number | null>(null);
   const [emergency, setEmergency] = useState(false);
@@ -56,20 +60,34 @@ export default function GuidesPage() {
     <main className="mx-auto w-full max-w-md px-5 pt-10">
       {/* 헤더 + 생성 버튼 */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">맞춤 안내문</h1>
-        <Button
-          onClick={handleGenerate}
-          disabled={isGenerating}
-          className="gap-2 text-white"
-          style={{ background: PURPLE }}
-        >
-          {isGenerating && <Loader2 className="h-4 w-4 animate-spin" />}
-          안내문 생성
-        </Button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => router.back()} className="rounded-full p-1 hover:bg-accent" aria-label="뒤로가기">
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <h1 className="text-2xl font-bold">맞춤 안내문</h1>
+        </div>
+        {isAutoimmune && (
+          <Button
+            onClick={handleGenerate}
+            disabled={isGenerating}
+            className="gap-2 text-white"
+            style={{ background: PURPLE }}
+          >
+            {isGenerating && <Loader2 className="h-4 w-4 animate-spin" />}
+            안내문 생성
+          </Button>
+        )}
       </div>
 
+      {/* 일반 모드 안내 */}
+      {!isAutoimmune && (
+        <div className="mt-4 rounded-lg bg-muted/60 px-4 py-3 text-sm text-muted-foreground">
+          맞춤 안내문은 자가면역 질환 모드에서 사용할 수 있습니다.
+        </div>
+      )}
+
       {/* 생성 진행 중 */}
-      {isGenerating && (
+      {isAutoimmune && isGenerating && (
         <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/60 px-4 py-3 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" style={{ color: PURPLE }} />
           안내문을 생성하고 있어요
@@ -106,6 +124,13 @@ export default function GuidesPage() {
           >
             의료진 확인 필요 신호 보기
           </Button>
+        </div>
+      )}
+
+      {/* API 호출 자체 실패 (401 등) */}
+      {isAutoimmune && gen.isError && !jobId && (
+        <div className="mt-4 rounded-lg bg-muted/60 px-4 py-3 text-sm text-muted-foreground">
+          안내문 생성 요청에 실패했어요. 로그인 상태를 확인하거나 잠시 후 다시 시도해 주세요.
         </div>
       )}
 
