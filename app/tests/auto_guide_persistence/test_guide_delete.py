@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
-
 from httpx import ASGITransport, AsyncClient
 from tortoise.contrib.test import TestCase
 
