@@ -159,7 +159,7 @@ export default function ChecklistPage() {
       let result = job;
       for (let i = 0; i < 30; i++) {
         await new Promise<void>((r) => setTimeout(r, 1000));
-        result = await getOcrJob(job.job_id);
+        result = await getOcrJob(job.job_id, doc.id);
         if (result.status === "completed" || result.status === "failed") break;
       }
       if (result.status === "completed" && result.structured_data) {
