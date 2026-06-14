@@ -66,6 +66,9 @@ export async function getMe(): Promise<UserProfile> {
 export interface UpdateMeRequest {
   name?: string;
   phone_number?: string;
+  birthday?: string;
+  height?: number;
+  weight?: number;
   chronic_diseases?: string;
   allergy_info?: string;
 }
