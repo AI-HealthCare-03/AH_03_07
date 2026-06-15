@@ -58,8 +58,6 @@ export default function NotificationsPage() {
   const isAutoimmune = getMode() === "autoimmune";
   const accent = isAutoimmune ? PURPLE : GREEN;
 
-  const items = apiItems;
-
   function handleClick(n: AppNotification) {
     if (!n.is_read) markReadMutation.mutate(n.id);
     switch (n.notification_type) {
@@ -72,14 +70,14 @@ export default function NotificationsPage() {
     }
   }
 
-  const groups = items.reduce((acc, n) => {
+  const groups = apiItems.reduce((acc, n) => {
     const key = dateGroup(n.created_at);
     if (!acc[key]) acc[key] = [];
     acc[key].push(n);
     return acc;
   }, {} as Record<string, typeof items>);
 
-  const groupKeys = ["오늘", "어제", ...Object.keys(groups).filter((k) => k !== "오늘" && k !== "어제")].filter((k) => groups[k]);
+  const groupKeys = ["오늘", "어제", ...Object.keys(groups).filter((k) => k !== "오늘" && k !== "어제")].filter((k) => !!groups[k]);
 
   return (
     <main className="mx-auto w-full max-w-md px-5 pt-6 pb-24">

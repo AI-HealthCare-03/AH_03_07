@@ -32,7 +32,7 @@ export async function confirmEmailVerifyCode(
 // REQ-USER-001: 회원가입
 export async function signup(req: SignupRequest): Promise<void> {
   await apiFetch("/v1/auth/signup", { method: "POST", body: req });
-  logger.info("auth", "회원가입 완료", { email: req.email });
+  logger.info("auth", "회원가입 완료", { email: req.email.replace(/(.{2}).+(@.+)/, "$1***$2") });
 }
 
 // REQ-USER-003: 로그인 (access_token 반환, refresh는 쿠키)
@@ -42,7 +42,7 @@ export async function login(req: LoginRequest): Promise<LoginResponse> {
     body: req,
   });
   if (res?.access_token) setAccessToken(res.access_token);
-  logger.info("auth", "로그인 성공", { email: req.email });
+  logger.info("auth", "로그인 성공", { email: req.email.replace(/(.{2}).+(@.+)/, "$1***$2") });
   return res;
 }
 

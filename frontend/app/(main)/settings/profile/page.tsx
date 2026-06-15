@@ -2,16 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getMe, updateMe, withdraw } from "@/features/auth/api";
+import { getMe, updateMe } from "@/features/auth/api";
+import { authKeys } from "@/features/auth/queries";
 
 const CHRONIC_OPTIONS = ["당뇨", "고혈압", "고지혈증", "심혈관 질환", "갑상선 질환", "기타"];
 
 export default function ProfileEditPage() {
   const router = useRouter();
+  const qc = useQueryClient();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [originalPhone, setOriginalPhone] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [height, setHeight] = useState("");
   const [weight, setWeight] = useState("");
@@ -20,13 +24,12 @@ export default function ProfileEditPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
-  const [showWithdraw, setShowWithdraw] = useState(false);
-  const [withdrawing, setWithdrawing] = useState(false);
 
   useEffect(() => {
     getMe().then((u) => {
       setName(u.name ?? "");
       setPhone(u.phone_number ?? "");
+      setOriginalPhone(u.phone_number ?? "");
       setBirthDate(u.birthday ?? "");
       setHeight(u.height != null ? String(u.height) : "");
       setWeight(u.weight != null ? String(u.weight) : "");
@@ -49,7 +52,7 @@ export default function ProfileEditPage() {
     try {
       await updateMe({
         name: name.trim() || undefined,
-        phone_number: phone.trim() || undefined,
+        phone_number: phone.trim() && phone.trim() !== originalPhone ? phone.trim() : undefined,
         birthday: birthDate.trim() || undefined,
         height: height.trim() ? Number(height) : undefined,
         weight: weight.trim() ? Number(weight) : undefined,
@@ -57,24 +60,13 @@ export default function ProfileEditPage() {
         allergy_info: allergy.trim() || undefined,
       });
       setSaved(true);
+      await qc.invalidateQueries({ queryKey: authKeys.me });
+      router.refresh();
       setTimeout(() => router.back(), 800);
     } catch (err) {
       setError(err instanceof Error ? err.message : "저장에 실패했습니다.");
     } finally {
       setSaving(false);
-    }
-  }
-
-  async function handleWithdraw() {
-    setWithdrawing(true);
-    try {
-      await withdraw();
-      router.replace("/auth/login");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "탈퇴에 실패했습니다.");
-      setShowWithdraw(false);
-    } finally {
-      setWithdrawing(false);
     }
   }
 
@@ -192,17 +184,6 @@ export default function ProfileEditPage() {
 
       {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
 
-      {/* 회원탈퇴 버튼 */}
-      <div className="mt-8 border-t border-border pt-6">
-        <button
-          type="button"
-          onClick={() => setShowWithdraw(true)}
-          className="text-sm text-destructive underline underline-offset-2"
-        >
-          회원 탈퇴
-        </button>
-      </div>
-
       {/* 저장 버튼 */}
       <div className="fixed inset-x-0 bottom-6 mx-auto max-w-md px-5">
         <Button className="w-full" size="lg" onClick={handleSave} disabled={saving || saved}>
@@ -210,35 +191,6 @@ export default function ProfileEditPage() {
         </Button>
       </div>
 
-      {/* 탈퇴 확인 모달 */}
-      {showWithdraw && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-5">
-          <div className="w-full max-w-sm rounded-2xl bg-card p-6 shadow-lg">
-            <h2 className="text-lg font-bold">정말 탈퇴하시겠어요?</h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              탈퇴하면 모든 의료 데이터가 즉시 삭제되며 복구할 수 없습니다.
-            </p>
-            <div className="mt-5 flex gap-3">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => setShowWithdraw(false)}
-                disabled={withdrawing}
-              >
-                취소
-              </Button>
-              <Button
-                variant="destructive"
-                className="flex-1"
-                onClick={handleWithdraw}
-                disabled={withdrawing}
-              >
-                {withdrawing ? "처리 중..." : "탈퇴하기"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </main>
   );
 }

@@ -156,7 +156,7 @@ export default function MedicationDetailPage() {
   const drugClass = med?.drug_class ?? "";
   const content = CONTENT[drugClass] ?? DEFAULT_CONTENT;
   const label = DRUG_CLASS_LABEL[drugClass];
-  const isAutoimmuneDrug = !!drugClass;
+  const isAutoimmuneDrug = ["STEROID", "IMMUNOSUPPRESSANT", "ANTIMALARIAL", "BIOLOGIC"].includes(drugClass);
   const tabs = isAutoimmuneDrug ? ALL_TABS : (ALL_TABS.filter((t) => t !== "자가면역") as Tab[]);
   const color = DRUG_CLASS_COLOR[drugClass] ?? (isAutoimmuneDrug ? AUTOIMMUNE_PURPLE : PRIMARY_GREEN);
   const nedrugsUrl = `https://nedrug.mfds.go.kr/searchDrug?searchYn=true&itemName=${encodeURIComponent(med?.name ?? "")}`;

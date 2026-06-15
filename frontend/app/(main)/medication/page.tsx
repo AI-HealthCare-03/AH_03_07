@@ -77,6 +77,8 @@ function DrugClassBadge({ drugClass }: { drugClass?: string }) {
   );
 }
 
+const AUTOIMMUNE_CLASSES = new Set(["STEROID", "IMMUNOSUPPRESSANT", "ANTIMALARIAL", "BIOLOGIC"]);
+
 type FilterType = "전체" | "자가면역" | "일반";
 
 export default function MedicationPage() {
@@ -85,12 +87,12 @@ export default function MedicationPage() {
   const deleteMutation = useDeleteMedication();
   const [confirmItem, setConfirmItem] = useState<{ id: number; name: string } | null>(null);
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<FilterType>("전체");
   const [mode, setMode] = useState<UserMode>("general");
 
   useEffect(() => { setMode(getMode()); }, []);
 
   const isAuto = mode === "autoimmune";
+  const [filter, setFilter] = useState<FilterType>(isAuto ? "자가면역" : "전체");
 
   function handleDelete(item: { id: number; name: string }) {
     deleteMutation.mutate(item, {
@@ -102,8 +104,8 @@ export default function MedicationPage() {
   const filtered = meds.filter((m) => {
     const matchSearch = m.name.toLowerCase().includes(search.toLowerCase());
     if (!matchSearch) return false;
-    if (filter === "자가면역") return !!m.drug_class;
-    if (filter === "일반") return !m.drug_class;
+    if (filter === "자가면역") return !!m.drug_class && AUTOIMMUNE_CLASSES.has(m.drug_class);
+    if (filter === "일반") return !m.drug_class || m.drug_class === "NSAID";
     return true;
   });
 
