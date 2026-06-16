@@ -1,7 +1,7 @@
 import json
 import os
 import re
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from gtts import gTTS
@@ -9,7 +9,7 @@ from openai import OpenAI
 from PIL import Image, ImageDraw, ImageFont
 
 from app.core import config
-from app.dtos.content_conversions import ContentConversionResponse
+from app.dtos.content_conversions import ContentConversionResponse, HealthSummaryTTSResponse
 from app.models.auto_guide import AutoGuide
 from app.models.content_conversions import ConversionStatus, ConversionType
 from app.repositories.content_conversion_repository import ContentConversionRepository
@@ -184,3 +184,66 @@ JSON 배열로만 반환해주세요. 각 문구는 한 줄 (20자 이내) 권�
         response = ContentConversionResponse.model_validate(conversion)
         response.guide_id = guide_id
         return response
+
+    async def create_health_summary_tts(self, user_id: UUID) -> HealthSummaryTTSResponse:
+        """오늘 건강 요약 TTS 생성"""
+        from app.repositories.diary_log_repository import DiaryLogRepository
+        from app.repositories.health_metric_repository import HealthMetricRepository
+        from app.repositories.medication_repository import MedicationRepository
+
+        today = date.today()
+
+        symptom_log = await DiaryLogRepository.get_symptom_log_by_date(user_id, today)
+        all_metrics = await HealthMetricRepository.get_user_metrics(user_id)
+        medications = await MedicationRepository.get_user_medications(user_id)
+
+        parts: list[str] = [f"{today.month}월 {today.day}일 건강 요약입니다."]
+
+        condition_map = {
+            "VERY_GOOD": "매우 좋음",
+            "GOOD": "좋음",
+            "NORMAL": "보통",
+            "BAD": "나쁨",
+            "VERY_BAD": "매우 나쁨",
+        }
+        if symptom_log:
+            label = condition_map.get(str(symptom_log.overall_condition), "보통")
+            parts.append(f"오늘 컨디션은 {label}입니다.")
+            if symptom_log.memo:
+                parts.append(f"메모: {symptom_log.memo}")
+        else:
+            parts.append("오늘 컨디션 기록이 없습니다.")
+
+        metric_meta: dict[str, tuple[str, str]] = {
+            "BLOOD_PRESSURE": ("혈압", ""),
+            "BLOOD_SUGAR": ("혈당", ""),
+            "WEIGHT": ("체중", "킬로그램"),
+            "HEART_RATE": ("심박수", ""),
+        }
+        seen: set[str] = set()
+        for m in all_metrics:
+            mt = str(m.metric_type)
+            if mt not in seen and mt in metric_meta:
+                seen.add(mt)
+                lbl, unit = metric_meta[mt]
+                val = float(m.user_recorded_value)
+                suffix = f" {unit}" if unit else ""
+                parts.append(f"최근 {lbl}은 {val:.1f}{suffix}입니다.")
+
+        active_meds = [med for med in medications if med.end_date is None or med.end_date >= today]
+        if active_meds:
+            names = ", ".join(m.drug_name_user_input for m in active_meds[:5])
+            parts.append(f"복용 중인 약은 {names}입니다.")
+        else:
+            parts.append("등록된 복약 정보가 없습니다.")
+
+        summary_text = " ".join(parts)
+        tts = gTTS(text=summary_text, lang="ko", slow=False)
+        filename = f"health_summary_{user_id}_{today.strftime('%Y%m%d')}.mp3"
+        filepath = os.path.join(self.audio_dir, filename)
+        tts.save(filepath)
+
+        return HealthSummaryTTSResponse(
+            audio_url=f"/static/audio/{filename}",
+            summary_text=summary_text,
+        )

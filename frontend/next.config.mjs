@@ -35,6 +35,10 @@ const nextConfig = {
         source: "/api/:path*",
         destination: `${BACKEND_ORIGIN}/api/:path*`,
       },
+      {
+        source: "/static/:path*",
+        destination: `${BACKEND_ORIGIN}/static/:path*`,
+      },
     ];
   },
   async headers() {

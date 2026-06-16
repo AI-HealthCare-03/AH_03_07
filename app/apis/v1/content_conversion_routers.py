@@ -6,6 +6,7 @@ from app.dependencies.security import get_request_user
 from app.dtos.content_conversions import (
     CardNewsCreateRequest,
     ContentConversionResponse,
+    HealthSummaryTTSResponse,
 )
 from app.models.users import User
 from app.services.content_conversions import ContentConversionService
@@ -31,3 +32,12 @@ async def create_tts(
     """가이드 → 음성 변환 (CONT-002)"""
     service = ContentConversionService()
     return await service.create_tts(user.id, data.guide_id)
+
+
+@content_router.post("/health-summary-tts", response_model=HealthSummaryTTSResponse, status_code=status.HTTP_200_OK)
+async def create_health_summary_tts(
+    user: Annotated[User, Depends(get_request_user)],
+):
+    """오늘 컨디션·건강수치·복약 요약 음성 생성"""
+    service = ContentConversionService()
+    return await service.create_health_summary_tts(user.id)
