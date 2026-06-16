@@ -2,10 +2,13 @@ import secrets
 from datetime import datetime, timedelta
 from uuid import UUID
 
+from fastapi import HTTPException, status
+
 from app.dtos.care import (
     GuardianCreateRequest,
     GuardianListResponse,
     GuardianResponse,
+    GuardianViewResponse,
     ShareLinkCreateRequest,
     ShareLinkListResponse,
     ShareLinkResponse,
@@ -29,6 +32,20 @@ class CareService:
             email=data.email,
             relationship=data.relationship,
         )
+        return GuardianResponse.model_validate(guardian)
+
+    async def delete_guardian(self, user_id: UUID, guardian_id: UUID) -> GuardianResponse:
+        """보호자 삭제 (소프트 삭제)"""
+        guardian = await self.repo.deactivate_guardian(user_id, guardian_id)
+        if not guardian:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="보호자를 찾을 수 없습니다.")
+        return GuardianResponse.model_validate(guardian)
+
+    async def get_guardian(self, user_id: UUID, guardian_id: UUID) -> GuardianResponse:
+        """단일 보호자 조회 (본인 소유 검증 포함)"""
+        guardian = await self.repo.get_guardian_by_id(user_id, guardian_id)
+        if not guardian:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="보호자를 찾을 수 없습니다.")
         return GuardianResponse.model_validate(guardian)
 
     async def get_my_guardians(self, user_id: UUID) -> GuardianListResponse:
@@ -86,3 +103,24 @@ class CareService:
         response = ShareLinkResponse.model_validate(link)
         response.guardian_id = link.guardian_id
         return response
+
+    async def view_share_link(self, token: str, viewer_ip: str | None = None) -> GuardianViewResponse:
+        """토큰으로 공유 링크 조회 → 만료·철회 검증 → 접근 로그 → 의료정보 반환"""
+        link = await self.repo.get_share_link_by_token(token)
+        if not link:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="유효하지 않은 공유 링크입니다.")
+
+        now = datetime.now()
+        expires_at = link.expires_at.replace(tzinfo=None) if link.expires_at.tzinfo else link.expires_at
+        if expires_at < now:
+            raise HTTPException(status_code=status.HTTP_410_GONE, detail="만료된 공유 링크입니다.")
+
+        await self.repo.log_share_access(link.id, viewer_ip)
+
+        return GuardianViewResponse(
+            share_id=link.id,
+            categories=link.categories,
+            include_summary_only=link.include_summary_only,
+            expires_at=link.expires_at,
+            viewed_at=now,
+        )

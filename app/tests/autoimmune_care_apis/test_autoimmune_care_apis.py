@@ -40,7 +40,7 @@ class TestMedicationCardApis(TestCase):
             token = await _signup_and_login(client, "card_data@example.com", "01033330002")
             headers = {"Authorization": f"Bearer {token}"}
             await client.post(
-                "/api/v1/medications",
+                "/api/v1/user-medications",
                 json={
                     "medications": [
                         {
@@ -70,7 +70,7 @@ class TestMedicationCardApis(TestCase):
             token_a = await _signup_and_login(client, "card_owner@example.com", "01033330003")
             token_b = await _signup_and_login(client, "card_other@example.com", "01033330004")
             await client.post(
-                "/api/v1/medications",
+                "/api/v1/user-medications",
                 json={"medications": [{"name": "프레드니솔론", "drug_class": "STEROID", "is_injection": False}]},
                 headers={"Authorization": f"Bearer {token_a}"},
             )
@@ -90,7 +90,7 @@ class TestMedicationCardApis(TestCase):
             token = await _signup_and_login(client, "notes_steroid@example.com", "01033330009")
             headers = {"Authorization": f"Bearer {token}"}
             await client.post(
-                "/api/v1/medications",
+                "/api/v1/user-medications",
                 json={"medications": [{"name": "프레드니솔론", "drug_class": "STEROID", "is_injection": False}]},
                 headers=headers,
             )
@@ -105,7 +105,7 @@ class TestMedicationCardApis(TestCase):
             token = await _signup_and_login(client, "notes_match@example.com", "01033330010")
             headers = {"Authorization": f"Bearer {token}"}
             await client.post(
-                "/api/v1/medications",
+                "/api/v1/user-medications",
                 json={
                     "medications": [
                         {"name": "메토트렉세이트", "drug_class": "IMMUNOSUPPRESSANT", "is_injection": False},

@@ -1,0 +1,49 @@
+/** @type {import('next').NextConfig} */
+const BACKEND_ORIGIN = process.env.BACKEND_ORIGIN;
+if (!BACKEND_ORIGIN && !process.env.CI) throw new Error("BACKEND_ORIGIN 환경변수가 설정되지 않았습니다.");
+
+// 보안 헤더 (NFR-SEC). connect-src 'self' → 브라우저는 같은 origin(/api 프록시)으로만 통신.
+const securityHeaders = [
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=(self)" },
+  {
+    key: "Content-Security-Policy",
+    value: [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googleapis.com https://*.gstatic.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "img-src 'self' data: blob: https://*.googleapis.com https://*.gstatic.com",
+      "font-src 'self' data: https://fonts.gstatic.com",
+      "connect-src 'self' https://*.googleapis.com",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "object-src 'none'",
+    ].join("; "),
+  },
+];
+
+const nextConfig = {
+  reactStrictMode: true,
+  poweredByHeader: false,
+  // /api/* 요청을 EC2 백엔드로 프록시 (브라우저는 같은 origin으로만 통신 → Mixed Content/CORS 회피)
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${BACKEND_ORIGIN}/api/:path*`,
+      },
+      {
+        source: "/static/:path*",
+        destination: `${BACKEND_ORIGIN}/static/:path*`,
+      },
+    ];
+  },
+  async headers() {
+    return [{ source: "/:path*", headers: securityHeaders }];
+  },
+};
+
+export default nextConfig;

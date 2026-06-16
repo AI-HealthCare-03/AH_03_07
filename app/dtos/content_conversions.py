@@ -1,0 +1,30 @@
+from datetime import datetime
+from uuid import UUID
+
+from pydantic import BaseModel
+
+from app.models.content_conversions import ConversionStatus, ConversionType
+
+
+class CardNewsCreateRequest(BaseModel):
+    guide_id: int
+
+
+class ContentConversionResponse(BaseModel):
+    id: UUID
+    guide_id: int
+    conversion_type: ConversionType
+    status: ConversionStatus
+    file_url: str | None
+    file_urls: list[str] | None
+    error_message: str | None
+    created_at: datetime
+    completed_at: datetime | None
+
+    class Config:
+        from_attributes = True
+
+
+class HealthSummaryTTSResponse(BaseModel):
+    audio_url: str
+    summary_text: str

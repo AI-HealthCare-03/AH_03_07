@@ -1,7 +1,6 @@
 import os
 import uuid
 import zoneinfo
-from dataclasses import field
 from enum import StrEnum
 from pathlib import Path
 
@@ -19,7 +18,7 @@ class Config(BaseSettings):
 
     ENV: Env = Env.LOCAL
     SECRET_KEY: str = f"default-secret-key{uuid.uuid4().hex}"
-    TIMEZONE: zoneinfo.ZoneInfo = field(default_factory=lambda: zoneinfo.ZoneInfo("Asia/Seoul"))
+    TIMEZONE: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("Asia/Seoul")
     TEMPLATE_DIR: str = os.path.join(Path(__file__).resolve().parent.parent, "templates")
 
     DB_HOST: str = "localhost"
@@ -39,9 +38,15 @@ class Config(BaseSettings):
     QDRANT_PORT: int = 6333
     MEDIA_DIR: str = "media"
 
+    GMAIL_USER: str = ""
+    GMAIL_APP_PASSWORD: str = ""
+
     COOKIE_DOMAIN: str = "localhost"
 
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 14 * 24 * 60
     JWT_LEEWAY: int = 5
+
+    # REQ-FEED-002: 가명처리 매핑 키 (DB와 물리적 분리, 최소 32자)
+    ANONYMIZATION_SECRET_KEY: str = f"default-anon-key-{uuid.uuid4().hex}"

@@ -19,8 +19,9 @@ class UserMedication(models.Model):
     id = fields.BigIntField(primary_key=True)
     user = fields.ForeignKeyField("models.User", related_name="medications", on_delete=fields.CASCADE)
     name = fields.CharField(max_length=128)
-    drug_class = fields.CharEnumField(enum_type=DrugClass, max_length=24)
+    drug_class = fields.CharEnumField(enum_type=DrugClass, max_length=24, null=True)
     is_injection = fields.BooleanField(default=False)
+    end_date = fields.DateField(null=True)  # REQ-NOTI-007: 처방 종료일
     note = fields.TextField(null=True)
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)

@@ -28,6 +28,8 @@ class UserUpdateRequest(BaseModel):
         Gender | None,
         Field(None, description="'MALE' or 'FEMALE'"),
     ]
+    height: Annotated[float | None, Field(None, ge=0, le=300, description="키 (cm)")]
+    weight: Annotated[float | None, Field(None, ge=0, le=500, description="몸무게 (kg)")]
 
 
 class UserInfoResponse(BaseSerializerModel):
@@ -37,4 +39,13 @@ class UserInfoResponse(BaseSerializerModel):
     phone_number: str
     birthday: date
     gender: Gender
+    height: float | None = None
+    weight: float | None = None
     created_at: datetime
+
+
+class AutoimmuneOnboardingStatusResponse(BaseModel):
+    consent_done: bool
+    disease_done: bool
+    risk_profile_done: bool
+    completed: bool
