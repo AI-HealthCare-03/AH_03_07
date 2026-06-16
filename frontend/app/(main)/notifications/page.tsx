@@ -75,7 +75,7 @@ export default function NotificationsPage() {
     if (!acc[key]) acc[key] = [];
     acc[key].push(n);
     return acc;
-  }, {} as Record<string, typeof items>);
+  }, {} as Record<string, typeof apiItems>);
 
   const groupKeys = ["오늘", "어제", ...Object.keys(groups).filter((k) => k !== "오늘" && k !== "어제")].filter((k) => !!groups[k]);
 
@@ -90,7 +90,7 @@ export default function NotificationsPage() {
 
       {isLoading ? (
         <p className="mt-8 text-sm text-muted-foreground">불러오는 중...</p>
-      ) : items.length === 0 ? (
+      ) : apiItems.length === 0 ? (
         <p className="mt-8 text-center text-sm text-muted-foreground">알림이 없습니다.</p>
       ) : (
         <div className="mt-6 space-y-8">

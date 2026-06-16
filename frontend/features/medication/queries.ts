@@ -7,13 +7,13 @@ import { withTimeout } from "@/lib/query/util";
 export const medicationKeys = { all: ["medications"] as const };
 
 async function fetchMedications(): Promise<MedicationDetail[]> {
+  const deletedIds = new Set(getDeletedMeds().map((d) => d.id));
   try {
     const server = await withTimeout(getUserMedications());
-    if (server.length > 0) return server;
+    if (server.length > 0) return server.filter((m) => !deletedIds.has(m.id));
   } catch {
     // 백엔드 미가동 시 로컬 폴백
   }
-  const deletedIds = new Set(getDeletedMeds().map((d) => d.id));
   return (getLocalMeds() as MedicationDetail[]).filter((m) => !deletedIds.has(m.id));
 }
 
