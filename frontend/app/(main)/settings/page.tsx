@@ -69,6 +69,10 @@ export default function SettingsPage() {
     setError(null);
     try {
       await withdraw();
+      localStorage.removeItem("mg_medications_v1");
+      localStorage.removeItem("mg_deleted_meds_v2");
+      localStorage.removeItem("userMode");
+      localStorage.removeItem("fontSize");
       router.replace("/login");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "탈퇴에 실패했습니다.");

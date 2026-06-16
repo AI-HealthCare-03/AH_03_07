@@ -65,6 +65,8 @@ export const GENERAL_DRUG_SUGGESTIONS = [
   "비타민D",
   "오메가3",
   "마그네슘",
+  "신일플산정",
+  "알파키연질캡슐1마이크로그램",
 ] as const;
 
 /** 자가면역 모드 약품 자동완성 목록 */
@@ -98,4 +100,5 @@ export const AUTOIMMUNE_DRUG_SUGGESTIONS = [
   "엽산",
   "엽산 1mg",
   "엽산 5mg",
+  "올루미언트정 4mg",
 ] as const;

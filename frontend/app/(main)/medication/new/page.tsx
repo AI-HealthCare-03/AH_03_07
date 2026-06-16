@@ -114,7 +114,7 @@ export default function MedicationNewPage() {
         name: v.name,
         drug_class: isAutoimmune
           ? (CATEGORY_TO_DRUG_CLASS[v.category] ?? "IMMUNOSUPPRESSANT")
-          : undefined,
+          : "NSAID",
         note: v.memo || undefined,
         timings: v.timings,
         timing_times: Object.keys(times).length ? times : undefined,

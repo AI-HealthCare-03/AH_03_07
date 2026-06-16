@@ -10,27 +10,26 @@ import {
   RefreshCw, Gift, Home, Gamepad2, BookOpen, MapPin, Users,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { getMe, logout } from "@/features/auth/api";
 import { getMode, type UserMode } from "@/features/auth/mode";
-import type { UserProfile } from "@/features/auth/types";
+import { useMe, useLogout } from "@/features/auth/queries";
 
 const PURPLE = "#7C5CCF";
 
 export default function MyPage() {
   const router = useRouter();
-  const [user, setUser] = useState<UserProfile | null>(null);
   const [mode, setModeState] = useState<UserMode>("general");
+  const { data: user } = useMe();
+  const logoutMutation = useLogout();
 
   useEffect(() => {
     setModeState(getMode());
-    getMe().then(setUser).catch(() => {});
   }, []);
 
   const isAuto = (user?.user_type ?? mode) === "autoimmune";
   const accent = isAuto ? PURPLE : undefined;
 
   async function handleLogout() {
-    await logout();
+    await logoutMutation.mutateAsync();
     router.replace("/login");
   }
 
