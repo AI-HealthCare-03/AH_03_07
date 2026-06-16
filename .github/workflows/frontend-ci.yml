@@ -31,6 +31,8 @@ jobs:
 
       - name: Lint
         run: npm run lint
+        env:
+          BACKEND_ORIGIN: http://placeholder
 
       - name: Test
         run: npm test
