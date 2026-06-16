@@ -2,9 +2,8 @@ from datetime import datetime
 from pathlib import Path
 from uuid import UUID
 
-from jinja2 import Environment, FileSystemLoader, select_autoescape
-
 from fastapi import HTTPException, status
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.dtos.diary_logs import (
     MedicationLogCreateRequest,
