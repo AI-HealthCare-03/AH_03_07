@@ -2,6 +2,7 @@ from datetime import datetime
 from pathlib import Path
 from uuid import UUID
 
+from fastapi import HTTPException, status
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.dtos.diary_logs import (
@@ -52,6 +53,12 @@ class DiaryLogService:
             memo=data.memo,
         )
         return SymptomLogResponse.model_validate(new_log)
+
+    async def delete_symptom_log(self, user_id: UUID, log_id: UUID) -> None:
+        """증상 기록 삭제"""
+        deleted = await self.repo.delete_symptom_log(user_id=user_id, log_id=log_id)
+        if not deleted:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="기록을 찾을 수 없습니다.")
 
     # ========== 복약 기록 ==========
     async def get_medication_logs(self, user_id: UUID) -> MedicationLogListResponse:
