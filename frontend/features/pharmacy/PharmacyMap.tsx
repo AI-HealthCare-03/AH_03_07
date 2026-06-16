@@ -15,9 +15,9 @@ function MapMarkers({ userLocation, pharmacies }: Props) {
   const map = useMap();
   const userPannedRef = useRef(false);
   const prevPharmaciesRef = useRef<Pharmacy[]>([]);
+  const markerRefs = useRef<Record<number, google.maps.marker.AdvancedMarkerElement | null>>({});
 
-  const [selectedPharmacy, setSelectedPharmacy] = useState<Pharmacy | null>(null);
-  const [selectedMarker, setSelectedMarker] = useState<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   // 위치 확인 시 지도 초기 이동 (한 번)
   useEffect(() => {
@@ -33,8 +33,7 @@ function MapMarkers({ userLocation, pharmacies }: Props) {
     if (!map || pharmacies === prevPharmaciesRef.current) return;
     prevPharmaciesRef.current = pharmacies;
 
-    setSelectedPharmacy(null);
-    setSelectedMarker(null);
+    setSelectedId(null);
 
     const first = pharmacies.find((p) => p.lat != null && p.lng != null);
     if (first) {
@@ -45,6 +44,9 @@ function MapMarkers({ userLocation, pharmacies }: Props) {
       map.setZoom(15);
     }
   }, [map, pharmacies, userLocation]);
+
+  const selectedPharmacy = selectedId != null ? pharmacies.find((p) => p.id === selectedId) : null;
+  const selectedMarker = selectedId != null ? markerRefs.current[selectedId] : null;
 
   return (
     <>
@@ -70,17 +72,10 @@ function MapMarkers({ userLocation, pharmacies }: Props) {
         .map((p) => (
           <AdvancedMarker
             key={p.id}
+            ref={(marker) => { markerRefs.current[p.id] = marker; }}
             position={{ lat: p.lat!, lng: p.lng! }}
             zIndex={5}
-            onClick={(e) => {
-              if (selectedPharmacy?.id === p.id) {
-                setSelectedPharmacy(null);
-                setSelectedMarker(null);
-              } else {
-                setSelectedPharmacy(p);
-                setSelectedMarker(e.marker);
-              }
-            }}
+            onClick={() => setSelectedId((prev) => (prev === p.id ? null : p.id))}
           >
             <Pin background="#F97316" borderColor="#EA580C" glyphColor="#ffffff" />
           </AdvancedMarker>
@@ -90,10 +85,7 @@ function MapMarkers({ userLocation, pharmacies }: Props) {
       {selectedPharmacy && selectedMarker && (
         <InfoWindow
           anchor={selectedMarker}
-          onCloseClick={() => {
-            setSelectedPharmacy(null);
-            setSelectedMarker(null);
-          }}
+          onCloseClick={() => setSelectedId(null)}
         >
           <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>
             {selectedPharmacy.name}
