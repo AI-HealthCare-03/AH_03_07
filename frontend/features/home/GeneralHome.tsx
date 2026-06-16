@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Volume2, Loader2, X } from "lucide-react";
 import HomeHeader from "./components/HomeHeader";
 import MedicationCard from "./components/MedicationCard";
 import SectionCard from "./components/SectionCard";
 import type { MedicationStatus } from "@/features/dashboard/api";
 import { METRIC_LABEL, METRIC_UNIT, type HealthMetric, type MetricType } from "@/features/health-metrics/api";
 import { getDiaryLogs, type DiaryLog } from "@/features/diary/api";
+import { apiFetch } from "@/lib/api/client";
 
 interface GeneralHomeProps {
   name: string;
@@ -44,8 +45,17 @@ function getMetricValueColor(type: MetricType, value: number): string {
   return "";
 }
 
+interface TtsData {
+  audioUrl: string;
+  summaryText: string;
+}
+
 export default function GeneralHome({ name, medications, recentMetrics }: GeneralHomeProps) {
   const [todayLog, setTodayLog] = useState<DiaryLog | null>(null);
+  const [ttsLoading, setTtsLoading] = useState(false);
+  const [ttsData, setTtsData] = useState<TtsData | null>(null);
+  const [ttsError, setTtsError] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const todayLabel = useMemo(() => {
     const now = new Date();
@@ -66,12 +76,78 @@ export default function GeneralHome({ name, medications, recentMetrics }: Genera
       .catch(() => {});
   }, [todayStr]);
 
+  const handleTts = async () => {
+    if (ttsLoading) return;
+    setTtsLoading(true);
+    setTtsError(null);
+    try {
+      const res = await apiFetch<{ audio_url: string; summary_text: string }>(
+        "/v1/contents/health-summary-tts",
+        { method: "POST" }
+      );
+      const data: TtsData = { audioUrl: res.audio_url, summaryText: res.summary_text };
+      setTtsData(data);
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      const audio = new Audio(data.audioUrl);
+      audioRef.current = audio;
+      audio.play().catch(() => {});
+    } catch {
+      setTtsError("음성 생성에 실패했습니다.");
+    } finally {
+      setTtsLoading(false);
+    }
+  };
+
   const condition = todayLog?.condition ?? todayLog?.overall_condition;
 
   return (
     <main className="mx-auto w-full max-w-md px-5 pb-24 pt-10">
       <HomeHeader name={name} mode="general" />
-      <p className="mt-1 text-sm text-muted-foreground">{todayLabel}</p>
+      <div className="mt-1 flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">{todayLabel}</p>
+        <button
+          onClick={handleTts}
+          disabled={ttsLoading}
+          className="flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-primary active:bg-primary/20 disabled:opacity-50"
+          aria-label="건강 요약 음성 듣기"
+        >
+          {ttsLoading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Volume2 className="h-4 w-4" />
+          )}
+          <span className="text-xs font-medium">요약 듣기</span>
+        </button>
+      </div>
+
+      {/* TTS 요약 카드 */}
+      {ttsError && (
+        <div className="mt-3 flex items-start justify-between gap-2 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
+          <span>{ttsError}</span>
+          <button onClick={() => setTtsError(null)} className="shrink-0">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+      {ttsData && (
+        <div className="mt-3 flex items-start justify-between gap-2 rounded-xl bg-primary/5 px-4 py-3">
+          <div className="flex items-start gap-2">
+            <Volume2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+            <p className="text-sm leading-relaxed text-foreground">{ttsData.summaryText}</p>
+          </div>
+          <button
+            onClick={() => {
+              audioRef.current?.pause();
+              setTtsData(null);
+            }}
+            className="shrink-0 text-muted-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       <div className="mt-8 flex flex-col gap-8">
         {/* 오늘 컨디션 */}

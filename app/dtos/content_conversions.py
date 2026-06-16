@@ -23,3 +23,8 @@ class ContentConversionResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class HealthSummaryTTSResponse(BaseModel):
+    audio_url: str
+    summary_text: str
